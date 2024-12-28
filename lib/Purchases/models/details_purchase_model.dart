@@ -14,28 +14,28 @@ class DetailsPurchaseModel {
   String? Color;
   String? Country;
   String? Usage;
-  String? WarehouseAmount;
+  String? Warehouse_Amount;
   String? Quantity;
   String? Unit;
-  String? RequiredDate;
+  String? Required_Date;
   String? Supplier;
-  String? IDMaintenance;
-  String? LastPurchase;
-  String? LastPrice;
+  String? ID_Maintenance;
+  String? Last_Purchase;
+  String? Last_Price;
   String? Notes;
   int? Approved;
-  String? ApprovedDate;
-  String? ManagerNote;
-  String? RealSupplier;
+  String? Approved_Date;
+  String? Manager_Note;
+  String? Real_Supplier;
   String? Buyer;
-  String? ExpectedDate;
-  String? BuyDate;
+  String? Expected_Date;
+  String? Buy_Date;
   String? Price;
   String? Offer1;
   String? Offer2;
   String? Offer3;
   int? Received;
-  String? ReceivedDate;
+  String? Received_Date;
   int? Archived;
   DetailsPurchaseModel({
     this.Pur_ID,
@@ -50,28 +50,28 @@ class DetailsPurchaseModel {
     this.Color,
     this.Country,
     this.Usage,
-    this.WarehouseAmount,
+    this.Warehouse_Amount,
     this.Quantity,
     this.Unit,
-    this.RequiredDate,
+    this.Required_Date,
     this.Supplier,
-    this.IDMaintenance,
-    this.LastPurchase,
-    this.LastPrice,
+    this.ID_Maintenance,
+    this.Last_Purchase,
+    this.Last_Price,
     this.Notes,
     this.Approved,
-    this.ApprovedDate,
-    this.ManagerNote,
-    this.RealSupplier,
+    this.Approved_Date,
+    this.Manager_Note,
+    this.Real_Supplier,
     this.Buyer,
-    this.ExpectedDate,
-    this.BuyDate,
+    this.Expected_Date,
+    this.Buy_Date,
     this.Price,
     this.Offer1,
     this.Offer2,
     this.Offer3,
     this.Received,
-    this.ReceivedDate,
+    this.Received_Date,
     this.Archived,
   });
 
@@ -88,28 +88,28 @@ class DetailsPurchaseModel {
     String? Color,
     String? Country,
     String? Usage,
-    String? WarehouseAmount,
+    String? Warehouse_Amount,
     String? Quantity,
     String? Unit,
-    String? RequiredDate,
+    String? Required_Date,
     String? Supplier,
-    String? IDMaintenance,
-    String? LastPurchase,
-    String? LastPrice,
+    String? ID_Maintenance,
+    String? Last_Purchase,
+    String? Last_Price,
     String? Notes,
     int? Approved,
-    String? ApprovedDate,
-    String? ManagerNote,
-    String? RealSupplier,
+    String? Approved_Date,
+    String? Manager_Note,
+    String? Real_Supplier,
     String? Buyer,
-    String? ExpectedDate,
-    String? BuyDate,
+    String? Expected_Date,
+    String? Buy_Date,
     String? Price,
     String? Offer1,
     String? Offer2,
     String? Offer3,
     int? Received,
-    String? ReceivedDate,
+    String? Received_Date,
     int? Archived,
   }) {
     return DetailsPurchaseModel(
@@ -125,28 +125,28 @@ class DetailsPurchaseModel {
       Color: Color ?? this.Color,
       Country: Country ?? this.Country,
       Usage: Usage ?? this.Usage,
-      WarehouseAmount: WarehouseAmount ?? this.WarehouseAmount,
+      Warehouse_Amount: Warehouse_Amount ?? this.Warehouse_Amount,
       Quantity: Quantity ?? this.Quantity,
       Unit: Unit ?? this.Unit,
-      RequiredDate: RequiredDate ?? this.RequiredDate,
+      Required_Date: Required_Date ?? this.Required_Date,
       Supplier: Supplier ?? this.Supplier,
-      IDMaintenance: IDMaintenance ?? this.IDMaintenance,
-      LastPurchase: LastPurchase ?? this.LastPurchase,
-      LastPrice: LastPrice ?? this.LastPrice,
+      ID_Maintenance: ID_Maintenance ?? this.ID_Maintenance,
+      Last_Purchase: Last_Purchase ?? this.Last_Purchase,
+      Last_Price: Last_Price ?? this.Last_Price,
       Notes: Notes ?? this.Notes,
       Approved: Approved ?? this.Approved,
-      ApprovedDate: ApprovedDate ?? this.ApprovedDate,
-      ManagerNote: ManagerNote ?? this.ManagerNote,
-      RealSupplier: RealSupplier ?? this.RealSupplier,
+      Approved_Date: Approved_Date ?? this.Approved_Date,
+      Manager_Note: Manager_Note ?? this.Manager_Note,
+      Real_Supplier: Real_Supplier ?? this.Real_Supplier,
       Buyer: Buyer ?? this.Buyer,
-      ExpectedDate: ExpectedDate ?? this.ExpectedDate,
-      BuyDate: BuyDate ?? this.BuyDate,
+      Expected_Date: Expected_Date ?? this.Expected_Date,
+      Buy_Date: Buy_Date ?? this.Buy_Date,
       Price: Price ?? this.Price,
       Offer1: Offer1 ?? this.Offer1,
       Offer2: Offer2 ?? this.Offer2,
       Offer3: Offer3 ?? this.Offer3,
       Received: Received ?? this.Received,
-      ReceivedDate: ReceivedDate ?? this.ReceivedDate,
+      Received_Date: Received_Date ?? this.Received_Date,
       Archived: Archived ?? this.Archived,
     );
   }
@@ -165,28 +165,28 @@ class DetailsPurchaseModel {
       'Color': Color,
       'Country': Country,
       'Usage': Usage,
-      'WarehouseAmount': WarehouseAmount,
+      'Warehouse_Amount': Warehouse_Amount,
       'Quantity': Quantity,
       'Unit': Unit,
-      'RequiredDate': RequiredDate,
+      'Required_Date': Required_Date,
       'Supplier': Supplier,
-      'IDMaintenance': IDMaintenance,
-      'LastPurchase': LastPurchase,
-      'LastPrice': LastPrice,
+      'ID_Maintenance': ID_Maintenance,
+      'Last_Purchase': Last_Purchase,
+      'Last_Price': Last_Price,
       'Notes': Notes,
       'Approved': Approved,
-      'ApprovedDate': ApprovedDate,
-      'ManagerNote': ManagerNote,
-      'RealSupplier': RealSupplier,
+      'Approved_Date': Approved_Date,
+      'Manager_Note': Manager_Note,
+      'Real_Supplier': Real_Supplier,
       'Buyer': Buyer,
-      'ExpectedDate': ExpectedDate,
-      'BuyDate': BuyDate,
+      'Expected_Date': Expected_Date,
+      'Buy_Date': Buy_Date,
       'Price': Price,
       'Offer1': Offer1,
       'Offer2': Offer2,
       'Offer3': Offer3,
       'Received': Received,
-      'ReceivedDate': ReceivedDate,
+      'Received_Date': Received_Date,
       'Archived': Archived,
     };
   }
@@ -208,38 +208,40 @@ class DetailsPurchaseModel {
       Color: map['Color'] != null ? map['Color'] as String : null,
       Country: map['Country'] != null ? map['Country'] as String : null,
       Usage: map['Usage'] != null ? map['Usage'] as String : null,
-      WarehouseAmount: map['WarehouseAmount'] != null
-          ? map['WarehouseAmount'] as String
+      Warehouse_Amount: map['Warehouse_Amount'] != null
+          ? map['Warehouse_Amount'] as String
           : null,
       Quantity: map['Quantity'] != null ? map['Quantity'] as String : null,
       Unit: map['Unit'] != null ? map['Unit'] as String : null,
-      RequiredDate:
-          map['RequiredDate'] != null ? map['RequiredDate'] as String : null,
+      Required_Date:
+          map['Required_Date'] != null ? map['Required_Date'] as String : null,
       Supplier: map['Supplier'] != null ? map['Supplier'] as String : null,
-      IDMaintenance:
-          map['IDMaintenance'] != null ? map['IDMaintenance'] as String : null,
-      LastPurchase:
-          map['LastPurchase'] != null ? map['LastPurchase'] as String : null,
-      LastPrice: map['LastPrice'] != null ? map['LastPrice'] as String : null,
+      ID_Maintenance: map['ID_Maintenance'] != null
+          ? map['ID_Maintenance'] as String
+          : null,
+      Last_Purchase:
+          map['Last_Purchase'] != null ? map['Last_Purchase'] as String : null,
+      Last_Price:
+          map['Last_Price'] != null ? map['Last_Price'] as String : null,
       Notes: map['Notes'] != null ? map['Notes'] as String : null,
       Approved: map['Approved'] != null ? map['Approved'] as int : null,
-      ApprovedDate:
-          map['ApprovedDate'] != null ? map['ApprovedDate'] as String : null,
-      ManagerNote:
-          map['ManagerNote'] != null ? map['ManagerNote'] as String : null,
-      RealSupplier:
-          map['RealSupplier'] != null ? map['RealSupplier'] as String : null,
+      Approved_Date:
+          map['Approved_Date'] != null ? map['Approved_Date'] as String : null,
+      Manager_Note:
+          map['Manager_Note'] != null ? map['Manager_Note'] as String : null,
+      Real_Supplier:
+          map['Real_Supplier'] != null ? map['Real_Supplier'] as String : null,
       Buyer: map['Buyer'] != null ? map['Buyer'] as String : null,
-      ExpectedDate:
-          map['ExpectedDate'] != null ? map['ExpectedDate'] as String : null,
-      BuyDate: map['BuyDate'] != null ? map['BuyDate'] as String : null,
+      Expected_Date:
+          map['Expected_Date'] != null ? map['Expected_Date'] as String : null,
+      Buy_Date: map['Buy_Date'] != null ? map['Buy_Date'] as String : null,
       Price: map['Price'] != null ? map['Price'] as String : null,
       Offer1: map['Offer1'] != null ? map['Offer1'] as String : null,
       Offer2: map['Offer2'] != null ? map['Offer2'] as String : null,
       Offer3: map['Offer3'] != null ? map['Offer3'] as String : null,
       Received: map['Received'] != null ? map['Received'] as int : null,
-      ReceivedDate:
-          map['ReceivedDate'] != null ? map['ReceivedDate'] as String : null,
+      Received_Date:
+          map['Received_Date'] != null ? map['Received_Date'] as String : null,
       Archived: map['Archived'] != null ? map['Archived'] as int : null,
     );
   }
@@ -251,7 +253,7 @@ class DetailsPurchaseModel {
 
   @override
   String toString() {
-    return 'DetailsPurchaseModel(Pur_ID: $Pur_ID, Section: $Section, Applicant: $Applicant, Insert_Date: $Insert_Date, Item: $Item, Specifications: $Specifications, Height: $Height, Width: $Width, Length: $Length, Color: $Color, Country: $Country, Usage: $Usage, WarehouseAmount: $WarehouseAmount, Quantity: $Quantity, Unit: $Unit, RequiredDate: $RequiredDate, Supplier: $Supplier, IDMaintenance: $IDMaintenance, LastPurchase: $LastPurchase, LastPrice: $LastPrice, Notes: $Notes, Approved: $Approved, ApprovedDate: $ApprovedDate, ManagerNote: $ManagerNote, RealSupplier: $RealSupplier, Buyer: $Buyer, ExpectedDate: $ExpectedDate, BuyDate: $BuyDate, Price: $Price, Offer1: $Offer1, Offer2: $Offer2, Offer3: $Offer3, Received: $Received, ReceivedDate: $ReceivedDate, Archived: $Archived)';
+    return 'DetailsPurchaseModel(Pur_ID: $Pur_ID, Section: $Section, Applicant: $Applicant, Insert_Date: $Insert_Date, Item: $Item, Specifications: $Specifications, Height: $Height, Width: $Width, Length: $Length, Color: $Color, Country: $Country, Usage: $Usage, Warehouse_Amount: $Warehouse_Amount, Quantity: $Quantity, Unit: $Unit, Required_Date: $Required_Date, Supplier: $Supplier, ID_Maintenance: $ID_Maintenance, Last_Purchase: $Last_Purchase, Last_Price: $Last_Price, Notes: $Notes, Approved: $Approved, Approved_Date: $Approved_Date, Manager_Note: $Manager_Note, Real_Supplier: $Real_Supplier, Buyer: $Buyer, Expected_Date: $Expected_Date, Buy_Date: $Buy_Date, Price: $Price, Offer1: $Offer1, Offer2: $Offer2, Offer3: $Offer3, Received: $Received, Received_Date: $Received_Date, Archived: $Archived)';
   }
 
   @override
@@ -270,28 +272,28 @@ class DetailsPurchaseModel {
         other.Color == Color &&
         other.Country == Country &&
         other.Usage == Usage &&
-        other.WarehouseAmount == WarehouseAmount &&
+        other.Warehouse_Amount == Warehouse_Amount &&
         other.Quantity == Quantity &&
         other.Unit == Unit &&
-        other.RequiredDate == RequiredDate &&
+        other.Required_Date == Required_Date &&
         other.Supplier == Supplier &&
-        other.IDMaintenance == IDMaintenance &&
-        other.LastPurchase == LastPurchase &&
-        other.LastPrice == LastPrice &&
+        other.ID_Maintenance == ID_Maintenance &&
+        other.Last_Purchase == Last_Purchase &&
+        other.Last_Price == Last_Price &&
         other.Notes == Notes &&
         other.Approved == Approved &&
-        other.ApprovedDate == ApprovedDate &&
-        other.ManagerNote == ManagerNote &&
-        other.RealSupplier == RealSupplier &&
+        other.Approved_Date == Approved_Date &&
+        other.Manager_Note == Manager_Note &&
+        other.Real_Supplier == Real_Supplier &&
         other.Buyer == Buyer &&
-        other.ExpectedDate == ExpectedDate &&
-        other.BuyDate == BuyDate &&
+        other.Expected_Date == Expected_Date &&
+        other.Buy_Date == Buy_Date &&
         other.Price == Price &&
         other.Offer1 == Offer1 &&
         other.Offer2 == Offer2 &&
         other.Offer3 == Offer3 &&
         other.Received == Received &&
-        other.ReceivedDate == ReceivedDate &&
+        other.Received_Date == Received_Date &&
         other.Archived == Archived;
   }
 
@@ -309,28 +311,28 @@ class DetailsPurchaseModel {
         Color.hashCode ^
         Country.hashCode ^
         Usage.hashCode ^
-        WarehouseAmount.hashCode ^
+        Warehouse_Amount.hashCode ^
         Quantity.hashCode ^
         Unit.hashCode ^
-        RequiredDate.hashCode ^
+        Required_Date.hashCode ^
         Supplier.hashCode ^
-        IDMaintenance.hashCode ^
-        LastPurchase.hashCode ^
-        LastPrice.hashCode ^
+        ID_Maintenance.hashCode ^
+        Last_Purchase.hashCode ^
+        Last_Price.hashCode ^
         Notes.hashCode ^
         Approved.hashCode ^
-        ApprovedDate.hashCode ^
-        ManagerNote.hashCode ^
-        RealSupplier.hashCode ^
+        Approved_Date.hashCode ^
+        Manager_Note.hashCode ^
+        Real_Supplier.hashCode ^
         Buyer.hashCode ^
-        ExpectedDate.hashCode ^
-        BuyDate.hashCode ^
+        Expected_Date.hashCode ^
+        Buy_Date.hashCode ^
         Price.hashCode ^
         Offer1.hashCode ^
         Offer2.hashCode ^
         Offer3.hashCode ^
         Received.hashCode ^
-        ReceivedDate.hashCode ^
+        Received_Date.hashCode ^
         Archived.hashCode;
   }
 }

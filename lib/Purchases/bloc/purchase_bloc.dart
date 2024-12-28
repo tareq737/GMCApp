@@ -37,8 +37,8 @@ class PurchaseBloc extends Bloc<PurchaseEvent, PurchaseState> {
         emit(PurchaseLoading());
 
         var result = await getOnePurchase(pur_id: event.pur_id);
-
-        if (result is ListOf<DetailsPurchaseModel>) {
+        print(result);
+        if (result is Single<DetailsPurchaseModel>) {
           emit(
             PurchaseSuccess(
               result: result.data,

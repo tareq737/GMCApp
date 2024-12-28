@@ -55,13 +55,10 @@ Future<ResultModel> getOnePurchase({required int pur_id}) async {
 
     Response response = await dio.get(url, queryParameters: params);
     if (response.statusCode == 200) {
-      List<DetailsPurchaseModel> detailsPurchase = List.generate(
-        response.data.length,
-        (index) => DetailsPurchaseModel.fromMap(
-          response.data[index],
-        ),
-      );
-      return ListOf<DetailsPurchaseModel>(data: detailsPurchase);
+      // Parse the response data directly as a single map
+      DetailsPurchaseModel detailsPurchase =
+          DetailsPurchaseModel.fromMap(response.data);
+      return Single(data: detailsPurchase);
     } else if (response.statusCode == 401 || response.statusCode == 400) {
       return ErrorModel(message: response.data['message'] ?? 'خطأ غير معروف');
     } else {

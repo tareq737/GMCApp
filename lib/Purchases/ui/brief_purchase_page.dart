@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gmc/Purchases/bloc/purchase_bloc.dart';
 import 'package:gmc/Purchases/models/brief_purchase_model.dart';
-import 'package:gmc/Purchases/models/details_purchase_model.dart';
 import 'package:gmc/Purchases/ui/details_purchase_page.dart';
 import 'package:gmc/core/utils/show_snackbar.dart';
 
@@ -216,15 +215,6 @@ class _BriefPurchasePageState extends State<BriefPurchasePage> {
                     content: state.errorMessage,
                     backgroundColor: Colors.red,
                   );
-                } else if (state
-                    is PurchaseSuccess<List<DetailsPurchaseModel>>) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => DetailsPurchasePage(
-                          detailsPurchaseModel: state.result[0]),
-                    ),
-                  );
                 } else if (state is PurchaseSuccess<List<BriefPurchaseModel>>) {
                   setState(() {
                     _briefPurchases = state.result;
@@ -245,10 +235,14 @@ class _BriefPurchasePageState extends State<BriefPurchasePage> {
                       final screenWidth = MediaQuery.of(context).size.width;
                       return InkWell(
                         onTap: () {
-                          context.read<PurchaseBloc>().add(
-                                GetDetailsPurchase(
-                                    pur_id: _briefPurchases[index].Pur_ID!),
-                              );
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => DetailsPurchasePage(
+                                Pur_ID: _briefPurchases[index].Pur_ID!,
+                              ),
+                            ),
+                          );
                         },
                         child: Card(
                           margin: const EdgeInsets.symmetric(
