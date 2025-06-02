@@ -1,0 +1,9 @@
+export 'package:gmcappclean/features/sales_management/customers/data/models/customer_sub_models/customer_activity_model.dart';
+export 'package:gmcappclean/features/sales_management/customers/data/models/customer_sub_models/customer_address_model.dart';
+export 'package:gmcappclean/features/sales_management/customers/data/models/customer_sub_models/customer_basic_info_model.dart';
+export 'package:gmcappclean/features/sales_management/customers/data/models/customer_sub_models/customer_discount_model.dart';
+export 'package:gmcappclean/features/sales_management/customers/data/models/customer_sub_models/customer_market_info_model.dart';
+export 'package:gmcappclean/features/sales_management/customers/data/models/customer_sub_models/customer_methods_of_dealing_model.dart';
+export 'package:gmcappclean/features/sales_management/customers/data/models/customer_sub_models/customer_personal_info_model.dart';
+export 'package:gmcappclean/features/sales_management/customers/data/models/customer_sub_models/customer_shop_basic_info_model.dart';
+export 'package:gmcappclean/features/sales_management/customers/data/models/customer_sub_models/customer_special_brands_model.dart';

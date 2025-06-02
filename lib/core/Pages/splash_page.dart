@@ -1,0 +1,86 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gmcappclean/core/Pages/home_page.dart';
+import 'package:gmcappclean/core/common/cubits/app_user/app_user_cubit.dart';
+import 'package:gmcappclean/core/services/version_checker.dart';
+import 'package:gmcappclean/features/auth/presentation/pages/singin_page.dart';
+
+class SplashPage extends StatefulWidget {
+  final RemoteMessage? initialMessage;
+  const SplashPage({super.key, this.initialMessage});
+
+  @override
+  State<SplashPage> createState() => _SplashPageState();
+}
+
+class _SplashPageState extends State<SplashPage> {
+  bool _isTimerDone = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _startTimer();
+  }
+
+  void _startTimer() async {
+    await Future.delayed(const Duration(seconds: 1));
+    if (!mounted) return;
+
+    final isVersionOkay = await VersionChecker.check(context);
+
+    if (!mounted) return;
+
+    if (isVersionOkay) {
+      setState(() => _isTimerDone = true);
+      _checkToNavigate();
+    }
+  }
+
+  void _checkToNavigate() {
+    if (_isTimerDone) {
+      final initialMessage = widget.initialMessage;
+      if (initialMessage != null &&
+          initialMessage.data['navigate_to'] != null) {
+        final targetRoute = initialMessage.data['navigate_to'];
+        Navigator.pushReplacementNamed(context, targetRoute);
+      } else {
+        SplashNavigator.navigateBasedOnState(
+          context,
+          context.read<AppUserCubit>().state,
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Animate(
+          child: Image.asset('assets/images/app_logo.png')
+              .animate()
+              .scale(duration: 2000.ms),
+        ),
+      ),
+    );
+  }
+}
+
+class SplashNavigator {
+  static Route _fadeRoute(Widget page) {
+    return PageRouteBuilder(
+      pageBuilder: (_, __, ___) => page,
+      transitionsBuilder: (_, animation, __, child) =>
+          FadeTransition(opacity: animation, child: child),
+      transitionDuration: const Duration(milliseconds: 500),
+    );
+  }
+
+  static void navigateBasedOnState(BuildContext context, AppUserState state) {
+    final target =
+        state is AppUserLoggedIn ? const HomePage() : const SinginPage();
+    Navigator.pushReplacement(context, _fadeRoute(target));
+  }
+}

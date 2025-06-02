@@ -1,0 +1,26 @@
+import 'package:dio/dio.dart';
+import 'package:get_it/get_it.dart';
+import 'package:gmcappclean/core/common/api/api.dart';
+import 'package:gmcappclean/core/common/cubits/app_user/app_user_cubit.dart';
+import 'package:gmcappclean/core/services/auth_interactor.dart';
+import 'package:gmcappclean/features/auth/data/datasources/auth_remote_data_source.dart';
+import 'package:gmcappclean/features/auth/data/datasources/auth_local_data_source.dart';
+import 'package:gmcappclean/features/auth/data/repositories/auth_repository_impl.dart';
+import 'package:gmcappclean/features/auth/domain/repository/auth_repository.dart';
+import 'package:gmcappclean/features/auth/domain/usecases/barrel_usecases.dart';
+import 'package:gmcappclean/features/auth/domain/usecases/on_start_check_login_status.dart';
+import 'package:gmcappclean/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:gmcappclean/features/production_management/production_ready/domain/repository/prod_repository.dart';
+import 'package:gmcappclean/features/production_management/production_ready/domain/usecases/usecases_barrel.dart';
+import 'package:gmcappclean/features/production_management/production_ready/data/datasources/prod_remote_source.dart';
+import 'package:gmcappclean/features/production_management/production_ready/data/repositories/prod_repository_impl.dart';
+import 'package:gmcappclean/features/production_management/production_ready/presentation/bloc/production_bloc.dart';
+import 'package:gmcappclean/features/sales_management/customers/data/datasources/sales_remote_data_source.dart';
+import 'package:gmcappclean/features/sales_management/customers/data/repositories/sales_repository_impl.dart';
+import 'package:gmcappclean/features/sales_management/customers/domain/repository/sales_repository.dart';
+import 'package:gmcappclean/features/sales_management/customers/domain/usecases/barrel_usecases.dart';
+import 'package:gmcappclean/features/sales_management/customers/domain/usecases/get_all_customers_paginated.dart';
+import 'package:gmcappclean/features/sales_management/customers/presentation/bloc/sales_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+part 'init_dependencies.main.dart';

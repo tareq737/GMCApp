@@ -1,0 +1,2 @@
+C:/Users/Tareq/Desktop/New folder/gmcappclean/android/app/.cxx/RelWithDebInfo/4ks4o104/arm64-v8a/CMakeFiles/edit_cache.dir
+C:/Users/Tareq/Desktop/New folder/gmcappclean/android/app/.cxx/RelWithDebInfo/4ks4o104/arm64-v8a/CMakeFiles/rebuild_cache.dir

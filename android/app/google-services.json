@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "58824634843",
+    "project_id": "gmc-app-1289c",
+    "storage_bucket": "gmc-app-1289c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:58824634843:android:6d23b9874949d04e57f7fe",
+        "android_client_info": {
+          "package_name": "com.example.gmcappclean"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCk9wcRdNwM-y99hvMtrogrs-VJ0DOb2SE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

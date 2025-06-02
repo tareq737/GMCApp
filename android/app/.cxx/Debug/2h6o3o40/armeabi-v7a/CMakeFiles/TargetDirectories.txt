@@ -1,0 +1,2 @@
+C:/Users/Tareq/Desktop/gmcappclean/android/app/.cxx/Debug/2h6o3o40/armeabi-v7a/CMakeFiles/edit_cache.dir
+C:/Users/Tareq/Desktop/gmcappclean/android/app/.cxx/Debug/2h6o3o40/armeabi-v7a/CMakeFiles/rebuild_cache.dir

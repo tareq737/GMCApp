@@ -1,0 +1,20 @@
+{
+  "buildFiles": [
+    "C:\\Users\\Tareq\\.shorebird\\bin\\cache\\flutter\\7c1c25e48e6dd849c3264588346aa63652d5e426\\packages\\flutter_tools\\gradle\\src\\main\\groovy\\CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "C:\\Users\\Tareq\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\ninja.exe",
+      "-C",
+      "C:\\Users\\Tareq\\Desktop\\gmcappclean\\android\\app\\.cxx\\RelWithDebInfo\\1h1c6ph1\\armeabi-v7a",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "C:\\Users\\Tareq\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\ninja.exe",
+    "-C",
+    "C:\\Users\\Tareq\\Desktop\\gmcappclean\\android\\app\\.cxx\\RelWithDebInfo\\1h1c6ph1\\armeabi-v7a",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {}
+}
