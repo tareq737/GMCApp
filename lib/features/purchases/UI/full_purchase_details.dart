@@ -16,6 +16,7 @@ import 'package:gmcappclean/core/utils/show_snackbar.dart';
 import 'package:gmcappclean/features/purchases/Bloc/purchase_bloc.dart';
 import 'package:gmcappclean/features/purchases/Models/purchases_model.dart';
 import 'package:gmcappclean/features/purchases/Services/purchase_service.dart';
+import 'package:gmcappclean/features/purchases/UI/purchases_list.dart';
 import 'package:gmcappclean/features/purchases/UI/view_image_page.dart';
 import 'package:gmcappclean/init_dependencies.dart';
 import 'package:image_picker/image_picker.dart';
@@ -91,6 +92,12 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
   }
 
   Future<File?> _compressImage(File file) async {
+    // Skip compression on Windows
+    if (Platform.isWindows) {
+      return file; // Return the original file without compression
+    }
+
+    // Proceed with compression for other platforms (Android, iOS, etc.)
     final directory = await getTemporaryDirectory();
     final targetPath =
         '${directory.path}/${basename(file.path)}_compressed.jpg';
@@ -98,7 +105,7 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
     var result = await FlutterImageCompress.compressAndGetFile(
       file.absolute.path,
       targetPath,
-      quality: 50, // Adjust quality (0-100)
+      quality: 50,
     );
 
     return result != null ? File(result.path) : null;
@@ -243,6 +250,14 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
               failure: false,
             );
             Navigator.pop(context);
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) {
+                  return const PurchasesList();
+                },
+              ),
+            );
           } else if (state is PurchaseSuccess<bool>) {
             showSnackBar(
               context: context,
@@ -1165,7 +1180,7 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
 
                                           if (pickedDate != null) {
                                             setState(() {
-                                              _expectedDateController.text =
+                                              _purchaseDateController.text =
                                                   DateFormat('yyyy-MM-dd')
                                                       .format(pickedDate);
                                             });
@@ -1678,6 +1693,7 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
       purchasesModel!.purchase_date = _purchaseDateController.text.isEmpty
           ? null
           : _purchaseDateController.text;
+      purchasesModel!.real_supplier = _realSupplierController.text;
       purchasesModel!.price = _priceController.text;
       purchasesModel!.buyer = _buyerController.text;
       purchasesModel!.archived = _isArchived;

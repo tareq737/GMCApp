@@ -680,6 +680,9 @@ class _HomePageState extends State<HomePage>
                                       builder: (context) =>
                                           ExportExcelTasksPage(
                                         department: selectedDepartment!,
+                                        departmentDisplayName: departmentAccess[
+                                                selectedDepartment]![
+                                            'displayName']!,
                                       ),
                                     ),
                                   );

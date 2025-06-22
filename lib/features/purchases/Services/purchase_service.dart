@@ -7,6 +7,7 @@ import 'package:gmcappclean/core/common/entities/user_entity.dart';
 import 'package:gmcappclean/core/error/failures.dart';
 import 'package:gmcappclean/core/services/auth_interactor.dart';
 import 'package:gmcappclean/features/purchases/Models/brief_purchase_model.dart';
+import 'package:gmcappclean/features/purchases/Models/for_payments_model.dart';
 import 'package:gmcappclean/features/purchases/Models/purchases_model.dart';
 
 class PurchaseService {
@@ -612,6 +613,115 @@ class PurchaseService {
       });
     } catch (e) {
       return false;
+    }
+  }
+
+  Future<Either<Uint8List, Failure>> exportExcelPendingOffers() async {
+    try {
+      final userEntity = await getCredentials();
+      return userEntity.fold(
+        (failure) {
+          return right(Failure(message: 'No tokens found.'));
+        },
+        (success) async {
+          try {
+            final response = await _apiClient.downloadFile(
+              user: success,
+              endPoint: 'purchases/excel_pending_offers',
+            );
+            return left(response);
+          } catch (e) {
+            print('Error exporting Excel: $e');
+            return right(
+                Failure(message: 'Failed to export Excel: ${e.toString()}'));
+          }
+        },
+      );
+    } catch (e) {
+      print('Caught error in exportExcel service: $e');
+      return right(Failure(
+          message: 'Unexpected error during Excel export: ${e.toString()}'));
+    }
+  }
+
+  Future<Either<Uint8List, Failure>> exportExcelReadyToBuy() async {
+    try {
+      final userEntity = await getCredentials();
+      return userEntity.fold(
+        (failure) {
+          return right(Failure(message: 'No tokens found.'));
+        },
+        (success) async {
+          try {
+            final response = await _apiClient.downloadFile(
+              user: success,
+              endPoint: 'purchases/excel_ready_to_buy',
+            );
+            return left(response);
+          } catch (e) {
+            print('Error exporting Excel: $e');
+            return right(
+                Failure(message: 'Failed to export Excel: ${e.toString()}'));
+          }
+        },
+      );
+    } catch (e) {
+      print('Caught error in exportExcel service: $e');
+      return right(Failure(
+          message: 'Unexpected error during Excel export: ${e.toString()}'));
+    }
+  }
+
+  Future<List<ForPaymentsModel>?> getListForPayment({
+    required int page,
+  }) async {
+    try {
+      final userEntity = await getCredentials();
+      return userEntity.fold((failure) {
+        return null;
+      }, (success) async {
+        final response = await _apiClient.getPageinated(
+          user: success,
+          endPoint: 'purchases/for_payment',
+          queryParams: {'page': page},
+        );
+        return List.generate(response.length, (index) {
+          return ForPaymentsModel.fromMap(response[index]);
+        });
+      });
+    } catch (e) {
+      print('exception caught');
+      return null;
+    }
+  }
+
+  Future<Either<Uint8List, Failure>> exportExcelListForPayment(
+      {required List ids}) async {
+    try {
+      final userEntity = await getCredentials();
+      return userEntity.fold(
+        (failure) {
+          return right(Failure(message: 'No tokens found.'));
+        },
+        (success) async {
+          try {
+            final response = await _apiClient.downloadFilePost(
+              user: success,
+              endPoint: 'purchases/payment_order_excel',
+              data: {"ids": ids},
+            );
+            return left(response);
+          } catch (e) {
+            print('Error exporting Excel: $e');
+            return right(
+                Failure(message: 'Failed to export Excel: ${e.toString()}'));
+          }
+        },
+      );
+    } catch (e) {
+      print('Caught error in exportExcel service: $e');
+      return right(Failure(
+          message: 'Unexpected error during Excel export: ${e.toString()}'));
     }
   }
 }

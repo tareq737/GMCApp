@@ -37,7 +37,7 @@ class _ProductionFinishedGoodsDataWidgetState
   bool? finishedGoodsCheck_1 = false;
   bool? finishedGoodsCheck_2 = false;
   bool? finishedGoodsCheck_3 = false;
-
+  bool? finishedGoodsCheck_4 = false;
   final employeeController = TextEditingController();
   final notesController = TextEditingController();
   final problemsController = TextEditingController();
@@ -47,11 +47,10 @@ class _ProductionFinishedGoodsDataWidgetState
     _finishedGoodsModel.finished_goods_check_1 = finishedGoodsCheck_1;
     _finishedGoodsModel.finished_goods_check_2 = finishedGoodsCheck_2;
     _finishedGoodsModel.finished_goods_check_3 = finishedGoodsCheck_3;
-
+    _finishedGoodsModel.finished_goods_check_4 = finishedGoodsCheck_4;
     _finishedGoodsModel.employee = employeeController.text;
     _finishedGoodsModel.notes = notesController.text;
     _finishedGoodsModel.problems = problemsController.text;
-
     _finishedGoodsModel.start_time =
         startTimeController.text.isEmpty ? null : startTimeController.text;
     _finishedGoodsModel.finish_time =
@@ -65,11 +64,17 @@ class _ProductionFinishedGoodsDataWidgetState
   void initState() {
     super.initState();
     finishedGoodsCheck_1 =
-        widget.fullProductionModel.finishedGoods.finished_goods_check_1;
+        widget.fullProductionModel.finishedGoods.finished_goods_check_1 ??
+            false;
     finishedGoodsCheck_2 =
-        widget.fullProductionModel.finishedGoods.finished_goods_check_2;
+        widget.fullProductionModel.finishedGoods.finished_goods_check_2 ??
+            false;
     finishedGoodsCheck_3 =
-        widget.fullProductionModel.finishedGoods.finished_goods_check_3;
+        widget.fullProductionModel.finishedGoods.finished_goods_check_3 ??
+            false;
+    finishedGoodsCheck_4 =
+        widget.fullProductionModel.finishedGoods.finished_goods_check_4 ??
+            false;
 
     employeeController.text =
         widget.fullProductionModel.finishedGoods.employee ?? '';
@@ -84,17 +89,17 @@ class _ProductionFinishedGoodsDataWidgetState
     completionDateController.text =
         widget.fullProductionModel.finishedGoods.completion_date ?? '';
 
-    if (startTimeController.text.isNotEmpty) {
-      DateTime parsedTime = DateFormat('HH:mm').parse(startTimeController.text);
-      String formattedTime = DateFormat('hh:mm').format(parsedTime);
-      startTimeController.text = formattedTime;
-    }
-    if (finishTimeController.text.isNotEmpty) {
-      DateTime parsedTime =
-          DateFormat('HH:mm').parse(finishTimeController.text);
-      String formattedTime = DateFormat('hh:mm').format(parsedTime);
-      finishTimeController.text = formattedTime;
-    }
+    // if (startTimeController.text.isNotEmpty) {
+    //   DateTime parsedTime = DateFormat('HH:mm').parse(startTimeController.text);
+    //   String formattedTime = DateFormat('hh:mm').format(parsedTime);
+    //   startTimeController.text = formattedTime;
+    // }
+    // if (finishTimeController.text.isNotEmpty) {
+    //   DateTime parsedTime =
+    //       DateFormat('HH:mm').parse(finishTimeController.text);
+    //   String formattedTime = DateFormat('hh:mm').format(parsedTime);
+    //   finishTimeController.text = formattedTime;
+    // }
 
     _calculateDuration();
   }
@@ -188,6 +193,19 @@ class _ProductionFinishedGoodsDataWidgetState
                         onChanged: (bool? value) {
                           setState(() {
                             finishedGoodsCheck_2 = value ?? false;
+                          });
+                        },
+                        controlAffinity: ListTileControlAffinity.leading,
+                      ),
+                      CheckboxListTile(
+                        title: const Text(
+                          'أرشفت العينة',
+                          style: TextStyle(fontSize: 12),
+                        ),
+                        value: finishedGoodsCheck_4,
+                        onChanged: (bool? value) {
+                          setState(() {
+                            finishedGoodsCheck_4 = value ?? false;
                           });
                         },
                         controlAffinity: ListTileControlAffinity.leading,
@@ -297,12 +315,14 @@ class _ProductionFinishedGoodsDataWidgetState
                       height: 10,
                     ),
                     MyTextField(
+                        maxLines: 10,
                         controller: notesController,
                         labelText: 'ملاحظات الجاهزة'),
                     const SizedBox(
                       height: 10,
                     ),
                     MyTextField(
+                        maxLines: 10,
                         controller: problemsController,
                         labelText: 'مشاكل الجاهزة'),
                     const SizedBox(

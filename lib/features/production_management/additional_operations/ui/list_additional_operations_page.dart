@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:floating_draggable_widget/floating_draggable_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -13,6 +15,7 @@ import 'package:gmcappclean/features/production_management/additional_operations
 import 'package:gmcappclean/features/production_management/additional_operations/services/additional_operations_services.dart';
 import 'package:gmcappclean/features/production_management/additional_operations/ui/add_additional_operation_page.dart';
 import 'package:gmcappclean/init_dependencies.dart';
+import 'package:intl/intl.dart';
 
 class ListAdditionalOperationsPage extends StatelessWidget {
   const ListAdditionalOperationsPage({super.key});
@@ -46,8 +49,6 @@ class _ListAdditionalOperationsChildState
     super.initState();
     _scrollController.addListener(_onScroll);
 
-    // Schedule the initial data fetch after the first frame,
-    // so `context.read<AppUserCubit>()` is available.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initializeDepartmentAndFetchData();
     });
@@ -64,31 +65,53 @@ class _ListAdditionalOperationsChildState
   final ScrollController _scrollController = ScrollController();
   bool isLoadingMore = false;
   List<AdditionalOperationsModel> resultList = [];
-
   bool? done = false;
-  List departmentList = [
-    'قسم الأولية',
-    'قسم التصنيع',
-    'قسم المخبر',
-    'قسم الفوارغ',
-    'قسم التعبئة',
-    'قسم الجاهزة',
-  ];
+
+  // Declare isAdminOrProductionManager as a state variable
+  bool _isAdminOrProductionManager = false;
 
   void _initializeDepartmentAndFetchData() {
     AppUserState appUserState = context.read<AppUserCubit>().state;
     List<String>? userGroups;
     if (appUserState is AppUserLoggedIn) {
       userGroups = appUserState.userEntity.groups;
+
+      // Debug print: show all user groups
+      print('User Groups: $userGroups');
     }
 
+    setState(() {
+      _isAdminOrProductionManager = userGroups != null &&
+          (userGroups.contains('production_managers') ||
+              userGroups.contains('admins'));
+    });
+
+    List<String> departmentListToShow =
+        _getDepartmentsBasedOnUserGroups(userGroups);
+
+    // Debug print: show departments allowed on this page
+    print('Allowed Departments on Page: $departmentListToShow');
+
+    setState(() {
+      if (departmentListToShow.isNotEmpty) {
+        if (selectedDepartment == null ||
+            !departmentListToShow.contains(selectedDepartment)) {
+          selectedDepartment = departmentListToShow.first;
+        }
+      } else {
+        selectedDepartment = null;
+      }
+    });
+
+    if (selectedDepartment != null || _isAdminOrProductionManager) {
+      runBloc();
+    }
+  }
+
+  List<String> _getDepartmentsBasedOnUserGroups(List<String>? userGroups) {
     List<String> departmentListToShow = [];
 
-    bool isAdminOrProductionManager = userGroups != null &&
-        (userGroups.contains('production_managers') ||
-            userGroups.contains('admins'));
-
-    if (isAdminOrProductionManager) {
+    if (_isAdminOrProductionManager) {
       departmentListToShow = departmentMapping.keys.toList();
     } else if (userGroups != null) {
       for (var entry in departmentMapping.entries) {
@@ -96,48 +119,33 @@ class _ListAdditionalOperationsChildState
         String englishDepartmentCode = entry.value;
 
         String expectedGroup =
-            '${englishDepartmentCode.toLowerCase().replaceAll(' ', '_')}_dep';
-
-        if (englishDepartmentCode == 'RawMaterials') {
-          expectedGroup = 'raw_material_dep';
-        }
-        if (englishDepartmentCode == 'Manufacturing') {
-          expectedGroup = 'manufacturing_dep';
-        }
-        if (englishDepartmentCode == 'Lab') {
-          expectedGroup = 'lab_dep';
-        }
-        if (englishDepartmentCode == 'EmptyPackaging') {
-          expectedGroup = 'empty_packaging_dep';
-        }
-        if (englishDepartmentCode == 'Packaging') {
-          expectedGroup = 'packaging_dep';
-        }
-        if (englishDepartmentCode == 'FinishedGoods') {
-          expectedGroup = 'finished_goods_dep';
-        }
+            _getExpectedGroupForDepartment(englishDepartmentCode);
 
         if (userGroups.contains(expectedGroup)) {
           departmentListToShow.add(arabicDepartmentName);
         }
       }
     }
+    return departmentListToShow;
+  }
 
-    // Set the selectedDepartment based on the determined list
-    setState(() {
-      if (departmentListToShow.length == 1 && selectedDepartment == null) {
-        selectedDepartment = departmentListToShow.first;
-      } else if (selectedDepartment != null &&
-          !departmentListToShow.contains(selectedDepartment)) {
-        selectedDepartment = null;
-        if (departmentListToShow.isNotEmpty) {
-          selectedDepartment = departmentListToShow.first;
-        }
-      }
-    });
-
-    // Now that selectedDepartment is potentially set, trigger the bloc event
-    runBloc();
+  String _getExpectedGroupForDepartment(String englishDepartmentCode) {
+    switch (englishDepartmentCode) {
+      case 'RawMaterials':
+        return 'rawMaterials_dep'; // camelCase to match user group
+      case 'Manufacturing':
+        return 'manufacturing_dep';
+      case 'Lab':
+        return 'lab_dep';
+      case 'EmptyPackaging':
+        return 'emptyPackaging_dep'; // camelCase fixed here
+      case 'Packaging':
+        return 'packaging_dep';
+      case 'FinishedGoods':
+        return 'finished_goods_dep';
+      default:
+        return '${englishDepartmentCode.toLowerCase().replaceAll(' ', '_')}_dep';
+    }
   }
 
   @override
@@ -147,74 +155,25 @@ class _ListAdditionalOperationsChildState
     if (state is AppUserLoggedIn) {
       groups = state.userEntity.groups;
     }
-    List<String> departmentListToShow = [];
-    bool isAdminOrProductionManager = groups != null &&
-        (groups.contains('production_managers') || groups.contains('admins'));
+    List<String> departmentListToShow =
+        _getDepartmentsBasedOnUserGroups(groups);
 
-    if (isAdminOrProductionManager) {
-      departmentListToShow = departmentMapping.keys.toList();
-    } else if (groups != null) {
-      // Iterate through the department mapping to find matching groups
-      for (var entry in departmentMapping.entries) {
-        String arabicDepartmentName = entry.key;
-        String englishDepartmentCode = entry.value;
-
-        // Construct the expected group name for this department.
-        // Assuming a convention like 'raw_materials_dep' for 'RawMaterials'
-        // You might need to adjust this convention based on your actual group names.
-        String expectedGroup =
-            '${englishDepartmentCode.toLowerCase().replaceAll(' ', '_')}_dep';
-
-        // Special handling for "RawMaterials" if its group is "raw_material_dep" (singular)
-        if (englishDepartmentCode == 'RawMaterials') {
-          expectedGroup = 'raw_material_dep';
-        }
-        // Special handling for "Manufacturing" if its group is "manufacturing_dep"
-        if (englishDepartmentCode == 'Manufacturing') {
-          expectedGroup = 'manufacturing_dep';
-        }
-        // Special handling for "Lab" if its group is "lab_dep"
-        if (englishDepartmentCode == 'Lab') {
-          expectedGroup = 'lab_dep';
-        }
-        // Special handling for "EmptyPackaging" if its group is "empty_packaging_dep"
-        if (englishDepartmentCode == 'EmptyPackaging') {
-          expectedGroup = 'empty_packaging_dep';
-        }
-        // Special handling for "Packaging" if its group is "packaging_dep"
-        if (englishDepartmentCode == 'Packaging') {
-          expectedGroup = 'packaging_dep';
-        }
-        // Special handling for "FinishedGoods" if its group is "finished_goods_dep"
-        if (englishDepartmentCode == 'FinishedGoods') {
-          expectedGroup = 'finished_goods_dep';
-        }
-
-        if (groups.contains(expectedGroup)) {
-          departmentListToShow.add(arabicDepartmentName);
-        }
+    // This section is now largely handled by _initializeDepartmentAndFetchData
+    // but kept for ensuring UI consistency if build is called independently of initState
+    if (departmentListToShow.isNotEmpty) {
+      if (selectedDepartment == null ||
+          !departmentListToShow.contains(selectedDepartment)) {
+        selectedDepartment = departmentListToShow.first;
       }
+    } else {
+      selectedDepartment = null;
     }
 
-    // If only one department is allowed, pre-select it.
-    // Or if the previously selected department is no longer in the allowed list, reset it.
-    if (departmentListToShow.length == 1 && selectedDepartment == null) {
-      selectedDepartment = departmentListToShow.first;
-    } else if (selectedDepartment != null &&
-        !departmentListToShow.contains(selectedDepartment)) {
-      selectedDepartment = null; // Clear selection if no longer valid
-      if (departmentListToShow.isNotEmpty) {
-        selectedDepartment =
-            departmentListToShow.first; // Or select the first valid one
-      }
-    }
     return Builder(builder: (context) {
       return Directionality(
-        textDirection: TextDirection.rtl,
+        textDirection: ui.TextDirection.rtl,
         child: FloatingDraggableWidget(
-          floatingWidget: (groups != null &&
-                  (groups.contains('production_managers') ||
-                      groups.contains('admins')))
+          floatingWidget: (_isAdminOrProductionManager)
               ? FloatingActionButton(
                   onPressed: () {
                     Navigator.push(
@@ -231,7 +190,7 @@ class _ListAdditionalOperationsChildState
                   mini: true,
                   child: const Icon(Icons.add),
                 )
-              : const SizedBox(), // Changed from `null` to `SizedBox.shrink()`
+              : const SizedBox(),
           floatingWidgetWidth: 40,
           floatingWidgetHeight: 40,
           mainScreenWidget: Scaffold(
@@ -276,6 +235,11 @@ class _ListAdditionalOperationsChildState
                               runBloc();
                             },
                             labelText: 'القسم',
+                            // Enable the dropdown if there's more than one department or if admin
+                            isEnabled: departmentListToShow.length > 1 ||
+                                _isAdminOrProductionManager,
+                            // Show clear button only for admins/production managers
+                            showClearButton: false,
                           ),
                         ),
                         Expanded(
@@ -408,8 +372,9 @@ class _ListAdditionalOperationsChildState
               ),
             ),
             trailing: SizedBox(
-              width: screenWidth * 0.1,
-              child: Row(
+              width: screenWidth * 0.12,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
                     (resultList[index].done == true)
@@ -419,6 +384,16 @@ class _ListAdditionalOperationsChildState
                         ? Colors.green
                         : Colors.red,
                     size: 15,
+                  ),
+                  Text(
+                    // Parse the string into a DateTime object first
+                    resultList[index].completion_date != null
+                        ? DateFormat('dd/MM').format(
+                            DateTime.parse(resultList[index].completion_date!))
+                        : '', // Handle null case for completion_date
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                    style: const TextStyle(fontSize: 8),
                   ),
                 ],
               ),
@@ -436,10 +411,8 @@ class _ListAdditionalOperationsChildState
   }
 
   void _onScroll() {
-    // Calculate the halfway point
     double halfwayPoint = _scrollController.position.maxScrollExtent / 2;
 
-    // Check if the current scroll position is at or beyond the halfway point
     if (_scrollController.position.pixels >= halfwayPoint && !isLoadingMore) {
       _nextPage(context);
     }
@@ -454,28 +427,31 @@ class _ListAdditionalOperationsChildState
   }
 
   void runBloc() {
+    // Pass null for department when the selectedDepartment is null (cleared by 'X' button)
     context.read<AdditionalOperationsBloc>().add(
           GetAdditionalOperationsPagainted(
             page: currentPage,
-            department: departmentMapping[selectedDepartment],
+            department: selectedDepartment == null
+                ? null
+                : departmentMapping[selectedDepartment],
             done: done ?? false,
           ),
         );
   }
 
   final reverseDepartmentMapping = {
+    'RawMaterials': 'الأولية',
     'Manufacturing': 'التصنيع',
     'Lab': 'المخبر',
-    'RawMaterials': 'الأولية',
     'EmptyPackaging': 'الفوارغ',
     'Packaging': 'التعبئة',
     'FinishedGoods': 'الجاهزة',
   };
 
   final departmentMapping = {
+    'قسم الأولية': 'RawMaterials',
     'قسم التصنيع': 'Manufacturing',
     'قسم المخبر': 'Lab',
-    'قسم الأولية': 'RawMaterials',
     'قسم الفوارغ': 'EmptyPackaging',
     'قسم التعبئة': 'Packaging',
     'قسم الجاهزة': 'FinishedGoods',

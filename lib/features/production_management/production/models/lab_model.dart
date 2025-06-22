@@ -15,12 +15,13 @@ class LabModel {
   bool? lab_check_4;
   bool? lab_check_5;
   bool? lab_check_6;
-  int? concealment;
-  int? gloss;
-  double? viscosity;
+  double? concealment;
+  double? gloss;
+  String? viscosity;
   double? density;
   int? smoothness;
   bool? lab_color;
+  double? batch_temperature;
   LabModel({
     this.id,
     this.start_time,
@@ -41,6 +42,7 @@ class LabModel {
     this.density,
     this.smoothness,
     this.lab_color,
+    this.batch_temperature,
   });
 
   LabModel copyWith({
@@ -57,12 +59,13 @@ class LabModel {
     bool? lab_check_4,
     bool? lab_check_5,
     bool? lab_check_6,
-    int? concealment,
-    int? gloss,
-    double? viscosity,
+    double? concealment,
+    double? gloss,
+    String? viscosity,
     double? density,
     int? smoothness,
     bool? lab_color,
+    double? batch_temperature,
   }) {
     return LabModel(
       id: id ?? this.id,
@@ -84,6 +87,7 @@ class LabModel {
       density: density ?? this.density,
       smoothness: smoothness ?? this.smoothness,
       lab_color: lab_color ?? this.lab_color,
+      batch_temperature: batch_temperature ?? this.batch_temperature,
     );
   }
 
@@ -109,6 +113,7 @@ class LabModel {
         'density': density,
         'smoothness': smoothness,
         'lab_color': lab_color,
+        'batch_temperature': batch_temperature,
       }
     };
   }
@@ -127,24 +132,27 @@ class LabModel {
           ? map['completion_date'] as String
           : null,
       lab_check_1:
-          map['lab_check_1'] != null ? map['lab_check_1'] as bool : false,
+          map['lab_check_1'] != null ? map['lab_check_1'] as bool : null,
       lab_check_2:
-          map['lab_check_2'] != null ? map['lab_check_2'] as bool : false,
+          map['lab_check_2'] != null ? map['lab_check_2'] as bool : null,
       lab_check_3:
-          map['lab_check_3'] != null ? map['lab_check_3'] as bool : false,
+          map['lab_check_3'] != null ? map['lab_check_3'] as bool : null,
       lab_check_4:
-          map['lab_check_4'] != null ? map['lab_check_4'] as bool : false,
+          map['lab_check_4'] != null ? map['lab_check_4'] as bool : null,
       lab_check_5:
-          map['lab_check_5'] != null ? map['lab_check_5'] as bool : false,
+          map['lab_check_5'] != null ? map['lab_check_5'] as bool : null,
       lab_check_6:
-          map['lab_check_6'] != null ? map['lab_check_6'] as bool : false,
+          map['lab_check_6'] != null ? map['lab_check_6'] as bool : null,
       concealment:
-          map['concealment'] != null ? map['concealment'] as int : null,
-      gloss: map['gloss'] != null ? map['gloss'] as int : null,
-      viscosity: map['viscosity'] != null ? map['viscosity'] as double : null,
+          map['concealment'] != null ? map['concealment'] as double : null,
+      gloss: map['gloss'] != null ? map['gloss'] as double : null,
+      viscosity: map['viscosity'] != null ? map['viscosity'] as String : null,
       density: map['density'] != null ? map['density'] as double : null,
       smoothness: map['smoothness'] != null ? map['smoothness'] as int : null,
-      lab_color: map['lab_color'] != null ? map['lab_color'] as bool : false,
+      lab_color: map['lab_color'] != null ? map['lab_color'] as bool : null,
+      batch_temperature: map['batch_temperature'] != null
+          ? map['batch_temperature'] as double
+          : null,
     );
   }
 
@@ -155,7 +163,7 @@ class LabModel {
 
   @override
   String toString() {
-    return 'LabModel(id: $id, start_time: $start_time, finish_time: $finish_time, employee: $employee, notes: $notes, problems: $problems, completion_date: $completion_date, lab_check_1: $lab_check_1, lab_check_2: $lab_check_2, lab_check_3: $lab_check_3, lab_check_4: $lab_check_4, lab_check_5: $lab_check_5, lab_check_6: $lab_check_6, concealment: $concealment, gloss: $gloss, viscosity: $viscosity, density: $density, smoothness: $smoothness, lab_color: $lab_color)';
+    return 'LabModel(id: $id, start_time: $start_time, finish_time: $finish_time, employee: $employee, notes: $notes, problems: $problems, completion_date: $completion_date, lab_check_1: $lab_check_1, lab_check_2: $lab_check_2, lab_check_3: $lab_check_3, lab_check_4: $lab_check_4, lab_check_5: $lab_check_5, lab_check_6: $lab_check_6, concealment: $concealment, gloss: $gloss, viscosity: $viscosity, density: $density, smoothness: $smoothness, lab_color: $lab_color, batch_temperature: $batch_temperature)';
   }
 
   @override
@@ -180,7 +188,8 @@ class LabModel {
         other.viscosity == viscosity &&
         other.density == density &&
         other.smoothness == smoothness &&
-        other.lab_color == lab_color;
+        other.lab_color == lab_color &&
+        other.batch_temperature == batch_temperature;
   }
 
   @override
@@ -203,6 +212,7 @@ class LabModel {
         viscosity.hashCode ^
         density.hashCode ^
         smoothness.hashCode ^
-        lab_color.hashCode;
+        lab_color.hashCode ^
+        batch_temperature.hashCode;
   }
 }

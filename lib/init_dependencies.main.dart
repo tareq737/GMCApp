@@ -94,7 +94,6 @@ void _initProd() {
     );
 }
 
-
 void _initSales() {
   //RemoteDataSource
   getIt
@@ -144,6 +143,10 @@ void _initSales() {
           authInteractor: getIt(),
           salesRepository: getIt(),
         ))
+    ..registerFactory(() => ExportCustomers(
+          authInteractor: getIt(),
+          salesRepository: getIt(),
+        ))
     //Bloc
     ..registerFactory(
       () => SalesBloc(
@@ -153,6 +156,7 @@ void _initSales() {
         getCustomer: getIt(),
         searchCustomer: getIt(),
         getAllCustomersPaginated: getIt(),
+        exportCustomers: getIt(),
       ),
     );
 }

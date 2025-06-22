@@ -465,6 +465,7 @@ class _RateListPageChildState extends State<RateListPageChild> {
 
   Future<void> runBlocGetNewRates() async {
     context.read<ExchangeRateBloc>().add(GetNewRates());
+    runBloc();
   }
 
   final formatter = NumberFormat.decimalPattern();

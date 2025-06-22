@@ -52,6 +52,7 @@ class _ProductionLabDataWidgetState extends State<ProductionLabDataWidget> {
   final viscosityController = TextEditingController();
   final densityController = TextEditingController();
   final smoothnessController = TextEditingController();
+  final batchTemperatureController = TextEditingController();
   final LabModel _labModel = LabModel();
 
   void _fillLabModelFromFomr() {
@@ -65,13 +66,14 @@ class _ProductionLabDataWidgetState extends State<ProductionLabDataWidget> {
     _labModel.employee = employeeController.text;
     _labModel.notes = notesController.text;
     _labModel.problems = problemsController.text;
-    _labModel.concealment = int.tryParse(concealmentController.text);
-    _labModel.gloss = int.tryParse(glossController.text);
+    _labModel.concealment = double.tryParse(concealmentController.text) ?? 0.0;
+    _labModel.gloss = double.tryParse(glossController.text) ?? 0.0;
     _labModel.lab_color = labColor;
-    _labModel.viscosity = double.tryParse(viscosityController.text);
+    _labModel.viscosity = viscosityController.text;
     _labModel.density = double.tryParse(densityController.text);
     _labModel.smoothness = int.tryParse(smoothnessController.text);
-
+    _labModel.batch_temperature =
+        double.tryParse(batchTemperatureController.text);
     _labModel.start_time =
         _startTimeController.text.isEmpty ? null : _startTimeController.text;
     _labModel.finish_time =
@@ -84,12 +86,12 @@ class _ProductionLabDataWidgetState extends State<ProductionLabDataWidget> {
   @override
   void initState() {
     super.initState();
-    labCheck_1 = widget.fullProductionModel.lab.lab_check_1;
-    labCheck_2 = widget.fullProductionModel.lab.lab_check_2;
-    labCheck_3 = widget.fullProductionModel.lab.lab_check_3;
-    labCheck_4 = widget.fullProductionModel.lab.lab_check_4;
-    labCheck_5 = widget.fullProductionModel.lab.lab_check_5;
-    labCheck_6 = widget.fullProductionModel.lab.lab_check_6;
+    labCheck_1 = widget.fullProductionModel.lab.lab_check_1 ?? false;
+    labCheck_2 = widget.fullProductionModel.lab.lab_check_2 ?? false;
+    labCheck_3 = widget.fullProductionModel.lab.lab_check_3 ?? false;
+    labCheck_4 = widget.fullProductionModel.lab.lab_check_4 ?? false;
+    labCheck_5 = widget.fullProductionModel.lab.lab_check_5 ?? false;
+    labCheck_6 = widget.fullProductionModel.lab.lab_check_6 ?? false;
     employeeController.text = widget.fullProductionModel.lab.employee ?? '';
     notesController.text = widget.fullProductionModel.lab.notes ?? '';
     problemsController.text = widget.fullProductionModel.lab.problems ?? '';
@@ -102,14 +104,19 @@ class _ProductionLabDataWidgetState extends State<ProductionLabDataWidget> {
         : '';
     labColor = widget.fullProductionModel.lab.lab_color;
     viscosityController.text = widget.fullProductionModel.lab.viscosity != null
-        ? widget.fullProductionModel.lab.viscosity!.toStringAsFixed(2)
+        ? widget.fullProductionModel.lab.viscosity!
         : '';
     densityController.text = widget.fullProductionModel.lab.density != null
-        ? widget.fullProductionModel.lab.density!.toStringAsFixed(2)
+        ? widget.fullProductionModel.lab.density!.toStringAsFixed(3)
         : '';
     smoothnessController.text =
         widget.fullProductionModel.lab.smoothness != null
             ? widget.fullProductionModel.lab.smoothness!.toStringAsFixed(2)
+            : '';
+    batchTemperatureController.text =
+        widget.fullProductionModel.lab.batch_temperature != null
+            ? widget.fullProductionModel.lab.batch_temperature!
+                .toStringAsFixed(2)
             : '';
     _startTimeController.text = widget.fullProductionModel.lab.start_time ?? '';
     _finishTimeController.text =
@@ -118,18 +125,18 @@ class _ProductionLabDataWidgetState extends State<ProductionLabDataWidget> {
     _completionDateController.text =
         widget.fullProductionModel.lab.completion_date ?? '';
 
-    if (_startTimeController.text.isNotEmpty) {
-      DateTime parsedTime =
-          DateFormat('HH:mm').parse(_startTimeController.text);
-      String formattedTime = DateFormat('hh:mm').format(parsedTime);
-      _startTimeController.text = formattedTime;
-    }
-    if (_finishTimeController.text.isNotEmpty) {
-      DateTime parsedTime =
-          DateFormat('HH:mm').parse(_finishTimeController.text);
-      String formattedTime = DateFormat('hh:mm').format(parsedTime);
-      _finishTimeController.text = formattedTime;
-    }
+    // if (_startTimeController.text.isNotEmpty) {
+    //   DateTime parsedTime =
+    //       DateFormat('HH:mm').parse(_startTimeController.text);
+    //   String formattedTime = DateFormat('hh:mm').format(parsedTime);
+    //   _startTimeController.text = formattedTime;
+    // }
+    // if (_finishTimeController.text.isNotEmpty) {
+    //   DateTime parsedTime =
+    //       DateFormat('HH:mm').parse(_finishTimeController.text);
+    //   String formattedTime = DateFormat('hh:mm').format(parsedTime);
+    //   _finishTimeController.text = formattedTime;
+    // }
     _calculateDuration();
   }
 
@@ -441,36 +448,58 @@ class _ProductionLabDataWidgetState extends State<ProductionLabDataWidget> {
                       ],
                     ),
                     const SizedBox(height: 10),
-                    MyTextField(
-                      readOnly: true,
-                      controller: _completionDateController,
-                      labelText: 'تاريخ انتهاء المخبر',
-                      onTap: () async {
-                        DateTime? pickedDate = await showDatePicker(
-                          context: context,
-                          initialDate: DateTime.now(),
-                          firstDate: DateTime(2020),
-                          lastDate: DateTime(2100),
-                        );
+                    Row(
+                      spacing: 10,
+                      children: [
+                        Expanded(
+                          child: MyTextField(
+                            controller: batchTemperatureController,
+                            labelText: 'حرارة الطبخة',
+                            keyboardType: const TextInputType.numberWithOptions(
+                                decimal: true),
+                            inputFormatters: [
+                              FilteringTextInputFormatter.allow(
+                                  RegExp(r'^\d*\.?\d*')),
+                            ],
+                          ),
+                        ),
+                        Expanded(
+                          child: MyTextField(
+                            readOnly: true,
+                            controller: _completionDateController,
+                            labelText: 'تاريخ انتهاء المخبر',
+                            onTap: () async {
+                              DateTime? pickedDate = await showDatePicker(
+                                context: context,
+                                initialDate: DateTime.now(),
+                                firstDate: DateTime(2020),
+                                lastDate: DateTime(2100),
+                              );
 
-                        if (pickedDate != null) {
-                          setState(() {
-                            _completionDateController.text =
-                                DateFormat('yyyy-MM-dd').format(pickedDate);
-                          });
-                        }
-                      },
+                              if (pickedDate != null) {
+                                setState(() {
+                                  _completionDateController.text =
+                                      DateFormat('yyyy-MM-dd')
+                                          .format(pickedDate);
+                                });
+                              }
+                            },
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(
                       height: 10,
                     ),
                     MyTextField(
+                        maxLines: 10,
                         controller: notesController,
                         labelText: 'ملاحظات المخبر'),
                     const SizedBox(
                       height: 10,
                     ),
                     MyTextField(
+                        maxLines: 10,
                         controller: problemsController,
                         labelText: 'مشاكل المخبر'),
                     if ((groups!.contains('admins') ||
@@ -480,10 +509,11 @@ class _ProductionLabDataWidgetState extends State<ProductionLabDataWidget> {
                         text: 'حفظ',
                         onPressed: () {
                           _fillLabModelFromFomr();
-                          print(_labModel);
+                          print('Lab Model befor save: $_labModel');
                           context
                               .read<ProductionBloc>()
                               .add(SaveLab(labModel: _labModel));
+                          print('Lab Model to be saved: $_labModel');
                         },
                       ),
                   ],

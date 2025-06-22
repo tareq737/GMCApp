@@ -67,15 +67,20 @@ class _ProductionEmptyPackagingDataWidgetState
   void initState() {
     super.initState();
     emptyPackagingCheck_1 =
-        widget.fullProductionModel.emptyPackaging.empty_packaging_check_1;
+        widget.fullProductionModel.emptyPackaging.empty_packaging_check_1 ??
+            false;
     emptyPackagingCheck_2 =
-        widget.fullProductionModel.emptyPackaging.empty_packaging_check_2;
+        widget.fullProductionModel.emptyPackaging.empty_packaging_check_2 ??
+            false;
     emptyPackagingCheck_3 =
-        widget.fullProductionModel.emptyPackaging.empty_packaging_check_3;
+        widget.fullProductionModel.emptyPackaging.empty_packaging_check_3 ??
+            false;
     emptyPackagingCheck_4 =
-        widget.fullProductionModel.emptyPackaging.empty_packaging_check_4;
+        widget.fullProductionModel.emptyPackaging.empty_packaging_check_4 ??
+            false;
     emptyPackagingCheck_5 =
-        widget.fullProductionModel.emptyPackaging.empty_packaging_check_5;
+        widget.fullProductionModel.emptyPackaging.empty_packaging_check_5 ??
+            false;
     employeeController.text =
         widget.fullProductionModel.emptyPackaging.employee ?? '';
     notesController.text =
@@ -89,17 +94,17 @@ class _ProductionEmptyPackagingDataWidgetState
         widget.fullProductionModel.emptyPackaging.finish_time ?? '';
     completionDateController.text =
         widget.fullProductionModel.emptyPackaging.completion_date ?? '';
-    if (startTimeController.text.isNotEmpty) {
-      DateTime parsedTime = DateFormat('HH:mm').parse(startTimeController.text);
-      String formattedTime = DateFormat('hh:mm').format(parsedTime);
-      startTimeController.text = formattedTime;
-    }
-    if (finishTimeController.text.isNotEmpty) {
-      DateTime parsedTime =
-          DateFormat('HH:mm').parse(finishTimeController.text);
-      String formattedTime = DateFormat('hh:mm').format(parsedTime);
-      finishTimeController.text = formattedTime;
-    }
+    // if (startTimeController.text.isNotEmpty) {
+    //   DateTime parsedTime = DateFormat('HH:mm').parse(startTimeController.text);
+    //   String formattedTime = DateFormat('hh:mm').format(parsedTime);
+    //   startTimeController.text = formattedTime;
+    // }
+    // if (finishTimeController.text.isNotEmpty) {
+    //   DateTime parsedTime =
+    //       DateFormat('HH:mm').parse(finishTimeController.text);
+    //   String formattedTime = DateFormat('hh:mm').format(parsedTime);
+    //   finishTimeController.text = formattedTime;
+    // }
 
     _calculateDuration();
   }
@@ -330,12 +335,14 @@ class _ProductionEmptyPackagingDataWidgetState
                       height: 10,
                     ),
                     MyTextField(
+                        maxLines: 10,
                         controller: notesController,
                         labelText: 'ملاحظات الفوارغ'),
                     const SizedBox(
                       height: 10,
                     ),
                     MyTextField(
+                        maxLines: 10,
                         controller: problemsController,
                         labelText: 'مشاكل الفوارغ'),
                     if ((groups!.contains('admins') ||

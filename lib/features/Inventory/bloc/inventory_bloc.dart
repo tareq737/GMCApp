@@ -68,6 +68,20 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
         }
       },
     );
+    on<SearchItems>(
+      (event, emit) async {
+        emit(InventoryLoading());
+        var result = await _inventoryServices.searchItem(
+          search: event.search,
+          page: event.page,
+        );
+        if (result == null) {
+          emit(InventoryError(errorMessage: 'Error'));
+        } else {
+          emit(InventorySuccess(result: result));
+        }
+      },
+    );
     on<GetAllGroups>(
       (event, emit) async {
         emit(InventoryLoading());
@@ -109,6 +123,20 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
         emit(InventoryLoading());
         var result =
             await _inventoryServices.updateGroup(event.id, event.groupsModel);
+        if (result == null) {
+          emit(InventoryError(errorMessage: 'Error'));
+        } else {
+          emit(InventorySuccess(result: result));
+        }
+      },
+    );
+    on<SearchGroups>(
+      (event, emit) async {
+        emit(InventoryLoading());
+        var result = await _inventoryServices.searchGroup(
+          search: event.search,
+          page: event.page,
+        );
         if (result == null) {
           emit(InventoryError(errorMessage: 'Error'));
         } else {
@@ -158,6 +186,20 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
         emit(InventoryLoading());
         var result = await _inventoryServices.updateWarehouse(
             event.id, event.warehousesModel);
+        if (result == null) {
+          emit(InventoryError(errorMessage: 'Error'));
+        } else {
+          emit(InventorySuccess(result: result));
+        }
+      },
+    );
+    on<SearchWarehouse>(
+      (event, emit) async {
+        emit(InventoryLoading());
+        var result = await _inventoryServices.searchWarehouse(
+          search: event.search,
+          page: event.page,
+        );
         if (result == null) {
           emit(InventoryError(errorMessage: 'Error'));
         } else {

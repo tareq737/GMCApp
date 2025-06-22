@@ -113,12 +113,18 @@ class _ProductionPackagingDataWidgetState
   @override
   void initState() {
     super.initState();
-    packagingCheck_1 = widget.fullProductionModel.packaging.packaging_check_1;
-    packagingCheck_2 = widget.fullProductionModel.packaging.packaging_check_2;
-    packagingCheck_3 = widget.fullProductionModel.packaging.packaging_check_3;
-    packagingCheck_4 = widget.fullProductionModel.packaging.packaging_check_4;
-    packagingCheck_5 = widget.fullProductionModel.packaging.packaging_check_5;
-    packagingCheck_6 = widget.fullProductionModel.packaging.packaging_check_6;
+    packagingCheck_1 =
+        widget.fullProductionModel.packaging.packaging_check_1 ?? false;
+    packagingCheck_2 =
+        widget.fullProductionModel.packaging.packaging_check_2 ?? false;
+    packagingCheck_3 =
+        widget.fullProductionModel.packaging.packaging_check_3 ?? false;
+    packagingCheck_4 =
+        widget.fullProductionModel.packaging.packaging_check_4 ?? false;
+    packagingCheck_5 =
+        widget.fullProductionModel.packaging.packaging_check_5 ?? false;
+    packagingCheck_6 =
+        widget.fullProductionModel.packaging.packaging_check_6 ?? false;
     employeeController.text =
         widget.fullProductionModel.packaging.employee ?? '';
     notesController.text = widget.fullProductionModel.packaging.notes ?? '';
@@ -126,7 +132,7 @@ class _ProductionPackagingDataWidgetState
         widget.fullProductionModel.packaging.problems ?? '';
     packagingDensityController.text = widget
             .fullProductionModel.packaging.packaging_density
-            ?.toStringAsFixed(2) ??
+            ?.toStringAsFixed(3) ??
         '';
 
     batchLeftoverController.text =
@@ -136,12 +142,12 @@ class _ProductionPackagingDataWidgetState
 
     containerEmptyController.text = widget
             .fullProductionModel.packaging.container_empty
-            ?.toStringAsFixed(2) ??
+            ?.toStringAsFixed(3) ??
         '';
 
     packagingWeightController.text = widget
             .fullProductionModel.packaging.packaging_weight
-            ?.toStringAsFixed(2) ??
+            ?.toStringAsFixed(3) ??
         '';
 
     printingController.text =
@@ -167,17 +173,17 @@ class _ProductionPackagingDataWidgetState
     completionDateController.text =
         widget.fullProductionModel.packaging.completion_date ?? '';
 
-    if (startTimeController.text.isNotEmpty) {
-      DateTime parsedTime = DateFormat('HH:mm').parse(startTimeController.text);
-      String formattedTime = DateFormat('hh:mm').format(parsedTime);
-      startTimeController.text = formattedTime;
-    }
-    if (finishTimeController.text.isNotEmpty) {
-      DateTime parsedTime =
-          DateFormat('HH:mm').parse(finishTimeController.text);
-      String formattedTime = DateFormat('hh:mm').format(parsedTime);
-      finishTimeController.text = formattedTime;
-    }
+    // if (startTimeController.text.isNotEmpty) {
+    //   DateTime parsedTime = DateFormat('HH:mm').parse(startTimeController.text);
+    //   String formattedTime = DateFormat('hh:mm').format(parsedTime);
+    //   startTimeController.text = formattedTime;
+    // }
+    // if (finishTimeController.text.isNotEmpty) {
+    //   DateTime parsedTime =
+    //       DateFormat('HH:mm').parse(finishTimeController.text);
+    //   String formattedTime = DateFormat('hh:mm').format(parsedTime);
+    //   finishTimeController.text = formattedTime;
+    // }
 
     _calculateDuration();
     _calculateDensity();
@@ -277,7 +283,7 @@ class _ProductionPackagingDataWidgetState
                     if (widget.type == 'Production') ...[
                       CheckboxListTile(
                         title: const Text(
-                          'استلمت البطخة من التصنيع',
+                          'استلمت الطبخة من التصنيع',
                           style: TextStyle(fontSize: 12),
                         ),
                         value: packagingCheck_1,
@@ -592,12 +598,14 @@ class _ProductionPackagingDataWidgetState
                       height: 10,
                     ),
                     MyTextField(
+                        maxLines: 10,
                         controller: notesController,
                         labelText: 'ملاحظات التعبئة'),
                     const SizedBox(
                       height: 10,
                     ),
                     MyTextField(
+                        maxLines: 10,
                         controller: problemsController,
                         labelText: 'مشاكل التعبئة'),
                     const SizedBox(

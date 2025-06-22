@@ -46,10 +46,10 @@ class _ProductionRawMaterialDataWidgetState
   final RawMaterialsModel _rawMaterialsModel = RawMaterialsModel();
   void _fillRawMaterialModelFromFomr() {
     _rawMaterialsModel.id = widget.fullProductionModel.rawMaterials.id;
-    _rawMaterialsModel.raw_material_check_1 = rawMaterialCheck_1;
-    _rawMaterialsModel.raw_material_check_2 = rawMaterialCheck_2;
-    _rawMaterialsModel.raw_material_check_3 = rawMaterialCheck_3;
-    _rawMaterialsModel.raw_material_check_4 = rawMaterialCheck_4;
+    _rawMaterialsModel.raw_material_check_1 = rawMaterialCheck_1 ?? false;
+    _rawMaterialsModel.raw_material_check_2 = rawMaterialCheck_2 ?? false;
+    _rawMaterialsModel.raw_material_check_3 = rawMaterialCheck_3 ?? false;
+    _rawMaterialsModel.raw_material_check_4 = rawMaterialCheck_4 ?? false;
     _rawMaterialsModel.employee = _employeeController.text;
     _rawMaterialsModel.receipt_number =
         int.tryParse(_receiptNumberController.text);
@@ -94,18 +94,18 @@ class _ProductionRawMaterialDataWidgetState
     _completionDateController.text =
         widget.fullProductionModel.rawMaterials.completion_date ?? '';
 
-    if (_startTimeController.text.isNotEmpty) {
-      DateTime parsedTime =
-          DateFormat('HH:mm').parse(_startTimeController.text);
-      String formattedTime = DateFormat('hh:mm').format(parsedTime);
-      _startTimeController.text = formattedTime;
-    }
-    if (_finishTimeController.text.isNotEmpty) {
-      DateTime parsedTime =
-          DateFormat('HH:mm').parse(_finishTimeController.text);
-      String formattedTime = DateFormat('hh:mm').format(parsedTime);
-      _finishTimeController.text = formattedTime;
-    }
+    // if (_startTimeController.text.isNotEmpty) {
+    //   DateTime parsedTime =
+    //       DateFormat('HH:mm').parse(_startTimeController.text);
+    //   String formattedTime = DateFormat('hh:mm').format(parsedTime);
+    //   _startTimeController.text = formattedTime;
+    // }
+    // if (_finishTimeController.text.isNotEmpty) {
+    //   DateTime parsedTime =
+    //       DateFormat('HH:mm').parse(_finishTimeController.text);
+    //   String formattedTime = DateFormat('hh:mm').format(parsedTime);
+    //   _finishTimeController.text = formattedTime;
+    // }
 
     _calculateDuration();
   }

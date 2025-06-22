@@ -13,8 +13,13 @@ import 'package:gmcappclean/init_dependencies.dart';
 
 class ExportExcelTasksPage extends StatefulWidget {
   final String department;
+  final String departmentDisplayName;
 
-  const ExportExcelTasksPage({super.key, required this.department});
+  const ExportExcelTasksPage({
+    super.key,
+    required this.department,
+    required this.departmentDisplayName,
+  });
 
   @override
   State<ExportExcelTasksPage> createState() => _ExportExcelTasksPageState();
@@ -42,15 +47,16 @@ class _ExportExcelTasksPageState extends State<ExportExcelTasksPage> {
     try {
       final directory = await getTemporaryDirectory();
 
-      const fileName = 'البرنامج الفردي.xlsx';
-      final path = '${directory.path}\\$fileName';
+      // Use the Arabic display name as the file name
+      final fileName = 'برنامج فردي ${widget.departmentDisplayName}.xlsx';
+
+      final path = '${directory.path}/$fileName';
 
       final file = File(path);
       await file.writeAsBytes(bytes);
 
       await _showDialog('نجاح', 'تم حفظ الملف وسيتم فتحه الآن');
 
-      // Open the file
       final result = await OpenFilex.open(path);
 
       if (result.type != ResultType.done) {
@@ -90,8 +96,7 @@ class _ExportExcelTasksPageState extends State<ExportExcelTasksPage> {
           if (state is TotalProductionSuccess) {
             await _saveFile(state.result);
           } else if (state is TotalProductionError) {
-            await _showDialog(
-                'Export Failed', state.errorMessage ?? 'Unknown error');
+            await _showDialog('Export Failed', state.errorMessage);
             Navigator.of(context).pop();
           }
         },

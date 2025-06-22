@@ -9,6 +9,9 @@ class ItemsModel {
   String? min_limit;
   String? max_limit;
   int? group;
+  String? group_code_name;
+  List<Map<String, dynamic>>? default_price; // Add this line
+
   ItemsModel({
     required this.id,
     this.code,
@@ -17,6 +20,8 @@ class ItemsModel {
     this.min_limit,
     this.max_limit,
     this.group,
+    this.group_code_name,
+    this.default_price, // Add this line
   });
 
   ItemsModel copyWith({
@@ -27,6 +32,8 @@ class ItemsModel {
     String? min_limit,
     String? max_limit,
     int? group,
+    String? group_code_name,
+    List<Map<String, dynamic>>? default_price, // Add this line
   }) {
     return ItemsModel(
       id: id ?? this.id,
@@ -36,6 +43,8 @@ class ItemsModel {
       min_limit: min_limit ?? this.min_limit,
       max_limit: max_limit ?? this.max_limit,
       group: group ?? this.group,
+      group_code_name: group_code_name ?? this.group_code_name,
+      default_price: default_price ?? this.default_price, // Add this line
     );
   }
 
@@ -48,6 +57,8 @@ class ItemsModel {
       'min_limit': min_limit,
       'max_limit': max_limit,
       'group': group,
+      'group_code_name': group_code_name,
+      'default_price': default_price, // Add this line
     };
   }
 
@@ -60,6 +71,17 @@ class ItemsModel {
       min_limit: map['min_limit'] != null ? map['min_limit'] as String : null,
       max_limit: map['max_limit'] != null ? map['max_limit'] as String : null,
       group: map['group'] != null ? map['group'] as int : null,
+      group_code_name: map['group_code_name'] != null
+          ? map['group_code_name'] as String
+          : null,
+      // Add this block for default_price
+      default_price: map['default_price'] != null
+          ? List<Map<String, dynamic>>.from(
+              (map['default_price'] as List<dynamic>).map<Map<String, dynamic>>(
+                (x) => x as Map<String, dynamic>,
+              ),
+            )
+          : null,
     );
   }
 
@@ -70,7 +92,7 @@ class ItemsModel {
 
   @override
   String toString() {
-    return 'ItemsModel(id: $id, code: $code, name: $name, unit: $unit, min_limit: $min_limit, max_limit: $max_limit, group: $group)';
+    return 'ItemsModel(id: $id, code: $code, name: $name, unit: $unit, min_limit: $min_limit, max_limit: $max_limit, group: $group, group_code_name: $group_code_name, default_price: $default_price)';
   }
 
   @override
@@ -83,7 +105,10 @@ class ItemsModel {
         other.unit == unit &&
         other.min_limit == min_limit &&
         other.max_limit == max_limit &&
-        other.group == group;
+        other.group == group &&
+        other.group_code_name == group_code_name &&
+        // Add this line for default_price comparison
+        listEquals(other.default_price, default_price);
   }
 
   @override
@@ -94,6 +119,20 @@ class ItemsModel {
         unit.hashCode ^
         min_limit.hashCode ^
         max_limit.hashCode ^
-        group.hashCode;
+        group.hashCode ^
+        group_code_name.hashCode ^
+        // Add this line for default_price hash code
+        default_price.hashCode;
   }
+}
+
+// You'll need this utility function for list comparison in operator ==
+// Add this outside of your ItemsModel class, or in a utility file
+bool listEquals<T>(List<T>? a, List<T>? b) {
+  if (a == null && b == null) return true;
+  if (a == null || b == null || a.length != b.length) return false;
+  for (int i = 0; i < a.length; i++) {
+    if (a[i] != b[i]) return false;
+  }
+  return true;
 }

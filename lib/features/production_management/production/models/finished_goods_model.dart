@@ -12,6 +12,7 @@ class FinishedGoodsModel {
   bool? finished_goods_check_1;
   bool? finished_goods_check_2;
   bool? finished_goods_check_3;
+  bool? finished_goods_check_4;
   FinishedGoodsModel({
     this.id,
     this.start_time,
@@ -23,6 +24,7 @@ class FinishedGoodsModel {
     this.finished_goods_check_1,
     this.finished_goods_check_2,
     this.finished_goods_check_3,
+    this.finished_goods_check_4,
   });
 
   FinishedGoodsModel copyWith({
@@ -36,6 +38,7 @@ class FinishedGoodsModel {
     bool? finished_goods_check_1,
     bool? finished_goods_check_2,
     bool? finished_goods_check_3,
+    bool? finished_goods_check_4,
   }) {
     return FinishedGoodsModel(
       id: id ?? this.id,
@@ -51,6 +54,8 @@ class FinishedGoodsModel {
           finished_goods_check_2 ?? this.finished_goods_check_2,
       finished_goods_check_3:
           finished_goods_check_3 ?? this.finished_goods_check_3,
+      finished_goods_check_4:
+          finished_goods_check_4 ?? this.finished_goods_check_4,
     );
   }
 
@@ -67,6 +72,7 @@ class FinishedGoodsModel {
         'finished_goods_check_1': finished_goods_check_1,
         'finished_goods_check_2': finished_goods_check_2,
         'finished_goods_check_3': finished_goods_check_3,
+        'finished_goods_check_4': finished_goods_check_4,
       }
     };
   }
@@ -86,13 +92,16 @@ class FinishedGoodsModel {
           : null,
       finished_goods_check_1: map['finished_goods_check_1'] != null
           ? map['finished_goods_check_1'] as bool
-          : false,
+          : null,
       finished_goods_check_2: map['finished_goods_check_2'] != null
           ? map['finished_goods_check_2'] as bool
-          : false,
+          : null,
       finished_goods_check_3: map['finished_goods_check_3'] != null
           ? map['finished_goods_check_3'] as bool
-          : false,
+          : null,
+      finished_goods_check_4: map['finished_goods_check_4'] != null
+          ? map['finished_goods_check_4'] as bool
+          : null,
     );
   }
 
@@ -103,7 +112,7 @@ class FinishedGoodsModel {
 
   @override
   String toString() {
-    return 'FinishedGoodsModel(id: $id, start_time: $start_time, finish_time: $finish_time, employee: $employee, problems: $problems, notes: $notes, completion_date: $completion_date, finished_goods_check_1: $finished_goods_check_1, finished_goods_check_2: $finished_goods_check_2, finished_goods_check_3: $finished_goods_check_3)';
+    return 'FinishedGoodsModel(id: $id, start_time: $start_time, finish_time: $finish_time, employee: $employee, problems: $problems, notes: $notes, completion_date: $completion_date, finished_goods_check_1: $finished_goods_check_1, finished_goods_check_2: $finished_goods_check_2, finished_goods_check_3: $finished_goods_check_3, finished_goods_check_4: $finished_goods_check_4)';
   }
 
   @override
@@ -119,7 +128,8 @@ class FinishedGoodsModel {
         other.completion_date == completion_date &&
         other.finished_goods_check_1 == finished_goods_check_1 &&
         other.finished_goods_check_2 == finished_goods_check_2 &&
-        other.finished_goods_check_3 == finished_goods_check_3;
+        other.finished_goods_check_3 == finished_goods_check_3 &&
+        other.finished_goods_check_4 == finished_goods_check_4;
   }
 
   @override
@@ -133,6 +143,7 @@ class FinishedGoodsModel {
         completion_date.hashCode ^
         finished_goods_check_1.hashCode ^
         finished_goods_check_2.hashCode ^
-        finished_goods_check_3.hashCode;
+        finished_goods_check_3.hashCode ^
+        finished_goods_check_4.hashCode;
   }
 }

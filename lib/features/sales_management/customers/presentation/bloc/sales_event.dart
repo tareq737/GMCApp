@@ -40,3 +40,5 @@ final class SalesGetAllPaginated<T> extends SalesEvent {
   SalesGetAllPaginated(
       {required this.page, this.hasCood, this.pageSize, this.search});
 }
+
+class ExportExcelCustomers extends SalesEvent {}

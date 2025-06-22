@@ -6,6 +6,7 @@ class MyDropdownButton extends StatefulWidget {
   final String labelText;
   final ValueChanged<String?>? onChanged;
   final bool isEnabled;
+  final bool showClearButton;
 
   const MyDropdownButton({
     super.key,
@@ -13,7 +14,8 @@ class MyDropdownButton extends StatefulWidget {
     required this.items,
     required this.labelText,
     this.onChanged,
-    this.isEnabled = true, // Default is true (user can change the value)
+    this.isEnabled = true,
+    this.showClearButton = true,
   });
 
   @override
@@ -72,7 +74,9 @@ class MyDropdownButtonState extends State<MyDropdownButton> {
           ),
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
-          suffixIcon: widget.isEnabled && currentValue != null
+          suffixIcon: widget.isEnabled &&
+                  widget.showClearButton &&
+                  currentValue != null // Only show clear button if allowed
               ? IconButton(
                   icon: const Icon(Icons.clear),
                   onPressed: () {

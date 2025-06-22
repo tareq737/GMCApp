@@ -350,5 +350,60 @@ class PurchaseBloc extends Bloc<PurchaseEvent, PurchaseState> {
         }
       },
     );
+
+    on<ExportExcelPendingOffers>(
+      (event, emit) async {
+        emit(PurchaseLoading());
+        var result = await _purchaseService.exportExcelPendingOffers();
+        result.fold(
+          (successBytes) {
+            emit(PurchaseSuccess(result: successBytes));
+          },
+          (failure) {
+            emit(PurchaseError(errorMessage: 'Error'));
+          },
+        );
+      },
+    );
+    on<ExportExcelReadyToBuy>(
+      (event, emit) async {
+        emit(PurchaseLoading());
+        var result = await _purchaseService.exportExcelReadyToBuy();
+        result.fold(
+          (successBytes) {
+            emit(PurchaseSuccess(result: successBytes));
+          },
+          (failure) {
+            emit(PurchaseError(errorMessage: 'Error'));
+          },
+        );
+      },
+    );
+    on<GetListForPayment>(
+      (event, emit) async {
+        emit(PurchaseLoading());
+        var result = await _purchaseService.getListForPayment(page: event.page);
+        if (result == null) {
+          emit(PurchaseError(errorMessage: 'Error'));
+        } else {
+          emit(PurchaseSuccess(result: result));
+        }
+      },
+    );
+    on<ExportExcelForPayment>(
+      (event, emit) async {
+        emit(PurchaseLoading());
+        var result =
+            await _purchaseService.exportExcelListForPayment(ids: event.ids);
+        result.fold(
+          (successBytes) {
+            emit(PurchaseSuccess(result: successBytes));
+          },
+          (failure) {
+            emit(PurchaseError(errorMessage: 'Error'));
+          },
+        );
+      },
+    );
   }
 }

@@ -1,5 +1,9 @@
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gmcappclean/core/common/widgets/loader.dart';
 import 'package:gmcappclean/core/common/widgets/search_row.dart';
 import 'package:gmcappclean/core/utils/show_snackbar.dart';
@@ -9,6 +13,8 @@ import 'package:gmcappclean/features/sales_management/customers/presentation/pag
 import 'package:gmcappclean/features/sales_management/customers/presentation/viewmodels/customer_brief_view_model.dart';
 import 'package:gmcappclean/features/sales_management/customers/presentation/viewmodels/customer_view_model.dart';
 import 'package:gmcappclean/init_dependencies.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:path_provider/path_provider.dart';
 
 class FullCoustomersPage extends StatelessWidget {
   const FullCoustomersPage({super.key});
@@ -41,6 +47,7 @@ class _FullCoustomersPageChildState extends State<FullCoustomersPageChild> {
   bool isLoadingMore = false;
   late List<CustomerBriefViewModel> customers;
   bool isSearching = false;
+  bool isExporting = false;
 
   @override
   void initState() {
@@ -65,18 +72,31 @@ class _FullCoustomersPageChildState extends State<FullCoustomersPageChild> {
         child: Scaffold(
           appBar: AppBar(
             actions: [
-              IconButton(
+              if (Platform.isWindows)
+                IconButton(
                   onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) {
-                          return const CustomersMapPage();
-                        },
-                      ),
-                    );
+                    setState(() {
+                      isExporting = true; // Set exporting state to true
+                    });
+                    context.read<SalesBloc>().add(
+                          ExportExcelCustomers(),
+                        );
                   },
-                  icon: const Icon(Icons.map_outlined))
+                  icon: const FaIcon(FontAwesomeIcons.fileExport),
+                ),
+              IconButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) {
+                        return const CustomersMapPage();
+                      },
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.map_outlined),
+              ),
             ],
             title: const Text('الزبائن'),
             centerTitle: true,
@@ -108,42 +128,56 @@ class _FullCoustomersPageChildState extends State<FullCoustomersPageChild> {
                 },
               ),
               BlocConsumer<SalesBloc, SalesState>(
-                listener: (context, state) {
-                  _handleState(context, state);
-
+                listener: (context, state) async {
+                  // We handle SalesOpFailure here specifically for the snackbar
+                  // and loading states. _handleState will handle navigation.
                   if (state is SalesOpSuccess<List<CustomerBriefViewModel>>) {
                     setState(
                       () {
-                        //customers.clear();
                         customers.addAll(state.opResult);
                         isSearching = false;
                         isLoadingMore = false;
                       },
                     );
+                  } else if (state is SalesOpSuccess<Uint8List>) {
+                    setState(() {
+                      isExporting = false; // Reset exporting state
+                    });
+                    await _saveFile(state.opResult);
                   } else if (state is SalesOpFailure) {
+                    print('Sales Operation Failed: ${state.message}');
                     showSnackBar(
                       context: context,
-                      content: 'حدث خطأ ما',
+                      content: 'حدث خطأ: ${state.message}',
                       failure: true,
                     );
                     setState(() {
                       isSearching = false;
                       isLoadingMore = false;
+                      isExporting = false; // Reset exporting state on failure
                     });
                   }
+
+                  _handleState(context, state);
                 },
                 builder: (context, state) {
-                  if (isSearching) {
-                    return const Loader(); // Show loader when searching
-                  } else if (state is SalesOpLoading && currentPage == 1) {
-                    return const Loader();
-                  } else if (customers.isEmpty && state is! SalesOpLoading) {
-                    return const Center(
-                        child: Text(
-                            "لا يوجد بيانات")); // Show empty message if no results
-                  } else {
-                    return _buildCustomerFullDetailsList(context, customers);
-                  }
+                  return Expanded(
+                    child: Builder(builder: (context) {
+                      if (isSearching) {
+                        return const Loader(); // Show loader when searching
+                      } else if (state is SalesOpLoading && currentPage == 1) {
+                        return const Loader();
+                      } else if (customers.isEmpty &&
+                          state is! SalesOpLoading) {
+                        return const Center(
+                            child: Text(
+                                "لا يوجد بيانات")); // Show empty message if no results
+                      } else {
+                        return _buildCustomerFullDetailsList(
+                            context, customers);
+                      }
+                    }),
+                  );
                 },
               ),
             ],
@@ -154,17 +188,14 @@ class _FullCoustomersPageChildState extends State<FullCoustomersPageChild> {
   }
 
   void _onScroll() {
-    // Calculate the halfway point
     double halfwayPoint = _scrollController.position.maxScrollExtent / 2;
-
-    // Check if the current scroll position is at or beyond the halfway point
     if (_scrollController.position.pixels >= halfwayPoint && !isLoadingMore) {
       _nextPage(context);
     }
   }
 
   void _nextPage(BuildContext context) {
-    if (isLoadingMore) return; // Prevent duplicate requests
+    if (isLoadingMore) return;
 
     setState(() {
       isLoadingMore = true;
@@ -180,17 +211,6 @@ class _FullCoustomersPageChildState extends State<FullCoustomersPageChild> {
   }
 
   void _handleState(BuildContext context, SalesState state) {
-    if (state is SalesOpFailure) {
-      showSnackBar(
-        context: context,
-        content: 'حدث خطأ ما',
-        failure: true,
-      );
-      setState(() {
-        isLoadingMore = false; // Reset loading state on failure
-      });
-    }
-
     if (state is SalesOpSuccess<CustomerViewModel>) {
       Navigator.push(
         context,
@@ -207,90 +227,83 @@ class _FullCoustomersPageChildState extends State<FullCoustomersPageChild> {
 
   Widget _buildCustomerFullDetailsList(
       BuildContext context, List<CustomerBriefViewModel> customerList) {
-    return Expanded(
-      child: ListView.builder(
-        controller: _scrollController, // Attach the scroll controller here
-        itemCount:
-            customerList.length + 1, // Add one extra for the loading indicator
-        itemBuilder: (context, index) {
-          if (index == customerList.length) {
-            // Show loading indicator at the bottom if more data is being loaded
-            return isLoadingMore
-                ? const Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: Center(child: Loader()),
-                  )
-                : const SizedBox
-                    .shrink(); // Empty space when not loading more data
-          }
+    return ListView.builder(
+      controller: _scrollController,
+      itemCount: customerList.length + 1,
+      itemBuilder: (context, index) {
+        if (index == customerList.length) {
+          return isLoadingMore
+              ? const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Center(child: Loader()),
+                )
+              : const SizedBox.shrink();
+        }
 
-          final screenWidth = MediaQuery.of(context).size.width;
+        final screenWidth = MediaQuery.of(context).size.width;
 
-          return Card(
-            child: ListTile(
-              onTap: () {
-                context.read<SalesBloc>().add(
-                      SalesGetById<CustomerViewModel>(
-                          id: customerList[index].id),
-                    );
-              },
-              title: Text(
-                customerList[index].customerName ?? '',
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 14),
-              ),
-              subtitle: Text(
-                customerList[index].shopName ?? '',
-                textAlign: TextAlign.center,
-              ),
-              leading: SizedBox(
-                width: screenWidth * 0.18,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Text(
-                      customerList[index].governate ?? '',
-                      overflow: TextOverflow.clip,
-                      textAlign: TextAlign.end,
-                    ),
-                    if (customerList[index].shopCoordinates?.isNotEmpty ??
-                        false)
-                      const Icon(
-                        Icons.location_on_outlined,
-                        color: Colors.red,
-                        size: 20,
-                      )
-                    else
-                      const SizedBox.shrink(),
-                  ],
-                ),
-              ),
-              trailing: SizedBox(
-                width: screenWidth * 0.2,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Text(
-                      customerList[index].region ?? '',
-                      overflow: TextOverflow.clip,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 9),
-                    ),
-                    CircleAvatar(
-                      radius: 10,
-                      child: Text(
-                        customerList[index].id.toString(),
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(fontSize: 8),
-                      ),
-                    ),
-                  ],
-                ),
+        return Card(
+          child: ListTile(
+            onTap: () {
+              context.read<SalesBloc>().add(
+                    SalesGetById<CustomerViewModel>(id: customerList[index].id),
+                  );
+            },
+            title: Text(
+              customerList[index].customerName ?? '',
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 14),
+            ),
+            subtitle: Text(
+              customerList[index].shopName ?? '',
+              textAlign: TextAlign.center,
+            ),
+            leading: SizedBox(
+              width: screenWidth * 0.18,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Text(
+                    customerList[index].governate ?? '',
+                    overflow: TextOverflow.clip,
+                    textAlign: TextAlign.end,
+                  ),
+                  if (customerList[index].shopCoordinates?.isNotEmpty ?? false)
+                    const Icon(
+                      Icons.location_on_outlined,
+                      color: Colors.red,
+                      size: 20,
+                    )
+                  else
+                    const SizedBox.shrink(),
+                ],
               ),
             ),
-          );
-        },
-      ),
+            trailing: SizedBox(
+              width: screenWidth * 0.2,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Text(
+                    customerList[index].region ?? '',
+                    overflow: TextOverflow.clip,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 9),
+                  ),
+                  CircleAvatar(
+                    radius: 10,
+                    child: Text(
+                      customerList[index].id.toString(),
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 8),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -304,5 +317,47 @@ class _FullCoustomersPageChildState extends State<FullCoustomersPageChild> {
           SalesGetAllPaginated<CustomerBriefViewModel>(
               page: 1, search: _searchController.text),
         );
+  }
+
+  Future<void> _saveFile(Uint8List bytes) async {
+    try {
+      final directory = await getTemporaryDirectory();
+      const fileName = 'تقرير زيارات المبيعات.xlsx';
+      final path = '${directory.path}/$fileName';
+
+      final file = File(path);
+      await file.writeAsBytes(bytes);
+
+      // Show success dialog before attempting to open
+      await _showDialog('نجاح', 'تم حفظ الملف وسيتم فتحه الآن');
+
+      final result = await OpenFilex.open(path);
+
+      if (result.type != ResultType.done) {
+        // If OpenFilex fails, show an error dialog
+        await _showDialog('خطأ', 'لم يتم فتح الملف: ${result.message}');
+      }
+    } catch (e) {
+      // Catch any exceptions during file saving or opening
+      await _showDialog(
+          'خطأ', 'فشل حفظ/فتح الملف:\n${e.toString()}'); // More specific error
+    }
+  }
+
+  Future<void> _showDialog(String title, String message) {
+    return showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 }

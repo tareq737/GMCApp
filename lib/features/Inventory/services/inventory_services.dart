@@ -53,7 +53,7 @@ class InventoryServices {
       }, (success) async {
         final response = await _apiClient.getPageinated(
           user: success,
-          endPoint: 'items/',
+          endPoint: 'items',
           queryParams: {
             'page_size': 20,
             'page': page,
@@ -94,15 +94,37 @@ class InventoryServices {
       return userEntity.fold((failure) {
         return null;
       }, (success) async {
-        final response = await _apiClient.updateViaPut(
+        final response = await _apiClient.updateViaPatch(
           user: success,
-          endPoint: 'ItemsModel',
+          endPoint: 'items',
           data: itemsModel.toJson(),
           id: id,
         );
         return ItemsModel.fromMap(response);
       });
     } catch (e) {
+      return null;
+    }
+  }
+
+  Future<List<ItemsModel>?> searchItem(
+      {required String search, required int page}) async {
+    try {
+      final userEntity = await getCredentials();
+      return userEntity.fold((failure) {
+        return null;
+      }, (success) async {
+        final response = await _apiClient.getPageinated(
+          user: success,
+          endPoint: 'items',
+          queryParams: {'search': search, 'page': page},
+        );
+        return List.generate(response.length, (index) {
+          return ItemsModel.fromMap(response[index]);
+        });
+      });
+    } catch (e) {
+      print('exception caught');
       return null;
     }
   }
@@ -116,7 +138,7 @@ class InventoryServices {
         return null;
       }, (success) async {
         final response =
-            await _apiClient.getById(user: success, endPoint: 'groups', id: id);
+            await _apiClient.getById(user: success, endPoint: 'group', id: id);
         return GroupsModel.fromMap(response);
       });
     } catch (e) {
@@ -134,7 +156,7 @@ class InventoryServices {
       }, (success) async {
         final response = await _apiClient.getPageinated(
           user: success,
-          endPoint: 'groups/',
+          endPoint: 'group',
           queryParams: {
             'page_size': 20,
             'page': page,
@@ -159,7 +181,7 @@ class InventoryServices {
       }, (success) async {
         final response = await _apiClient.add(
           userTokens: success,
-          endPoint: 'groups',
+          endPoint: 'group',
           data: groupsModel.toJson(),
         );
         return GroupsModel.fromMap(response);
@@ -177,13 +199,35 @@ class InventoryServices {
       }, (success) async {
         final response = await _apiClient.updateViaPut(
           user: success,
-          endPoint: 'groups',
+          endPoint: 'group',
           data: groupsModel.toJson(),
           id: id,
         );
         return GroupsModel.fromMap(response);
       });
     } catch (e) {
+      return null;
+    }
+  }
+
+  Future<List<GroupsModel>?> searchGroup(
+      {required String search, required int page}) async {
+    try {
+      final userEntity = await getCredentials();
+      return userEntity.fold((failure) {
+        return null;
+      }, (success) async {
+        final response = await _apiClient.getPageinated(
+          user: success,
+          endPoint: 'group',
+          queryParams: {'search': search, 'page': page},
+        );
+        return List.generate(response.length, (index) {
+          return GroupsModel.fromMap(response[index]);
+        });
+      });
+    } catch (e) {
+      print('exception caught');
       return null;
     }
   }
@@ -215,7 +259,7 @@ class InventoryServices {
       }, (success) async {
         final response = await _apiClient.getPageinated(
           user: success,
-          endPoint: 'warehouses/',
+          endPoint: 'warehouses',
           queryParams: {
             'page_size': 20,
             'page': page,
@@ -270,6 +314,28 @@ class InventoryServices {
     }
   }
 
+  Future<List<WarehousesModel>?> searchWarehouse(
+      {required String search, required int page}) async {
+    try {
+      final userEntity = await getCredentials();
+      return userEntity.fold((failure) {
+        return null;
+      }, (success) async {
+        final response = await _apiClient.getPageinated(
+          user: success,
+          endPoint: 'warehouses',
+          queryParams: {'search': search, 'page': page},
+        );
+        return List.generate(response.length, (index) {
+          return WarehousesModel.fromMap(response[index]);
+        });
+      });
+    } catch (e) {
+      print('exception caught');
+      return null;
+    }
+  }
+
   Future<List<ItemsTreeModel>?> getItemsTree() async {
     try {
       final userEntity = await getCredentials();
@@ -278,7 +344,7 @@ class InventoryServices {
       }, (success) async {
         final response = await _apiClient.get(
           user: success,
-          endPoint: 'items-tree/',
+          endPoint: 'items-tree',
         );
         return List.generate(response.length, (index) {
           return ItemsTreeModel.fromMap(response[index]);

@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gmcappclean/core/usecase/usecase.dart';
 import 'package:gmcappclean/features/sales_management/customers/domain/usecases/barrel_usecases.dart';
+import 'package:gmcappclean/features/sales_management/customers/domain/usecases/export_excel_customers.dart';
 import 'package:gmcappclean/features/sales_management/customers/domain/usecases/get_all_customers_paginated.dart';
 import 'package:gmcappclean/features/sales_management/customers/presentation/mapper/customer_brief_mapper.dart';
 import 'package:gmcappclean/features/sales_management/customers/presentation/mapper/customer_mapper.dart';
@@ -17,6 +19,7 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
   final GetCustomer _getCustomer;
   final SearchCustomer _searchCustomer;
   final GetAllCustomersPaginated _getAllCustomersPaginated;
+  final ExportCustomers _exportCustomers;
 
   SalesBloc({
     required AddCustomer addCustomer,
@@ -25,12 +28,14 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
     required GetCustomer getCustomer,
     required SearchCustomer searchCustomer,
     required GetAllCustomersPaginated getAllCustomersPaginated,
+    required ExportCustomers exportCustomers,
   })  : _addCustomer = addCustomer,
         _deleteCustomer = deleteCustomer,
         _updateCustomer = updateCustomer,
         _getCustomer = getCustomer,
         _searchCustomer = searchCustomer,
         _getAllCustomersPaginated = getAllCustomersPaginated,
+        _exportCustomers = exportCustomers,
         super(SalesInitial()) {
     on<SalesEvent>(
       (event, emit) {
@@ -161,6 +166,20 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
                 ),
               ),
             );
+          },
+        );
+      },
+    );
+
+    on<ExportExcelCustomers>(
+      (event, emit) async {
+        var result = await _exportCustomers(NoParams());
+        result.fold(
+          (failure) {
+            emit(SalesOpFailure(message: failure.message));
+          },
+          (success) {
+            emit(SalesOpSuccess(opResult: success));
           },
         );
       },

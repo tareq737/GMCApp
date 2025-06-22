@@ -161,3 +161,19 @@ class DeletePurchaceDatasheet3Image extends PurchaseEvent {
 }
 
 class ResetPurchaseState extends PurchaseEvent {}
+
+class ExportExcelReadyToBuy extends PurchaseEvent {}
+
+class ExportExcelPendingOffers extends PurchaseEvent {}
+
+class GetListForPayment extends PurchaseEvent {
+  final int page;
+
+  GetListForPayment({required this.page});
+}
+
+class ExportExcelForPayment extends PurchaseEvent {
+  final List ids;
+
+  ExportExcelForPayment({required this.ids});
+}

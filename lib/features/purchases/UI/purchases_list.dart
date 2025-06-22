@@ -1,6 +1,11 @@
+import 'dart:io';
+import 'dart:typed_data';
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gmcappclean/core/common/api/api.dart';
+import 'package:gmcappclean/core/common/cubits/app_user/app_user_cubit.dart';
 import 'package:gmcappclean/core/common/widgets/loader.dart';
 import 'package:gmcappclean/core/common/widgets/search_row.dart';
 import 'package:gmcappclean/core/services/auth_interactor.dart';
@@ -10,10 +15,12 @@ import 'package:gmcappclean/features/purchases/Bloc/purchase_bloc.dart';
 import 'package:gmcappclean/features/purchases/Models/brief_purchase_model.dart';
 import 'package:gmcappclean/features/purchases/Models/purchases_model.dart';
 import 'package:gmcappclean/features/purchases/Services/purchase_service.dart';
+import 'package:gmcappclean/features/purchases/UI/List_for_payment_page.dart';
 import 'package:gmcappclean/features/purchases/UI/add_purchase_page.dart';
 import 'package:gmcappclean/features/purchases/UI/full_purchase_details.dart';
 import 'package:gmcappclean/init_dependencies.dart';
-import 'dart:ui' as ui;
+import 'package:open_filex/open_filex.dart';
+import 'package:path_provider/path_provider.dart';
 
 class PurchasesList extends StatelessWidget {
   const PurchasesList({super.key});
@@ -90,6 +97,12 @@ class _PurchasesListChildState extends State<PurchasesListChild> {
   @override
   Widget build(BuildContext context) {
     bool isDark = Theme.of(context).brightness == Brightness.dark;
+    AppUserState state = context.read<AppUserCubit>().state;
+
+    if (state is AppUserLoggedIn) {
+      groups = state.userEntity.groups;
+    }
+
     return Builder(builder: (context) {
       return BlocListener<PurchaseBloc, PurchaseState>(
         listener: (context, state) {
@@ -104,20 +117,76 @@ class _PurchasesListChildState extends State<PurchasesListChild> {
             appBar: AppBar(
               actions: [
                 IconButton(
-                    onPressed: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) {
-                            return const AddPurchasePage();
-                          },
-                        ),
-                      );
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) {
+                          return const AddPurchasePage();
+                        },
+                      ),
+                    );
+                  },
+                  icon: const Icon(
+                    Icons.add,
+                    color: Colors.white,
+                  ),
+                ),
+                if (groups != null &&
+                    (groups!.contains('purchase_admins') ||
+                        groups!.contains('admins')) &&
+                    Platform.isWindows)
+                  PopupMenuButton<String>(
+                    icon: const Icon(Icons.more_vert, color: Colors.white),
+                    onSelected: (value) {
+                      // Handle selection based on the value
+                      switch (value) {
+                        case 'quotes':
+                          // Handle "بحاجة عروض أسعار"
+                          context.read<PurchaseBloc>().add(
+                                ExportExcelPendingOffers(),
+                              );
+
+                          break;
+                        case 'purchase':
+                          context.read<PurchaseBloc>().add(
+                                ExportExcelReadyToBuy(),
+                              );
+                          break;
+                        case 'payment':
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const ListForPaymentPage()),
+                          );
+                          break;
+                      }
                     },
-                    icon: const Icon(
-                      Icons.add,
-                      color: Colors.white,
-                    ))
+                    itemBuilder: (BuildContext context) =>
+                        <PopupMenuEntry<String>>[
+                      const PopupMenuItem<String>(
+                        value: 'quotes', // Unique value for this item
+                        child: ListTile(
+                          leading: Icon(Icons.call),
+                          title: Text('بحاجة عروض أسعار'),
+                        ),
+                      ),
+                      const PopupMenuItem<String>(
+                        value: 'purchase', // Unique value for this item
+                        child: ListTile(
+                          leading: Icon(Icons.shopping_cart_outlined),
+                          title: Text('بحاجة شراء'),
+                        ),
+                      ),
+                      const PopupMenuItem<String>(
+                        value: 'payment', // Unique value for this item
+                        child: ListTile(
+                          leading: Icon(Icons.attach_money),
+                          title: Text('أمر الصرف'),
+                        ),
+                      ),
+                    ],
+                  ),
               ],
               backgroundColor:
                   isDark ? AppColors.gradient2 : AppColors.lightGradient2,
@@ -269,7 +338,7 @@ class _PurchasesListChildState extends State<PurchasesListChild> {
                 Expanded(
                   flex: 14,
                   child: BlocConsumer<PurchaseBloc, PurchaseState>(
-                    listener: (context, state) {
+                    listener: (context, state) async {
                       if (state is PurchaseError) {
                         showSnackBar(
                           context: context,
@@ -301,6 +370,8 @@ class _PurchasesListChildState extends State<PurchasesListChild> {
                             },
                           ),
                         );
+                      } else if (state is PurchaseSuccess<Uint8List>) {
+                        await _saveFile(state.result, context);
                       }
                     },
                     builder: (context, state) {
@@ -593,4 +664,45 @@ class _PurchasesListChildState extends State<PurchasesListChild> {
           SearchPurchases(page: currentPage, search: _searchController.text),
         );
   }
+}
+
+Future<void> _saveFile(Uint8List bytes, BuildContext context) async {
+  try {
+    final directory = await getTemporaryDirectory();
+
+    const fileName = 'تقرير مشتريات.xlsx';
+    final path = '${directory.path}\\$fileName';
+
+    final file = File(path);
+    await file.writeAsBytes(bytes);
+
+    await _showDialog(context, 'نجاح', 'تم حفظ الملف وسيتم فتحه الآن');
+
+    // Open the file
+    final result = await OpenFilex.open(path);
+
+    if (result.type != ResultType.done) {
+      await _showDialog(
+          context, 'Error', 'لم يتم فتح الملف: ${result.message}');
+    }
+  } catch (e) {
+    await _showDialog(context, 'Error', 'Failed to save/open file:\n$e');
+  }
+}
+
+Future<void> _showDialog(BuildContext context, String title, String message) {
+  return showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (_) => AlertDialog(
+      title: Text(title),
+      content: Text(message),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(), // Close the dialog
+          child: const Text('OK'),
+        ),
+      ],
+    ),
+  );
 }

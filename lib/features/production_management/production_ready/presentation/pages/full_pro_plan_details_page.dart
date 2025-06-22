@@ -50,58 +50,75 @@ class _FullProPlanDetailsPageState extends State<FullProPlanDetailsPage> {
 
   static const Map<String, List<String>> _typeTiers = {
     'زياتي فواتح': [
-      'بروفيشنال',
-      'جمس',
-      'كلاسيك',
-      '202',
-      '101',
-      'ايكو',
+      'بروفيشنال لميع',
+      'بروفيشنال نص لمعة',
+      'بروفيشنال ربع لمعة',
+      'بروفيشنال مت',
+      'جمس لميع',
+      'جمس نص لمعة',
+      'جمس ربع لمعة',
+      'جمس مت',
+      'كلاسيك لميع',
+      'كلاسيك نص لمعة',
+      'كلاسيك ربع لمعة',
+      'كلاسيك مت',
+      '202 لميع',
+      '202 نص لمعة',
+      '202 مت',
+      '101 لميع',
+      '101 نص لمعة',
+      '101 مت',
+      'ايكو لميع',
+      'ايكو نص لمعة',
+      'ايكو مت',
       'لكر جمس',
+      'لكر جمس نص لمعة',
+      'لكر جمس مت',
       'لكر 202',
+      'لكر 202 نص لمعة',
+      'لكر 202 مت',
       'كلاسيك اندركوت',
       'جمس اقتصادي',
-      'زياتي 202 اقتصادي',
+      'زياتي 202 اقتصادي ',
     ],
-    'مركز زياتي فواتح': ['بألكيد طويل', 'بألكيد متوسط'],
-    'مركز زياتي غوامق': ['بألكيد طويل'],
-    'زياتي غوامق': ['جمس', 'كلاسيك', '202', '101', 'ايكو'],
-    'أكرليك': [
-      'كلاسيك',
+    'صناعي': [
+      'جمس ألمنيوم',
+      '202 ألمنيوم',
+    ],
+    'نترو': [
+      'همروك',
       'جمس',
-      'كلاسيك اندركوت',
-      'كلاسيك ابتك',
-      'غراء',
-      'أندركوت اقتصادي',
-    ],
-    'معجونة': ['كلاسيك', 'سماكات'],
-    'سواغ': [
-      'زياتي ايكو',
-      'محلول فيسكوجيل',
-      'محلول فيسكوجيل أهرة',
-      'محلول الكول',
-      'منشف',
-      'زياتي ايكو بالكيد 90-638%',
-      'زياتي بالكيد 90-638%',
-    ],
-    'مركز مائي': [
-      'جمس',
-      'كلاسيك',
-      '202',
-      '101',
-      'ايكو',
-      'اكرليك جمس',
-      'اكرليك كلاسيك',
     ],
     'طرش': [
       'جمس',
       'كلاسيك',
-      'سلر مائي',
+      'سلر مائي ',
       '202',
       '101',
       'ايكو',
       'اقتصادي',
     ],
-    'نترو': ['همروك', 'جمس'],
+    'أكرليك': [
+      'كلاسيك لميع',
+      'كلاسيك نص لمعة',
+      'كلاسيك ربع لمعة',
+      'كلاسيك مت',
+      'كلاسيك اندركوت',
+      'كلاسيك ابتك',
+      'جمس لميع',
+      'جمس نص لمعة',
+      'جمس ربع لمعة',
+      'جمس مت',
+      'جمس اندركوت',
+      'كلاسيك ',
+      'غراء',
+      'أندركوت اقتصادي',
+      'أندركوت لميع',
+    ],
+    'معجونة': [
+      'كلاسيك ',
+      'سماكات ',
+    ],
     'ديكورات + ملونات': [
       'فيلفيت',
       'كنزي',
@@ -116,20 +133,68 @@ class _FullProPlanDetailsPageState extends State<FullProPlanDetailsPage> {
       'مائي',
       'منشف',
     ],
-    'صناعي': ['جمس ألمنيوم', '202 ألمنيوم'],
-    'تفريغ': [],
+    'سواغ': [
+      'زياتي ايكو',
+      'محلول فيسكوجيل',
+      'محلول فيسكوجيل أهرة',
+      'محلول الكول ',
+      'منشف',
+      'زياتي ايكو بالكيد 90-638% ',
+      'زياتي بالكيد 90-638% ',
+    ],
+    'مركز زياتي فواتح': [
+      'بألكيد طويل',
+      'بألكيد متوسط',
+    ],
+    'مركز زياتي غوامق': [
+      'بألكيد طويل',
+    ],
+    'زياتي غوامق': [
+      'جمس لميع',
+      'جمس نص لمعة',
+      'جمس ربع لمعة',
+      'جمس مت',
+      'كلاسيك لميع',
+      'كلاسيك نص لمعة',
+      'كلاسيك ربع لمعة',
+      'كلاسيك مت',
+      '202 لميع',
+      '202 نص لمعة',
+      '202 مت',
+      '101 لميع',
+      '101 نص لمعة',
+      '101 مت',
+      'ايكو لميع',
+      'ايكو نص لمعة',
+      'ايكو مت',
+    ],
+    'مركز مائي': [
+      'جمس',
+      'كلاسيك',
+      '202',
+      '101',
+      'ايكو',
+      'اكرليك جمس',
+      'اكرليك كلاسيك',
+    ],
+    'تفريغ': ['جمس'],
   };
 
   static const List<String> colorSuggestions = [
-    'ابيض',
-    'اسود',
-    'ازرق',
+    'أبيض',
+    'نصف لمعة',
+    'مت',
+    'ربع لمعة',
+    'أسود',
     'بني غامق',
     'بني فاتح',
-    'اخضر',
-    'اصفر ل',
-    'اصفر م',
-    'احمر',
+    'بني غامق مت',
+    'بني فاتح مت',
+    'أخضر',
+    'أخضر مت',
+    'أصفر ل',
+    'أصفر م',
+    'أحمر',
     'أهرة',
     'عسلي',
     'كحلي',
@@ -141,11 +206,18 @@ class _FullProPlanDetailsPageState extends State<FullProPlanDetailsPage> {
     'سيرقون برتقالي',
     'ألماسي',
     'مارون',
-    'اسود',
+    'أسود مت',
+    'عسلي مت',
+    'سلر',
     'لكر',
-    'عسلي'
+    'برونز',
+    'ذهبي',
+    'أزرق',
+    '330',
+    'بنفسجي',
+    '210',
+    'فضي',
   ];
-
   final _preparedByNotesController = TextEditingController();
   final _densityController = TextEditingController();
   final _rawMaterialNoteController = TextEditingController();
@@ -276,18 +348,16 @@ class _FullProPlanDetailsPageState extends State<FullProPlanDetailsPage> {
     );
   }
 
-  void _fillEmptyDepartment() {
-    _prodPlan!.id = widget.prodPlanViewModel.id;
-    _prodPlan!.depChecks = {'emptyPackaging': _emptyPackagingCheck};
-    _prodPlan!.depNotes = {
-      'emptyPackaging': _emptyPackagingNoteController.text
-    };
-  }
-
   void _fillPackingDepartment() {
     _prodPlan!.id = widget.prodPlanViewModel.id;
-    _prodPlan!.depChecks = {'packaging': _packagingCheck};
-    _prodPlan!.depNotes = {'packaging': _packagingNoteController.text};
+    _prodPlan!.depChecks = {
+      'emptyPackaging': _emptyPackagingCheck,
+      'packaging': _packagingCheck,
+    };
+    _prodPlan!.depNotes = {
+      'emptyPackaging': _emptyPackagingNoteController.text,
+      'packaging': _packagingNoteController.text,
+    };
   }
 
   void _fillFinishDepartment() {
@@ -852,7 +922,7 @@ class _FullProPlanDetailsPageState extends State<FullProPlanDetailsPage> {
                                       groups!.contains('emptyPackaging_dep')))
                                     IconButton(
                                       onPressed: () {
-                                        _fillEmptyDepartment();
+                                        _fillPackingDepartment();
                                         context.read<ProdPlanBloc>().add(
                                               ProdUpdate<ProdPlanViewModel>(
                                                   item: _prodPlan!),

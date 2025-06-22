@@ -78,7 +78,7 @@ class _SinginPageState extends State<SinginPage> {
         if (state is AppUserLoggedIn) {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => HomePage()),
+            MaterialPageRoute(builder: (context) => const HomePage()),
           );
         }
       },

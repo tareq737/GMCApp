@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:gmcappclean/core/common/api/api.dart';
 import 'package:gmcappclean/core/common/entities/user_entity.dart';
 import 'package:gmcappclean/core/error/exceptions.dart';
@@ -33,6 +35,7 @@ abstract interface class SalesRemoteDataSource {
     int? hasCood,
     String? search,
   });
+  Future<Uint8List> exportExcelCustomers({required UserEntity user});
 }
 
 class SalesRemoteDataSourceImpl implements SalesRemoteDataSource {
@@ -155,6 +158,19 @@ class SalesRemoteDataSourceImpl implements SalesRemoteDataSource {
       return List<CustomerBriefModel>.generate(data.length, (index) {
         return CustomerBriefModel.fromMap(data[index]);
       });
+    } catch (e) {
+      throw ServerException(e.toString());
+    }
+  }
+
+  @override
+  Future<Uint8List> exportExcelCustomers({required UserEntity user}) async {
+    try {
+      final data = await apiClient.downloadFile(
+        user: user,
+        endPoint: 'excel-customers',
+      );
+      return data;
     } catch (e) {
       throw ServerException(e.toString());
     }

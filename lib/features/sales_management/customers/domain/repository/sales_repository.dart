@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:fpdart/fpdart.dart';
 import 'package:gmcappclean/core/common/entities/user_entity.dart';
 import 'package:gmcappclean/core/error/failures.dart';
@@ -34,5 +36,8 @@ abstract interface class SalesRepository {
     int? hasCood,
     int? pageSize,
     String? search,
+  });
+  Future<Either<Failure, Uint8List>> exportExcelCustomers({
+    required UserEntity user,
   });
 }

@@ -19,6 +19,7 @@ import 'package:gmcappclean/features/sales_management/customers/data/datasources
 import 'package:gmcappclean/features/sales_management/customers/data/repositories/sales_repository_impl.dart';
 import 'package:gmcappclean/features/sales_management/customers/domain/repository/sales_repository.dart';
 import 'package:gmcappclean/features/sales_management/customers/domain/usecases/barrel_usecases.dart';
+import 'package:gmcappclean/features/sales_management/customers/domain/usecases/export_excel_customers.dart';
 import 'package:gmcappclean/features/sales_management/customers/domain/usecases/get_all_customers_paginated.dart';
 import 'package:gmcappclean/features/sales_management/customers/presentation/bloc/sales_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';

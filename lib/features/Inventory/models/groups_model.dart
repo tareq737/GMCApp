@@ -6,11 +6,13 @@ class GroupsModel {
   String? code;
   String? name;
   int? parent;
+  String? parent_code_name;
   GroupsModel({
     required this.id,
     this.code,
     this.name,
     this.parent,
+    this.parent_code_name,
   });
 
   GroupsModel copyWith({
@@ -18,12 +20,14 @@ class GroupsModel {
     String? code,
     String? name,
     int? parent,
+    String? parent_code_name,
   }) {
     return GroupsModel(
       id: id ?? this.id,
       code: code ?? this.code,
       name: name ?? this.name,
       parent: parent ?? this.parent,
+      parent_code_name: parent_code_name ?? this.parent_code_name,
     );
   }
 
@@ -33,6 +37,7 @@ class GroupsModel {
       'code': code,
       'name': name,
       'parent': parent,
+      'parent_code_name': parent_code_name,
     };
   }
 
@@ -42,6 +47,9 @@ class GroupsModel {
       code: map['code'] != null ? map['code'] as String : null,
       name: map['name'] != null ? map['name'] as String : null,
       parent: map['parent'] != null ? map['parent'] as int : null,
+      parent_code_name: map['parent_code_name'] != null
+          ? map['parent_code_name'] as String
+          : null,
     );
   }
 
@@ -52,7 +60,7 @@ class GroupsModel {
 
   @override
   String toString() {
-    return 'GroupsModel(id: $id, code: $code, name: $name, parent: $parent)';
+    return 'GroupsModel(id: $id, code: $code, name: $name, parent: $parent, parent_code_name: $parent_code_name)';
   }
 
   @override
@@ -62,11 +70,16 @@ class GroupsModel {
     return other.id == id &&
         other.code == code &&
         other.name == name &&
-        other.parent == parent;
+        other.parent == parent &&
+        other.parent_code_name == parent_code_name;
   }
 
   @override
   int get hashCode {
-    return id.hashCode ^ code.hashCode ^ name.hashCode ^ parent.hashCode;
+    return id.hashCode ^
+        code.hashCode ^
+        name.hashCode ^
+        parent.hashCode ^
+        parent_code_name.hashCode;
   }
 }

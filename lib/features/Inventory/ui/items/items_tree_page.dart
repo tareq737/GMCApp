@@ -6,8 +6,12 @@ import 'package:gmcappclean/core/common/widgets/search_row.dart';
 import 'package:gmcappclean/core/services/auth_interactor.dart';
 import 'package:gmcappclean/core/theme/app_colors.dart';
 import 'package:gmcappclean/features/Inventory/bloc/inventory_bloc.dart';
+import 'package:gmcappclean/features/Inventory/models/groups_model.dart';
+import 'package:gmcappclean/features/Inventory/models/items_model.dart';
 import 'package:gmcappclean/features/Inventory/models/items_tree_model.dart';
 import 'package:gmcappclean/features/Inventory/services/inventory_services.dart';
+import 'package:gmcappclean/features/Inventory/ui/groups/group_page.dart';
+import 'package:gmcappclean/features/Inventory/ui/items/items_page.dart';
 import 'package:gmcappclean/init_dependencies.dart';
 
 class ItemsTreePage extends StatelessWidget {
@@ -54,7 +58,26 @@ class _ItemsTreePageChildState extends State<ItemsTreePageChild> {
         appBar: AppBar(
           title: const Text('شجرة المواد'),
         ),
-        body: BlocBuilder<InventoryBloc, InventoryState>(
+        body: BlocConsumer<InventoryBloc, InventoryState>(
+          listener: (context, state) {
+            if (state is InventorySuccess<ItemsModel>) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ItemsPage(itemsModel: state.result),
+                ),
+              );
+            } else if (state is InventorySuccess<GroupsModel>) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => GroupPage(
+                    groupModel: state.result,
+                  ),
+                ),
+              );
+            }
+          },
           builder: (context, state) {
             if (state is InventoryLoading) {
               return const Center(child: Loader());
@@ -80,7 +103,7 @@ class _ItemsTreePageChildState extends State<ItemsTreePageChild> {
                               _filterTree(_originalItemsTree, query);
                         }
                       });
-                      FocusScope.of(context).unfocus(); // hide keyboard
+                      FocusScope.of(context).unfocus();
                     },
                   ),
                   const SizedBox(height: 8),
@@ -110,7 +133,6 @@ class _ItemsTreePageChildState extends State<ItemsTreePageChild> {
     List<ItemsTreeModel> result = [];
 
     for (var node in nodes) {
-      // Filter children and items recursively
       var filteredChildren = _filterTree(node.children, query);
       var filteredItems = node.items
           .where(
@@ -153,39 +175,53 @@ class _ItemsTreePageChildState extends State<ItemsTreePageChild> {
             subtitle: Text(node.code,
                 style: const TextStyle(fontSize: 12, color: Colors.grey)),
             dense: true,
+            onLongPress: () => context.read<InventoryBloc>().add(
+                  GetOneGroup(id: node.id),
+                ),
           ),
         ),
       );
     }
+
     bool isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: EdgeInsets.only(right: indent, left: 8),
-      child: ExpansionTile(
-        key: PageStorageKey<int>(node.id),
-        title: Text(
-          '${node.name} (${node.code})',
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-        ),
-        childrenPadding: const EdgeInsets.only(right: 12),
-        children: [
-          ...node.items.map((item) => Padding(
-                padding: EdgeInsets.only(right: indent + 16),
-                child: ListTile(
-                  leading: Icon(
-                    Icons.circle,
-                    size: 18,
-                    color:
-                        isDark ? AppColors.gradient2 : AppColors.lightGradient2,
+      child: GestureDetector(
+        onLongPress: () => context.read<InventoryBloc>().add(
+              GetOneGroup(id: node.id),
+            ),
+        child: ExpansionTile(
+          key: PageStorageKey<int>(node.id),
+          title: Text(
+            '${node.name} (${node.code})',
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
+          childrenPadding: const EdgeInsets.only(right: 12),
+          children: [
+            ...node.items.map((item) => Padding(
+                  padding: EdgeInsets.only(right: indent + 16),
+                  child: ListTile(
+                    leading: Icon(
+                      Icons.circle,
+                      size: 18,
+                      color: isDark
+                          ? AppColors.gradient2
+                          : AppColors.lightGradient2,
+                    ),
+                    title: Text(item.name),
+                    subtitle: Text(item.code,
+                        style:
+                            const TextStyle(fontSize: 12, color: Colors.grey)),
+                    dense: true,
+                    onLongPress: () => context.read<InventoryBloc>().add(
+                          GetOneItem(id: item.id),
+                        ),
                   ),
-                  title: Text(item.name),
-                  subtitle: Text(item.code,
-                      style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                  dense: true,
-                ),
-              )),
-          ...node.children
-              .map((child) => _buildTreeNode(child, indent: indent + 16)),
-        ],
+                )),
+            ...node.children
+                .map((child) => _buildTreeNode(child, indent: indent + 16)),
+          ],
+        ),
       ),
     );
   }

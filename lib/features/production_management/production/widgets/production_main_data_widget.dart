@@ -30,25 +30,48 @@ class ProductionMainDataWidget extends StatefulWidget {
 
 class _ProductionMainDataWidgetState extends State<ProductionMainDataWidget> {
   List<String>? groups;
-  // Generate the rows in the build method or initState
+
   List<Map<String, String>> _generateRows() {
     return List.generate(
       widget.fullProductionModel.packagingBreakdowns.length,
       (index) {
         var breakdown = widget.fullProductionModel.packagingBreakdowns[index];
-        double totalWeight =
-            (breakdown.quantity ?? 0) * (breakdown.package_weight ?? 0);
-        double totalSize =
-            (breakdown.quantity ?? 0) * (breakdown.package_volume ?? 0);
+
+        // Get density from the main production model, default to 1.0 to avoid division by zero
+        final double density =
+            widget.fullProductionModel.productions.density ?? 1.0;
+
+        double? packageWeight = breakdown.package_weight;
+        double? packageVolume = breakdown.package_volume;
+        int quantity = breakdown.quantity ?? 0;
+
+        // Calculate missing value if one is null or zero
+        if ((packageVolume == null || packageVolume == 0) &&
+            packageWeight != null &&
+            packageWeight != 0 &&
+            density != 0) {
+          packageVolume = packageWeight / density;
+        } else if ((packageWeight == null || packageWeight == 0) &&
+            packageVolume != null &&
+            packageVolume != 0 &&
+            density != 0) {
+          packageWeight = packageVolume * density;
+        }
+
+        // Calculate total weight and total size using the potentially calculated values
+        double totalWeight = (packageWeight ?? 0) * quantity;
+        double totalSize = (packageVolume ?? 0) * quantity;
 
         return {
-          'الحجم': breakdown.package_volume?.toString() ?? '',
-          'الوزن': breakdown.package_weight?.toString() ?? '',
-          'العدد': breakdown.quantity?.toString() ?? '',
+          'الحجم':
+              (packageVolume ?? 0).toStringAsFixed(2), // Format for display
+          'الوزن':
+              (packageWeight ?? 0).toStringAsFixed(2), // Format for display
+          'العدد': quantity.toString(),
           'العبوة': breakdown.package_type?.toString() ?? '',
           'الصنف': breakdown.brand?.toString() ?? '',
-          'مجموع الوزن': totalWeight.toString(),
-          'مجموع الحجم': totalSize.toString(),
+          'مجموع الوزن': totalWeight.toStringAsFixed(2),
+          'مجموع الحجم': totalSize.toStringAsFixed(2),
         };
       },
     );
@@ -56,12 +79,11 @@ class _ProductionMainDataWidgetState extends State<ProductionMainDataWidget> {
 
   @override
   Widget build(BuildContext context) {
-    // Generate rows here
     List<Map<String, String>> rows = _generateRows();
     double totalWeightSum = rows.fold(
-        0, (sum, row) => sum + double.parse(row["المجموع الوزن"] ?? "0"));
+        0, (sum, row) => sum + double.parse(row["مجموع الوزن"] ?? "0"));
     double totalSizeSum = rows.fold(
-        0, (sum, row) => sum + double.parse(row["المجموع الحجم"] ?? "0"));
+        0, (sum, row) => sum + double.parse(row["مجموع الحجم"] ?? "0"));
 
     AppUserState state = context.watch<AppUserCubit>().state;
     if (state is AppUserLoggedIn) {
@@ -126,7 +148,6 @@ class _ProductionMainDataWidgetState extends State<ProductionMainDataWidget> {
                       padding: const EdgeInsets.all(10.0),
                       child: Column(
                         children: [
-                          // Details Grid
                           GridView.count(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
@@ -149,7 +170,7 @@ class _ProductionMainDataWidgetState extends State<ProductionMainDataWidget> {
                                   "الكثافة",
                                   widget
                                       .fullProductionModel.productions.density!
-                                      .toStringAsFixed(2)),
+                                      .toStringAsFixed(3)),
                               _buildDetailCard(
                                   context,
                                   "تاريخ الإدراج",
@@ -157,7 +178,6 @@ class _ProductionMainDataWidgetState extends State<ProductionMainDataWidget> {
                                       .insert_date!),
                             ],
                           ),
-
                           const SizedBox(height: 16),
                           _buildNoteItem(
                               "ملاحظة معد البرنامج",
@@ -166,7 +186,6 @@ class _ProductionMainDataWidgetState extends State<ProductionMainDataWidget> {
                           const SizedBox(
                             height: 10,
                           ),
-
                           if (widget.type == 'Production') ...[
                             const Text('تشطيب الأقسام'),
                             const SizedBox(
@@ -385,8 +404,8 @@ class _ProductionMainDataWidgetState extends State<ProductionMainDataWidget> {
                   Column(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      Text("مجموع الوزن: $totalWeightSum"),
-                      Text("مجموع الحجم: $totalSizeSum"),
+                      Text("مجموع الوزن: ${totalWeightSum.toStringAsFixed(2)}"),
+                      Text("مجموع الحجم: ${totalSizeSum.toStringAsFixed(2)}"),
                     ],
                   ),
                   const SizedBox(height: 10),
@@ -412,7 +431,6 @@ class _ProductionMainDataWidgetState extends State<ProductionMainDataWidget> {
                         ),
                         child: Column(
                           children: [
-                            // Row 1: صنف + عبوة + عدد
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
@@ -425,7 +443,6 @@ class _ProductionMainDataWidgetState extends State<ProductionMainDataWidget> {
                               ],
                             ),
                             const SizedBox(height: 6),
-                            // Row 2: وزن + حجم + مجموع وزن + مجموع حجم
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
@@ -464,7 +481,6 @@ class _ProductionMainDataWidgetState extends State<ProductionMainDataWidget> {
   }
 }
 
-// Custom widget for displaying a row of check icons
 class CheckIconRow extends StatelessWidget {
   final List<bool> checks;
 
@@ -484,7 +500,6 @@ class CheckIconRow extends StatelessWidget {
   }
 }
 
-// Custom widget for a section with title and checks
 class CheckSection extends StatelessWidget {
   final String title;
   final List<bool> checks;
@@ -572,8 +587,7 @@ Widget _thinItemRow(
   final theme = Theme.of(context);
   return Flexible(
     child: Row(
-      spacing: 5,
-      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
       children: [
         Text(
           label,

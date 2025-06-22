@@ -55,6 +55,13 @@ class FullProdPageChild extends StatefulWidget {
 class _FullProdPageChildState extends State<FullProdPageChild> {
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  final Color _darkThemeRed = Colors.red.shade700; // A richer, darker red
+  final Color _darkThemeBlue = Colors.blue.shade700; // A deeper blue
+
+  // This map will store the last assigned color for each batch prefix
+  final Map<String, Color> _prefixColors = {};
+  Color _currentColorForPrefix =
+      Colors.red.shade700; // Start with the new dark theme red
 
   int currentPage = 1;
   bool isLoadingMore = false;
@@ -98,6 +105,41 @@ class _FullProdPageChildState extends State<FullProdPageChild> {
             SearchProductionArchivePagainted(
                 page: currentPage, search: _searchController.text),
           );
+    }
+  }
+
+  String _getBatchNumberPrefix(String batchNumber) {
+    final RegExp regExp = RegExp(r'^([A-Za-z]+)');
+    final Match? match = regExp.firstMatch(batchNumber);
+    return match?.group(0) ?? '';
+  }
+
+  // Helper function to get the color for a given batch prefix
+  Color _getBatchNumberColor(String batchNumber) {
+    final prefix = _getBatchNumberPrefix(batchNumber);
+
+    if (prefix.isEmpty) {
+      return Colors.blueGrey; // Default color if no prefix found
+    }
+
+    if (!_prefixColors.containsKey(prefix)) {
+      _prefixColors[prefix] = _currentColorForPrefix;
+      // Toggle between the new dark theme red and blue
+      _currentColorForPrefix = (_currentColorForPrefix == _darkThemeRed)
+          ? _darkThemeBlue
+          : _darkThemeRed;
+    }
+    return _prefixColors[prefix]!;
+  }
+
+  // Placeholder for _buildCheckIcon
+  Widget _buildCheckIcon(bool? checkValue) {
+    if (checkValue == true) {
+      return const Icon(Icons.check, color: Colors.green, size: 16);
+    } else if (checkValue == false) {
+      return const Icon(Icons.check, color: Colors.red, size: 16);
+    } else {
+      return const Icon(Icons.check, color: Colors.red, size: 16);
     }
   }
 
@@ -258,7 +300,9 @@ class _FullProdPageChildState extends State<FullProdPageChild> {
         }
 
         final screenWidth = MediaQuery.of(context).size.width;
-
+        final String currentBatchNumber =
+            briefProductionModel[index].batch_number ?? '';
+        final Color batchColor = _getBatchNumberColor(currentBatchNumber);
         return Card(
           margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
           child: ListTile(
@@ -290,25 +334,26 @@ class _FullProdPageChildState extends State<FullProdPageChild> {
                   style: const TextStyle(fontSize: 12),
                 ),
                 const SizedBox(height: 5),
-                Wrap(
-                  // Use Wrap to allow icons to wrap if space is limited
-                  alignment: WrapAlignment.center,
-                  spacing: 2.0, // Space between icons
-                  runSpacing: 2.0, // Space between lines of icons
-                  children: [
-                    _buildCheckIcon(
-                        briefProductionModel[index].raw_material_check_4),
-                    _buildCheckIcon(
-                        briefProductionModel[index].manufacturing_check_6),
-                    _buildCheckIcon(briefProductionModel[index].lab_check_6),
-                    _buildCheckIcon(
-                        briefProductionModel[index].empty_packaging_check_5),
-                    _buildCheckIcon(
-                        briefProductionModel[index].packaging_check_6),
-                    _buildCheckIcon(
-                        briefProductionModel[index].finished_goods_check_3),
-                  ],
-                ),
+                if (widget.type == 'Production')
+                  Wrap(
+                    // Use Wrap to allow icons to wrap if space is limited
+                    alignment: WrapAlignment.center,
+                    spacing: 2.0, // Space between icons
+                    runSpacing: 2.0, // Space between lines of icons
+                    children: [
+                      _buildCheckIcon(
+                          briefProductionModel[index].raw_material_check_4),
+                      _buildCheckIcon(
+                          briefProductionModel[index].manufacturing_check_6),
+                      _buildCheckIcon(briefProductionModel[index].lab_check_6),
+                      _buildCheckIcon(
+                          briefProductionModel[index].empty_packaging_check_5),
+                      _buildCheckIcon(
+                          briefProductionModel[index].packaging_check_6),
+                      _buildCheckIcon(
+                          briefProductionModel[index].finished_goods_check_3),
+                    ],
+                  ),
               ],
             ),
             trailing: SizedBox(
@@ -343,8 +388,7 @@ class _FullProdPageChildState extends State<FullProdPageChild> {
                   width: screenWidth * 0.10,
                   child: CircleAvatar(
                     radius: 12, // Slightly larger for better visibility
-                    backgroundColor:
-                        Theme.of(context).primaryColor, // Example color
+                    backgroundColor: batchColor,
                     child: Text(
                       briefProductionModel[index].id.toString(),
                       textAlign: TextAlign.center,
@@ -355,21 +399,19 @@ class _FullProdPageChildState extends State<FullProdPageChild> {
                 const SizedBox(height: 4),
                 Text(
                   briefProductionModel[index].batch_number ?? '',
-                  style: const TextStyle(fontSize: 10, color: Colors.grey),
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight:
+                        FontWeight.bold, // Make it bold for more emphasis
+                    color: _getBatchNumberColor(
+                        briefProductionModel[index].batch_number ?? ''),
+                  ),
                 ),
               ],
             ),
           ),
         );
       },
-    );
-  }
-
-  Widget _buildCheckIcon(bool? isChecked) {
-    return Icon(
-      isChecked == true ? Icons.check : Icons.close, // More distinct icons
-      color: isChecked == true ? Colors.green : Colors.red,
-      size: 12, // Slightly larger icons
     );
   }
 }

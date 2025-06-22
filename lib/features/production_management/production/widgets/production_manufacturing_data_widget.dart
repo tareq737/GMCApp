@@ -88,17 +88,17 @@ class _ProductionManufacturingDataWidgetState
     completionDateController.text =
         widget.fullProductionModel.manufacturing.completion_date ?? '';
     manufacturingCheck_1 =
-        widget.fullProductionModel.manufacturing.manufacturing_check_1;
+        widget.fullProductionModel.manufacturing.manufacturing_check_1 ?? false;
     manufacturingCheck_2 =
-        widget.fullProductionModel.manufacturing.manufacturing_check_2;
+        widget.fullProductionModel.manufacturing.manufacturing_check_2 ?? false;
     manufacturingCheck_3 =
-        widget.fullProductionModel.manufacturing.manufacturing_check_3;
+        widget.fullProductionModel.manufacturing.manufacturing_check_3 ?? false;
     manufacturingCheck_4 =
-        widget.fullProductionModel.manufacturing.manufacturing_check_4;
+        widget.fullProductionModel.manufacturing.manufacturing_check_4 ?? false;
     manufacturingCheck_5 =
-        widget.fullProductionModel.manufacturing.manufacturing_check_5;
+        widget.fullProductionModel.manufacturing.manufacturing_check_5 ?? false;
     manufacturingCheck_6 =
-        widget.fullProductionModel.manufacturing.manufacturing_check_6;
+        widget.fullProductionModel.manufacturing.manufacturing_check_6 ?? false;
     employeeController.text =
         widget.fullProductionModel.manufacturing.employee ?? '';
     notesController.text = widget.fullProductionModel.manufacturing.notes ?? '';
@@ -110,17 +110,17 @@ class _ProductionManufacturingDataWidgetState
     additionsController.text =
         widget.fullProductionModel.manufacturing.additions ?? '';
 
-    if (startTimeController.text.isNotEmpty) {
-      DateTime parsedTime = DateFormat('HH:mm').parse(startTimeController.text);
-      String formattedTime = DateFormat('hh:mm').format(parsedTime);
-      startTimeController.text = formattedTime;
-    }
-    if (finishTimeController.text.isNotEmpty) {
-      DateTime parsedTime =
-          DateFormat('HH:mm').parse(finishTimeController.text);
-      String formattedTime = DateFormat('hh:mm').format(parsedTime);
-      finishTimeController.text = formattedTime;
-    }
+    // if (startTimeController.text.isNotEmpty) {
+    //   DateTime parsedTime = DateFormat('HH:mm').parse(startTimeController.text);
+    //   String formattedTime = DateFormat('hh:mm').format(parsedTime);
+    //   startTimeController.text = formattedTime;
+    // }
+    // if (finishTimeController.text.isNotEmpty) {
+    //   DateTime parsedTime =
+    //       DateFormat('HH:mm').parse(finishTimeController.text);
+    //   String formattedTime = DateFormat('hh:mm').format(parsedTime);
+    //   finishTimeController.text = formattedTime;
+    // }
 
     _calculateDuration();
   }
@@ -385,18 +385,21 @@ class _ProductionManufacturingDataWidgetState
                       height: 10,
                     ),
                     MyTextField(
+                        maxLines: 10,
                         controller: additionsController,
                         labelText: 'إضافات التصنيع'),
                     const SizedBox(
                       height: 10,
                     ),
                     MyTextField(
+                        maxLines: 10,
                         controller: notesController,
                         labelText: 'ملاحظات التصنيع'),
                     const SizedBox(
                       height: 10,
                     ),
                     MyTextField(
+                        maxLines: 10,
                         controller: problemsController,
                         labelText: 'مشاكل التصنيع'),
                     if ((groups!.contains('admins') ||
