@@ -354,4 +354,31 @@ class ApiClient {
       rethrow;
     }
   }
+
+  Future<Uint8List> downloadFilePost({
+    required UserEntity user,
+    required String endPoint,
+    Map<String, dynamic>? queryParameters,
+    Map<String, dynamic>? data,
+  }) async {
+    try {
+      Response<List<int>> response =
+          await dio.post<List<int>>('$baseURL/$endPoint',
+              queryParameters: queryParameters,
+              options: Options(
+                responseType: ResponseType.bytes,
+                headers: {'Authorization': 'Bearer ${user.accessToken}'},
+                receiveTimeout: const Duration(seconds: 30),
+              ),
+              data: data);
+      if (response.statusCode == 200) {
+        return Uint8List.fromList(response.data!);
+      } else {
+        return Uint8List.fromList([]);
+      }
+    } catch (e) {
+      print('Error downloading file: $e');
+      rethrow;
+    }
+  }
 }

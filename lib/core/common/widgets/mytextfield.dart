@@ -23,6 +23,8 @@ class MyTextField extends StatelessWidget {
   final bool filled;
   final Color? fillColor;
   final ValueChanged<String>? onChanged;
+  final ValueChanged<String>? onSubmitted;
+  final FocusNode? focusNode; // <--- ADD THIS LINE
 
   const MyTextField({
     super.key,
@@ -47,6 +49,8 @@ class MyTextField extends StatelessWidget {
     this.filled = false,
     this.fillColor,
     this.onChanged,
+    this.onSubmitted,
+    this.focusNode, // <--- ADD THIS TO THE CONSTRUCTOR
   });
 
   @override
@@ -64,6 +68,10 @@ class MyTextField extends StatelessWidget {
       inputFormatters: inputFormatters,
       obscureText: obscureText,
       style: const TextStyle(fontSize: 12),
+      validator: validator,
+      onChanged: onChanged,
+      onFieldSubmitted: onSubmitted,
+      focusNode: focusNode, // <--- PASS THE FOCUSNODE HERE
       decoration: decoration ??
           InputDecoration(
             labelText: labelText,
@@ -100,8 +108,6 @@ class MyTextField extends StatelessWidget {
             filled: filled,
             fillColor: fillColor,
           ),
-      validator: validator,
-      onChanged: onChanged,
     );
   }
 }
