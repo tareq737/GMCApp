@@ -1,8 +1,11 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
+
+// Example ItemsModel.dart (ensure your actual file has this)
 class ItemsModel {
-  int id;
+  int id; // Now required
   String? code;
   String? name;
   String? unit;
@@ -10,10 +13,11 @@ class ItemsModel {
   String? max_limit;
   int? group;
   String? group_code_name;
-  List<Map<String, dynamic>>? default_price; // Add this line
+  List<dynamic>? default_price;
+  List<dynamic>? balances;
 
   ItemsModel({
-    required this.id,
+    required this.id, // Made required
     this.code,
     this.name,
     this.unit,
@@ -21,7 +25,8 @@ class ItemsModel {
     this.max_limit,
     this.group,
     this.group_code_name,
-    this.default_price, // Add this line
+    this.default_price,
+    this.balances,
   });
 
   ItemsModel copyWith({
@@ -33,7 +38,8 @@ class ItemsModel {
     String? max_limit,
     int? group,
     String? group_code_name,
-    List<Map<String, dynamic>>? default_price, // Add this line
+    List<dynamic>? default_price,
+    List<dynamic>? balances,
   }) {
     return ItemsModel(
       id: id ?? this.id,
@@ -44,7 +50,8 @@ class ItemsModel {
       max_limit: max_limit ?? this.max_limit,
       group: group ?? this.group,
       group_code_name: group_code_name ?? this.group_code_name,
-      default_price: default_price ?? this.default_price, // Add this line
+      default_price: default_price ?? this.default_price,
+      balances: balances ?? this.balances,
     );
   }
 
@@ -58,7 +65,8 @@ class ItemsModel {
       'max_limit': max_limit,
       'group': group,
       'group_code_name': group_code_name,
-      'default_price': default_price, // Add this line
+      'default_price': default_price,
+      'balances': balances,
     };
   }
 
@@ -74,13 +82,11 @@ class ItemsModel {
       group_code_name: map['group_code_name'] != null
           ? map['group_code_name'] as String
           : null,
-      // Add this block for default_price
       default_price: map['default_price'] != null
-          ? List<Map<String, dynamic>>.from(
-              (map['default_price'] as List<dynamic>).map<Map<String, dynamic>>(
-                (x) => x as Map<String, dynamic>,
-              ),
-            )
+          ? List<dynamic>.from(map['default_price'] as List)
+          : null,
+      balances: map['balances'] != null
+          ? List<dynamic>.from(map['balances'] as List)
           : null,
     );
   }
@@ -92,7 +98,7 @@ class ItemsModel {
 
   @override
   String toString() {
-    return 'ItemsModel(id: $id, code: $code, name: $name, unit: $unit, min_limit: $min_limit, max_limit: $max_limit, group: $group, group_code_name: $group_code_name, default_price: $default_price)';
+    return 'ItemsModel(id: $id, code: $code, name: $name, unit: $unit, min_limit: $min_limit, max_limit: $max_limit, group: $group, group_code_name: $group_code_name, default_price: $default_price, balances: $balances)';
   }
 
   @override
@@ -107,8 +113,8 @@ class ItemsModel {
         other.max_limit == max_limit &&
         other.group == group &&
         other.group_code_name == group_code_name &&
-        // Add this line for default_price comparison
-        listEquals(other.default_price, default_price);
+        listEquals(other.default_price, default_price) &&
+        listEquals(other.balances, balances);
   }
 
   @override
@@ -121,18 +127,7 @@ class ItemsModel {
         max_limit.hashCode ^
         group.hashCode ^
         group_code_name.hashCode ^
-        // Add this line for default_price hash code
-        default_price.hashCode;
+        default_price.hashCode ^
+        balances.hashCode;
   }
-}
-
-// You'll need this utility function for list comparison in operator ==
-// Add this outside of your ItemsModel class, or in a utility file
-bool listEquals<T>(List<T>? a, List<T>? b) {
-  if (a == null && b == null) return true;
-  if (a == null || b == null || a.length != b.length) return false;
-  for (int i = 0; i < a.length; i++) {
-    if (a[i] != b[i]) return false;
-  }
-  return true;
 }

@@ -80,6 +80,7 @@ class _FullProPlanDetailsPageState extends State<FullProPlanDetailsPage> {
       'كلاسيك اندركوت',
       'جمس اقتصادي',
       'زياتي 202 اقتصادي ',
+      'جمس ممدد',
     ],
     'صناعي': [
       'جمس ألمنيوم',
@@ -217,6 +218,7 @@ class _FullProPlanDetailsPageState extends State<FullProPlanDetailsPage> {
     'بنفسجي',
     '210',
     'فضي',
+    'المنيوم',
   ];
   final _preparedByNotesController = TextEditingController();
   final _densityController = TextEditingController();

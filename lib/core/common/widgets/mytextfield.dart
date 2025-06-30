@@ -24,7 +24,8 @@ class MyTextField extends StatelessWidget {
   final Color? fillColor;
   final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onSubmitted;
-  final FocusNode? focusNode; // <--- ADD THIS LINE
+  final FocusNode? focusNode;
+  final bool enableInteractiveSelection; // ✅ NEW
 
   const MyTextField({
     super.key,
@@ -50,7 +51,8 @@ class MyTextField extends StatelessWidget {
     this.fillColor,
     this.onChanged,
     this.onSubmitted,
-    this.focusNode, // <--- ADD THIS TO THE CONSTRUCTOR
+    this.focusNode,
+    this.enableInteractiveSelection = true, // ✅ Default to true
   });
 
   @override
@@ -71,7 +73,8 @@ class MyTextField extends StatelessWidget {
       validator: validator,
       onChanged: onChanged,
       onFieldSubmitted: onSubmitted,
-      focusNode: focusNode, // <--- PASS THE FOCUSNODE HERE
+      focusNode: focusNode,
+      enableInteractiveSelection: enableInteractiveSelection, // ✅ Use it here
       decoration: decoration ??
           InputDecoration(
             labelText: labelText,
@@ -82,22 +85,13 @@ class MyTextField extends StatelessWidget {
             contentPadding: contentPadding ??
                 const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
             border: const OutlineInputBorder(
-              borderSide: BorderSide(
-                width: 2.0,
-                color: Colors.grey,
-              ),
+              borderSide: BorderSide(width: 2.0, color: Colors.grey),
             ),
             enabledBorder: const OutlineInputBorder(
-              borderSide: BorderSide(
-                width: 2.0,
-                color: Colors.grey,
-              ),
+              borderSide: BorderSide(width: 2.0, color: Colors.grey),
             ),
             focusedBorder: const OutlineInputBorder(
-              borderSide: BorderSide(
-                width: 2.0,
-                color: Colors.blue,
-              ),
+              borderSide: BorderSide(width: 2.0, color: Colors.blue),
             ),
             suffixIcon: suffixIcon != null
                 ? IconButton(

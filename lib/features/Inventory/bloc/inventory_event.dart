@@ -105,11 +105,41 @@ class UpdateWarehouse extends InventoryEvent {
 class SearchWarehouse extends InventoryEvent {
   final String search;
   final int page;
+  final int? transfer_type;
   SearchWarehouse({
     required this.search,
     required this.page,
+    this.transfer_type,
   });
 }
 
 //Items tree
 class GetItemsTree extends InventoryEvent {}
+
+//transfers
+class GetListBriefTransfers extends InventoryEvent {
+  final int transfer_type;
+  final int page;
+  GetListBriefTransfers({
+    required this.transfer_type,
+    required this.page,
+  });
+}
+
+class GetOneTransfer extends InventoryEvent {
+  final int id;
+  GetOneTransfer({required this.id});
+}
+
+class AddTransfer extends InventoryEvent {
+  final TransferModel transferModel;
+
+  AddTransfer({required this.transferModel});
+}
+
+class UpdateTransfer extends InventoryEvent {
+  final int id;
+  final TransferModel transferModel;
+
+  UpdateTransfer({required this.transferModel, required this.id});
+}

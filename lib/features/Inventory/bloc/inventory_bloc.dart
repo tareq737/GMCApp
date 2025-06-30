@@ -1,7 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:gmcappclean/features/Inventory/models/groups_model.dart';
 import 'package:gmcappclean/features/Inventory/models/items_model.dart';
-import 'package:gmcappclean/features/Inventory/models/items_tree_model.dart';
+import 'package:gmcappclean/features/Inventory/models/transfer_model.dart';
 import 'package:gmcappclean/features/Inventory/models/warehouses_model.dart';
 import 'package:gmcappclean/features/Inventory/services/inventory_services.dart';
 
@@ -199,6 +199,7 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
         var result = await _inventoryServices.searchWarehouse(
           search: event.search,
           page: event.page,
+          transfer_type: event.transfer_type,
         );
         if (result == null) {
           emit(InventoryError(errorMessage: 'Error'));
@@ -211,6 +212,57 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
       (event, emit) async {
         emit(InventoryLoading());
         var result = await _inventoryServices.getItemsTree();
+        if (result == null) {
+          emit(InventoryError(errorMessage: 'Error'));
+        } else {
+          emit(InventorySuccess(result: result));
+        }
+      },
+    );
+
+    //transfers
+    on<GetListBriefTransfers>(
+      (event, emit) async {
+        emit(InventoryLoading());
+        var result = await _inventoryServices.transfersBrief(
+          transfer_type: event.transfer_type,
+          page: event.page,
+        );
+        if (result == null) {
+          emit(InventoryError(errorMessage: 'Error'));
+        } else {
+          emit(InventorySuccess(result: result));
+        }
+      },
+    );
+    on<GetOneTransfer>(
+      (event, emit) async {
+        emit(InventoryLoading());
+        var result = await _inventoryServices.getOneTransferID(event.id);
+        if (result == null) {
+          emit(InventoryError(
+              errorMessage: 'Error fetching  with ID: ${event.id}'));
+        } else {
+          emit(InventorySuccess(result: result));
+        }
+      },
+    );
+    on<AddTransfer>(
+      (event, emit) async {
+        emit(InventoryLoading());
+        var result = await _inventoryServices.addTransfer(event.transferModel);
+        if (result == null) {
+          emit(InventoryError(errorMessage: 'Error'));
+        } else {
+          emit(InventorySuccess(result: result));
+        }
+      },
+    );
+    on<UpdateTransfer>(
+      (event, emit) async {
+        emit(InventoryLoading());
+        var result = await _inventoryServices.updateTransfer(
+            event.id, event.transferModel);
         if (result == null) {
           emit(InventoryError(errorMessage: 'Error'));
         } else {

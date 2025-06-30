@@ -14,6 +14,7 @@ import 'package:gmcappclean/features/Exchange%20Rate/ui/rate_list_page.dart';
 import 'package:gmcappclean/features/Inventory/ui/groups/groups_list_page.dart';
 import 'package:gmcappclean/features/Inventory/ui/items/items_list_page.dart';
 import 'package:gmcappclean/features/Inventory/ui/items/items_tree_page.dart';
+import 'package:gmcappclean/features/Inventory/ui/transfers/transfers_list_page.dart';
 import 'package:gmcappclean/features/Inventory/ui/warehouses/warehouse_list_page.dart';
 import 'package:gmcappclean/features/Prayer_times/bloc/prayer_times_bloc.dart';
 import 'package:gmcappclean/features/Prayer_times/services/prayer_times_service.dart';
@@ -420,56 +421,178 @@ class _HomePageState extends State<HomePage>
                         ),
                         title: const Text('قسم المستودعات'),
                         children: [
-                          ListTile(
-                            title: const Text('المستودعات'),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      const WarehouseListPage(),
-                                ),
-                              );
-                            },
-                          ),
-                          ListTile(
-                            title: const Text('المجموعات'),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) {
-                                    return const GroupsListPage();
-                                  },
-                                ),
-                              );
-                            },
-                          ),
-                          ListTile(
+                          ExpansionTile(
                             title: const Text('المواد'),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) {
-                                    return const ItemsListPage();
-                                  },
-                                ),
-                              );
-                            },
+                            children: [
+                              ListTile(
+                                title: const Text('المستودعات'),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const WarehouseListPage(),
+                                    ),
+                                  );
+                                },
+                              ),
+                              ListTile(
+                                title: const Text('المجموعات'),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) {
+                                        return const GroupsListPage();
+                                      },
+                                    ),
+                                  );
+                                },
+                              ),
+                              ListTile(
+                                title: const Text('المواد'),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) {
+                                        return const ItemsListPage();
+                                      },
+                                    ),
+                                  );
+                                },
+                              ),
+                              ListTile(
+                                title: const Text('شجرة المواد'),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) {
+                                        return const ItemsTreePage();
+                                      },
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
                           ),
-                          ListTile(
-                            title: const Text('شجرة المواد'),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) {
-                                    return const ItemsTreePage();
-                                  },
-                                ),
-                              );
-                            },
+                          ExpansionTile(
+                            title: const Text('المناقلات'),
+                            children: [
+                              ListTile(
+                                title: const Text('إدخال جاهزة'),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const TransfersListPage(
+                                        transfer_type: 1,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                              ListTile(
+                                title: const Text('إخراج جاهزة'),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const TransfersListPage(
+                                        transfer_type: 2,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                              ListTile(
+                                title: const Text('إدخال أولية'),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const TransfersListPage(
+                                        transfer_type: 3,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                              ListTile(
+                                title: const Text('إخراج أولية'),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const TransfersListPage(
+                                        transfer_type: 4,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                              ListTile(
+                                title: const Text('مناقلة بضاعة أمانة'),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const TransfersListPage(
+                                        transfer_type: 5,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                              ListTile(
+                                title: const Text('مناقلة مستودع'),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const TransfersListPage(
+                                        transfer_type: 6,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                              ListTile(
+                                title: const Text('إدخال تعبئة'),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const TransfersListPage(
+                                        transfer_type: 7,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                              ListTile(
+                                title: const Text('إخراج تعبئة'),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const TransfersListPage(
+                                        transfer_type: 8,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
                           ),
                         ],
                       ),

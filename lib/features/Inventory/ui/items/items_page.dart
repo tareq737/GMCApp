@@ -32,7 +32,8 @@ class PriceEntry {
   Map<String, dynamic> toMap() {
     return {
       'list_name': listNameController.text,
-      'price': priceController.text,
+      // Remove commas from the price string before returning
+      'price': priceController.text.replaceAll(',', ''),
     };
   }
 

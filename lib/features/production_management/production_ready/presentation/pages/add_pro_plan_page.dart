@@ -74,6 +74,7 @@ class _AddProdPlanPageState extends State<AddProdPlanPage> {
       'كلاسيك اندركوت',
       'جمس اقتصادي',
       'زياتي 202 اقتصادي ',
+      'جمس ممدد',
     ],
     'صناعي': [
       'جمس ألمنيوم',
@@ -211,6 +212,7 @@ class _AddProdPlanPageState extends State<AddProdPlanPage> {
     'بنفسجي',
     '210',
     'فضي',
+    'المنيوم',
   ];
 
   final ProdPlanViewModel _prodPlan = ProdPlanViewModel(

@@ -6,6 +6,8 @@ import 'package:gmcappclean/core/services/auth_interactor.dart';
 import 'package:gmcappclean/features/Inventory/models/groups_model.dart';
 import 'package:gmcappclean/features/Inventory/models/items_model.dart';
 import 'package:gmcappclean/features/Inventory/models/items_tree_model.dart';
+import 'package:gmcappclean/features/Inventory/models/transfer_brief_model.dart';
+import 'package:gmcappclean/features/Inventory/models/transfer_model.dart';
 import 'package:gmcappclean/features/Inventory/models/warehouses_model.dart';
 
 class InventoryServices {
@@ -117,7 +119,11 @@ class InventoryServices {
         final response = await _apiClient.getPageinated(
           user: success,
           endPoint: 'items',
-          queryParams: {'search': search, 'page': page},
+          queryParams: {
+            'search': search,
+            'page': page,
+            'page_size': 20,
+          },
         );
         return List.generate(response.length, (index) {
           return ItemsModel.fromMap(response[index]);
@@ -315,7 +321,7 @@ class InventoryServices {
   }
 
   Future<List<WarehousesModel>?> searchWarehouse(
-      {required String search, required int page}) async {
+      {required String search, required int page, int? transfer_type}) async {
     try {
       final userEntity = await getCredentials();
       return userEntity.fold((failure) {
@@ -324,7 +330,12 @@ class InventoryServices {
         final response = await _apiClient.getPageinated(
           user: success,
           endPoint: 'warehouses',
-          queryParams: {'search': search, 'page': page},
+          queryParams: {
+            'search': search,
+            'page': page,
+            'transfer_type': transfer_type,
+            'page_size': 50,
+          },
         );
         return List.generate(response.length, (index) {
           return WarehousesModel.fromMap(response[index]);
@@ -352,6 +363,84 @@ class InventoryServices {
       });
     } catch (e) {
       print('exception caught');
+      return null;
+    }
+  }
+
+  //Transfers
+  Future<List<TransferBriefModel>?> transfersBrief(
+      {required int transfer_type, required int page}) async {
+    try {
+      final userEntity = await getCredentials();
+      return userEntity.fold((failure) {
+        return null;
+      }, (success) async {
+        final response = await _apiClient.getPageinated(
+          user: success,
+          endPoint: 'transfers',
+          queryParams: {'page': page, 'transfer_type': transfer_type},
+        );
+        return List.generate(response.length, (index) {
+          return TransferBriefModel.fromMap(response[index]);
+        });
+      });
+    } catch (e) {
+      print('exception caught');
+      return null;
+    }
+  }
+
+  Future<TransferModel?> getOneTransferID(
+    int id,
+  ) async {
+    try {
+      final userEntity = await getCredentials();
+      return userEntity.fold((failure) {
+        return null;
+      }, (success) async {
+        final response = await _apiClient.getById(
+            user: success, endPoint: 'transfers', id: id);
+        return TransferModel.fromMap(response);
+      });
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<TransferModel?> addTransfer(TransferModel transferModel) async {
+    try {
+      final userEntity = await getCredentials();
+      return userEntity.fold((failure) {
+        return null;
+      }, (success) async {
+        final response = await _apiClient.add(
+          userTokens: success,
+          endPoint: 'transfers',
+          data: transferModel.toJson(),
+        );
+        return TransferModel.fromMap(response);
+      });
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<TransferModel?> updateTransfer(
+      int id, TransferModel transferModel) async {
+    try {
+      final userEntity = await getCredentials();
+      return userEntity.fold((failure) {
+        return null;
+      }, (success) async {
+        final response = await _apiClient.updateViaPut(
+          user: success,
+          endPoint: 'transfers',
+          data: transferModel.toJson(),
+          id: id,
+        );
+        return TransferModel.fromMap(response);
+      });
+    } catch (e) {
       return null;
     }
   }

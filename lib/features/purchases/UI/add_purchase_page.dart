@@ -178,6 +178,7 @@ class _AddPurchasePageState extends State<AddPurchasePage> {
                             ),
                             Expanded(
                               child: MyTextField(
+                                readOnly: true,
                                 controller: _requiredDateController,
                                 labelText: 'تاريخ التوريد المطلوب',
                                 onTap: () async {
@@ -187,6 +188,7 @@ class _AddPurchasePageState extends State<AddPurchasePage> {
                                     firstDate: DateTime(2000),
                                     lastDate: DateTime(2100),
                                   );
+
                                   if (pickedDate != null) {
                                     setState(() {
                                       _requiredDateController.text =
@@ -202,8 +204,10 @@ class _AddPurchasePageState extends State<AddPurchasePage> {
                         MyTextField(
                             controller: _typeController, labelText: 'الصنف'),
                         MyTextField(
-                            controller: _usageController,
-                            labelText: 'الاستعمال وتوصيف الحالة'),
+                          controller: _usageController,
+                          labelText: 'الاستعمال وتوصيف الحالة',
+                          maxLines: 10,
+                        ),
                         const SizedBox(height: 10),
                         const Text(
                           'الأبعاد والمواصفات',
@@ -212,8 +216,10 @@ class _AddPurchasePageState extends State<AddPurchasePage> {
                         ),
                         const SizedBox(height: 10),
                         MyTextField(
-                            controller: _detailsController,
-                            labelText: 'المواصفات الفنية'),
+                          controller: _detailsController,
+                          labelText: 'المواصفات الفنية',
+                          maxLines: 10,
+                        ),
                         Row(
                           spacing: 5,
                           children: [
