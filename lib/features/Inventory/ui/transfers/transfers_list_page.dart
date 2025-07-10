@@ -173,7 +173,7 @@ class _TrasfersListPageChildState extends State<TrasfersListPageChild> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'لا توجد مناقلات لعرضها',
+                          'لا توجد بيانات لعرضها',
                           style: TextStyle(
                             fontSize: 18,
                             color: Colors.grey[600],
@@ -325,6 +325,10 @@ class _TrasfersListPageChildState extends State<TrasfersListPageChild> {
         return 'إدخال تعبئة';
       case 8:
         return 'إخراج تعبئة';
+      case 101:
+        return 'مشتريات';
+      case 102:
+        return 'مبيعات';
       default:
         return 'المناقلات';
     }

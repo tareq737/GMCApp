@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:math';
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -22,7 +21,6 @@ import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
-import 'package:syncfusion_flutter_charts/charts.dart'; // This import seems unused based on the provided code.
 
 class TransferPage extends StatelessWidget {
   final TransferModel? transferModel;
@@ -70,9 +68,8 @@ class TransferPageChild extends StatefulWidget {
 class _TransferPageChildState extends State<TransferPageChild> {
   Future<Uint8List> _generatePdf(PdfPageFormat format) async {
     final pdf = pw.Document();
-    final arabicFont = pw.Font.ttf(
-      await rootBundle.load('assets/fonts/Cairo-Regular.ttf'),
-    );
+    final arabicFont =
+        pw.Font.ttf(await rootBundle.load('assets/fonts/Cairo-Regular.ttf'));
 
     // Calculate how many items can fit per page
     const itemsPerPage = 15; // Adjust this based on your testing
@@ -95,7 +92,7 @@ class _TransferPageChildState extends State<TransferPageChild> {
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
                     pw.Text(
-                      'الرقم: ${_idController.text}',
+                      'الرقم: ${_serialController.text}',
                       style: pw.TextStyle(font: arabicFont),
                       textDirection: pw.TextDirection.rtl,
                     ),
@@ -264,13 +261,10 @@ class _TransferPageChildState extends State<TransferPageChild> {
                             padding: const pw.EdgeInsets.all(4),
                             child: pw.Center(
                               child: pw.Text(
-                                _numberFormat.format(
-                                  _getItemTotal(startIndex + i),
-                                ),
-                                style: pw.TextStyle(
-                                  font: arabicFont,
-                                  fontSize: 7,
-                                ),
+                                _numberFormat
+                                    .format(_getItemTotal(startIndex + i)),
+                                style:
+                                    pw.TextStyle(font: arabicFont, fontSize: 7),
                                 textDirection: pw.TextDirection.rtl,
                                 textAlign: pw.TextAlign.center,
                               ),
@@ -281,10 +275,8 @@ class _TransferPageChildState extends State<TransferPageChild> {
                             child: pw.Center(
                               child: pw.Text(
                                 _priceControllers[startIndex + i].text,
-                                style: pw.TextStyle(
-                                  font: arabicFont,
-                                  fontSize: 7,
-                                ),
+                                style:
+                                    pw.TextStyle(font: arabicFont, fontSize: 7),
                                 textDirection: pw.TextDirection.rtl,
                                 textAlign: pw.TextAlign.center,
                               ),
@@ -295,10 +287,8 @@ class _TransferPageChildState extends State<TransferPageChild> {
                             child: pw.Center(
                               child: pw.Text(
                                 _quantityControllers[startIndex + i].text,
-                                style: pw.TextStyle(
-                                  font: arabicFont,
-                                  fontSize: 7,
-                                ),
+                                style:
+                                    pw.TextStyle(font: arabicFont, fontSize: 7),
                                 textDirection: pw.TextDirection.rtl,
                                 textAlign: pw.TextAlign.center,
                               ),
@@ -309,10 +299,8 @@ class _TransferPageChildState extends State<TransferPageChild> {
                             child: pw.Center(
                               child: pw.Text(
                                 _itemUnitControllers[startIndex + i].text,
-                                style: pw.TextStyle(
-                                  font: arabicFont,
-                                  fontSize: 7,
-                                ),
+                                style:
+                                    pw.TextStyle(font: arabicFont, fontSize: 7),
                                 textDirection: pw.TextDirection.rtl,
                                 textAlign: pw.TextAlign.center,
                               ),
@@ -322,14 +310,13 @@ class _TransferPageChildState extends State<TransferPageChild> {
                             padding: const pw.EdgeInsets.all(4),
                             child: pw.Center(
                               child: pw.Text(
-                                _itemNameControllers[startIndex + i].text
+                                _itemNameControllers[startIndex + i]
+                                    .text
                                     .split('-')
                                     .last
                                     .trim(), // This will split by '-' and take the last part
-                                style: pw.TextStyle(
-                                  font: arabicFont,
-                                  fontSize: 7,
-                                ),
+                                style:
+                                    pw.TextStyle(font: arabicFont, fontSize: 7),
                                 textDirection: pw.TextDirection.rtl,
                                 textAlign: pw.TextAlign.center,
                               ),
@@ -340,10 +327,8 @@ class _TransferPageChildState extends State<TransferPageChild> {
                             child: pw.Center(
                               child: pw.Text(
                                 (startIndex + i + 1).toString(),
-                                style: pw.TextStyle(
-                                  font: arabicFont,
-                                  fontSize: 7,
-                                ),
+                                style:
+                                    pw.TextStyle(font: arabicFont, fontSize: 7),
                                 textDirection: pw.TextDirection.rtl,
                                 textAlign: pw.TextAlign.center,
                               ),
@@ -404,6 +389,7 @@ class _TransferPageChildState extends State<TransferPageChild> {
     }
   }
 
+  String? _previousSerial;
   final _fromWarehouseController = TextEditingController();
   final _fromWarehouseFocusNode = FocusNode();
   bool _isSelectingFromWarehouse = false;
@@ -421,7 +407,7 @@ class _TransferPageChildState extends State<TransferPageChild> {
   int currentItemSearchPage = 1;
   final ScrollController _scrollController = ScrollController();
   List<ItemsModel> _itemsList = []; // Stores search results for items
-  final _idController = TextEditingController();
+  final _serialController = TextEditingController();
   final _dateController = TextEditingController();
   final _noteController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
@@ -436,11 +422,11 @@ class _TransferPageChildState extends State<TransferPageChild> {
   final List<FocusNode> _quantityFocusNodes = [];
   // Stores the full ItemsModel data for each selected item, crucial for balances and prices
   final List<ItemsModel?> _selectedItemData = [];
-
+  final _serialFocusNode = FocusNode();
   bool _isSelectingItem = false; // Flag to prevent multiple item search dialogs
 
   int?
-  _currentItemSearchIndex; // Index of the item text field currently being searched
+      _currentItemSearchIndex; // Index of the item text field currently being searched
   bool _isSearchingItem = false; // Flag for general item search loading
   bool isLoadingMore = false; // Flag for loading more items in search dialog
 
@@ -450,7 +436,7 @@ class _TransferPageChildState extends State<TransferPageChild> {
 
     if (widget.transferModel != null) {
       // Populate fields from existing transfer model
-      _idController.text = widget.transferModel!.serial.toString();
+      _serialController.text = widget.transferModel!.serial.toString();
       _dateController.text = widget.transferModel!.date ?? '';
       _noteController.text = widget.transferModel!.note ?? '';
       _fromWarehouseController.text =
@@ -467,28 +453,21 @@ class _TransferPageChildState extends State<TransferPageChild> {
 
           _editableItems.add(Map<String, dynamic>.from(item));
           _itemNameControllers.add(
-            TextEditingController(text: item['item_name']?.toString() ?? ''),
-          );
+              TextEditingController(text: item['item_name']?.toString() ?? ''));
           _itemUnitControllers.add(
-            TextEditingController(text: item['item_unit']?.toString() ?? ''),
-          );
+              TextEditingController(text: item['item_unit']?.toString() ?? ''));
           _quantityControllers.add(
-            TextEditingController(text: item['quantity']?.toString() ?? ''),
-          );
+              TextEditingController(text: item['quantity']?.toString() ?? ''));
           _priceControllers.add(
-            TextEditingController(text: item['price']?.toString() ?? ''),
-          );
-          _itemNoteControllers.add(
-            TextEditingController(text: item['note']?.toString() ?? ''),
-          );
+              TextEditingController(text: item['price']?.toString() ?? ''));
+          _itemNoteControllers
+              .add(TextEditingController(text: item['note']?.toString() ?? ''));
 
+          _serialFocusNode.addListener(_onSerialFocusChange);
           // Add quantity focus node
           final quantityFocusNode = FocusNode();
-          quantityFocusNode.addListener(
-            () => _onQuantityFocusChange(
-              _quantityFocusNodes.indexOf(quantityFocusNode),
-            ),
-          );
+          quantityFocusNode.addListener(() => _onQuantityFocusChange(
+              _quantityFocusNodes.indexOf(quantityFocusNode)));
           _quantityFocusNodes.add(quantityFocusNode);
 
           // Add listeners for quantity and price to update totals
@@ -504,8 +483,7 @@ class _TransferPageChildState extends State<TransferPageChild> {
           if (item['item_details'] != null && item['item_details'] is Map) {
             try {
               final ItemsModel selectedItem = ItemsModel.fromMap(
-                Map<String, dynamic>.from(item['item_details'] as Map),
-              );
+                  Map<String, dynamic>.from(item['item_details'] as Map));
               _selectedItemData.add(selectedItem);
 
               // Set the price from the 'item_details' if available
@@ -541,16 +519,17 @@ class _TransferPageChildState extends State<TransferPageChild> {
 
   @override
   void dispose() {
-    _idController.dispose();
+    _serialController.dispose();
     _dateController.dispose();
     _noteController.dispose();
-    _disposeItemControllers(); // Dispose all item-related controllers
-    _scrollController.dispose(); // Dispose scroll controller
+    _disposeItemControllers();
+    _scrollController.dispose();
 
-    // Remove listeners and dispose focus nodes for warehouses
     _fromWarehouseFocusNode.removeListener(_onFromWarehouseFocusChange);
     _fromWarehouseFocusNode.dispose();
     _toWarehouseFocusNode.removeListener(_onToWarehouseFocusChange);
+    _serialFocusNode.removeListener(_onSerialFocusChange);
+    _serialFocusNode.dispose();
     _toWarehouseFocusNode.dispose();
 
     super.dispose();
@@ -565,15 +544,13 @@ class _TransferPageChildState extends State<TransferPageChild> {
       controller.dispose();
     }
     for (var controller in _quantityControllers) {
-      controller.removeListener(
-        _updateTotals,
-      ); // Remove listener before disposing
+      controller
+          .removeListener(_updateTotals); // Remove listener before disposing
       controller.dispose();
     }
     for (var controller in _priceControllers) {
-      controller.removeListener(
-        _updateTotals,
-      ); // Remove listener before disposing
+      controller
+          .removeListener(_updateTotals); // Remove listener before disposing
       controller.dispose();
     }
     for (var controller in _itemNoteControllers) {
@@ -581,8 +558,7 @@ class _TransferPageChildState extends State<TransferPageChild> {
     }
     for (var node in _itemNameFocusNodes) {
       node.removeListener(
-        () {},
-      ); // Remove all listeners before disposing, safer than specific one
+          () {}); // Remove all listeners before disposing, safer than specific one
       node.dispose();
     }
     for (var node in _quantityFocusNodes) {
@@ -597,6 +573,20 @@ class _TransferPageChildState extends State<TransferPageChild> {
     _itemNoteControllers.clear();
     _itemNameFocusNodes.clear();
     _selectedItemData.clear(); // Clear _selectedItemData as well
+  }
+
+  void _onSerialFocusChange() {
+    if (!_serialFocusNode.hasFocus &&
+        _serialController.text.isNotEmpty &&
+        _serialController.text != _previousSerial) {
+      _previousSerial = _serialController.text;
+      context.read<InventoryBloc>().add(
+            GetOneTransferBySerial(
+              serial: int.tryParse(_serialController.text) ?? 0,
+              transfer_type: widget.transfer_type,
+            ),
+          );
+    }
   }
 
   void _addNewItem() {
@@ -615,11 +605,8 @@ class _TransferPageChildState extends State<TransferPageChild> {
 
       quantityController.addListener(_updateTotals);
       priceController.addListener(_updateTotals);
-      quantityFocusNode.addListener(
-        () => _onQuantityFocusChange(
-          _quantityFocusNodes.indexOf(quantityFocusNode),
-        ),
-      );
+      quantityFocusNode.addListener(() => _onQuantityFocusChange(
+          _quantityFocusNodes.indexOf(quantityFocusNode)));
 
       _itemNameControllers.add(TextEditingController());
       _itemUnitControllers.add(TextEditingController());
@@ -638,9 +625,11 @@ class _TransferPageChildState extends State<TransferPageChild> {
   }
 
   void _onQuantityFocusChange(int index) {
-    if (index >= 0 && index < _quantityFocusNodes.length) {
-      if (!_quantityFocusNodes[index].hasFocus) {
-        _validateQuantityAgainstInventory(index);
+    if (widget.transfer_type != 101) {
+      if (index >= 0 && index < _quantityFocusNodes.length) {
+        if (!_quantityFocusNodes[index].hasFocus) {
+          _validateQuantityAgainstInventory(index);
+        }
       }
     }
   }
@@ -668,8 +657,8 @@ class _TransferPageChildState extends State<TransferPageChild> {
     // Safer quantity extraction
     final availableQuantity = balance != null
         ? (balance['quantity'] is String
-              ? double.tryParse(balance['quantity']) ?? 0
-              : (balance['quantity'] as num?)?.toDouble() ?? 0)
+            ? double.tryParse(balance['quantity']) ?? 0
+            : (balance['quantity'] as num?)?.toDouble() ?? 0)
         : 0;
 
     if (enteredQuantity > availableQuantity) {
@@ -699,9 +688,8 @@ class _TransferPageChildState extends State<TransferPageChild> {
       _priceControllers[index].removeListener(_updateTotals);
       _priceControllers[index].dispose();
       _itemNoteControllers[index].dispose();
-      _itemNameFocusNodes[index].removeListener(
-        () {},
-      ); // Remove all listeners before disposing
+      _itemNameFocusNodes[index]
+          .removeListener(() {}); // Remove all listeners before disposing
       _itemNameFocusNodes[index].dispose();
       _quantityFocusNodes.removeAt(index);
       // Remove from lists
@@ -746,8 +734,8 @@ class _TransferPageChildState extends State<TransferPageChild> {
     });
 
     context.read<InventoryBloc>().add(
-      SearchItems(search: _itemNameControllers[index].text, page: 1),
-    );
+          SearchItems(search: _itemNameControllers[index].text, page: 1),
+        );
   }
 
   void _onScroll() {
@@ -770,11 +758,11 @@ class _TransferPageChildState extends State<TransferPageChild> {
   void runBlocItemSearch() {
     if (_currentItemSearchIndex == null) return;
     context.read<InventoryBloc>().add(
-      SearchItems(
-        page: currentItemSearchPage,
-        search: _itemNameControllers[_currentItemSearchIndex!].text,
-      ),
-    );
+          SearchItems(
+            page: currentItemSearchPage,
+            search: _itemNameControllers[_currentItemSearchIndex!].text,
+          ),
+        );
   }
 
   void _onItemFocusNodeChange(int index) {
@@ -842,9 +830,8 @@ class _TransferPageChildState extends State<TransferPageChild> {
                             }
                             final item = _itemsList[i];
                             return ListTile(
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                              ),
+                              contentPadding:
+                                  const EdgeInsets.symmetric(horizontal: 16),
                               title: Text(
                                 '${item.code ?? ''}=${item.name ?? ''} (${item.unit ?? ''})',
                                 textAlign: TextAlign.right,
@@ -866,10 +853,8 @@ class _TransferPageChildState extends State<TransferPageChild> {
                       onPressed: () {
                         Navigator.of(dialogContext).pop(null);
                       },
-                      child: const Text(
-                        'إلغاء',
-                        textDirection: ui.TextDirection.rtl,
-                      ),
+                      child: const Text('إلغاء',
+                          textDirection: ui.TextDirection.rtl),
                     ),
                   ],
                   shape: RoundedRectangleBorder(
@@ -927,12 +912,12 @@ class _TransferPageChildState extends State<TransferPageChild> {
         !_isSelectingFromWarehouse) {
       _lastSearchField = 'from';
       context.read<InventoryBloc>().add(
-        SearchWarehouse(
-          search: _fromWarehouseController.text,
-          page: 1,
-          transfer_type: widget.transfer_type,
-        ),
-      );
+            SearchWarehouse(
+              search: _fromWarehouseController.text,
+              page: 1,
+              transfer_type: widget.transfer_type,
+            ),
+          );
     } else if (!_fromWarehouseFocusNode.hasFocus &&
         _fromWarehouseController.text.isEmpty) {
       setState(() {
@@ -947,17 +932,117 @@ class _TransferPageChildState extends State<TransferPageChild> {
         !_isSelectingToWarehouse) {
       _lastSearchField = 'to';
       context.read<InventoryBloc>().add(
-        SearchWarehouse(
-          search: _toWarehouseController.text,
-          page: 1,
-          transfer_type: widget.transfer_type,
-        ),
-      );
+            SearchWarehouse(
+              search: _toWarehouseController.text,
+              page: 1,
+              transfer_type: widget.transfer_type,
+            ),
+          );
     } else if (!_toWarehouseFocusNode.hasFocus &&
         _toWarehouseController.text.isEmpty) {
       setState(() {
         _selectedToWarehouseId = null;
       });
+    }
+  }
+
+  String _getTitleForTransferType(int transferType) {
+    switch (transferType) {
+      case 1:
+        return 'إدخال جاهزة';
+      case 2:
+        return 'إخراج جاهزة';
+      case 3:
+        return 'إدخال أولية';
+      case 4:
+        return 'إخراج أولية';
+      case 5:
+        return 'مناقلة بضاعة أمانة';
+      case 6:
+        return 'مناقلة مستودع';
+      case 7:
+        return 'إدخال تعبئة';
+      case 8:
+        return 'إخراج تعبئة';
+      case 101:
+        return 'مشتريات';
+      case 102:
+        return 'مبيعات';
+      default:
+        return 'المناقلات';
+    }
+  }
+
+  void _fillFormFromTransferModel(TransferModel transfer) {
+    // Clear existing data
+    _disposeItemControllers();
+    _editableItems.clear();
+    _selectedItemData.clear();
+
+    // Set basic fields
+    _dateController.text = transfer.date ?? '';
+    _noteController.text = transfer.note ?? '';
+    _fromWarehouseController.text = transfer.from_warehouse_name ?? '';
+    _toWarehouseController.text = transfer.to_warehouse_name ?? '';
+    _selectedFromWarehouseId = transfer.from_warehouse;
+    _selectedToWarehouseId = transfer.to_warehouse;
+
+    // Add items
+    if (transfer.items != null) {
+      for (var item in transfer.items!) {
+        _editableItems.add(Map<String, dynamic>.from(item));
+
+        // Create controllers for this item
+        final itemNameController =
+            TextEditingController(text: item['item_name']?.toString() ?? '');
+        final itemUnitController =
+            TextEditingController(text: item['item_unit']?.toString() ?? '');
+        final quantityController =
+            TextEditingController(text: item['quantity']?.toString() ?? '');
+        final priceController =
+            TextEditingController(text: item['price']?.toString() ?? '');
+        final itemNoteController =
+            TextEditingController(text: item['note']?.toString() ?? '');
+
+        // Add controllers to lists
+        _itemNameControllers.add(itemNameController);
+        _itemUnitControllers.add(itemUnitController);
+        _quantityControllers.add(quantityController);
+        _priceControllers.add(priceController);
+        _itemNoteControllers.add(itemNoteController);
+
+        // Add focus nodes
+        final quantityFocusNode = FocusNode();
+        quantityFocusNode.addListener(() => _onQuantityFocusChange(
+            _quantityFocusNodes.indexOf(quantityFocusNode)));
+        _quantityFocusNodes.add(quantityFocusNode);
+
+        final itemNameFocusNode = FocusNode();
+        itemNameFocusNode.addListener(() => _onItemFocusNodeChange(
+            _itemNameFocusNodes.indexOf(itemNameFocusNode)));
+        _itemNameFocusNodes.add(itemNameFocusNode);
+
+        // Add listeners
+        quantityController.addListener(_updateTotals);
+        priceController.addListener(_updateTotals);
+
+        // Parse item details if available
+        ItemsModel? selectedItem;
+        if (item['item_details'] != null && item['item_details'] is Map) {
+          try {
+            selectedItem = ItemsModel.fromMap(
+                Map<String, dynamic>.from(item['item_details'] as Map));
+          } catch (e) {
+            debugPrint('Error parsing item_details: $e');
+          }
+        }
+        _selectedItemData.add(selectedItem);
+      }
+    }
+
+    // Update UI
+    if (mounted) {
+      setState(() {});
     }
   }
 
@@ -968,31 +1053,49 @@ class _TransferPageChildState extends State<TransferPageChild> {
       child: Scaffold(
         appBar: AppBar(
           title: Text(
-            widget.transferModel == null ? 'إضافة المناقلة' : 'تعديل المناقلة',
+            _getTitleForTransferType(widget.transfer_type),
           ),
           actions: [
-            IconButton(
-              onPressed: _printTransfer,
-              icon: const Icon(Icons.print),
-            ),
+            if (widget.transferModel != null)
+              IconButton(
+                onPressed: _printTransfer,
+                icon: const Icon(Icons.print),
+              ),
           ],
         ),
         body: BlocConsumer<InventoryBloc, InventoryState>(
           listener: (context, state) {
             if (state is InventorySuccess<TransferModel>) {
-              showSnackBar(context: context, content: 'تم', failure: false);
-              Navigator.pop(context); // Pop current page
-              // Navigate to transfers list and replace the current route
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) {
-                    return TransfersListPage(
+              if (state.result.serial.toString() == _serialController.text) {
+                _fillFormFromTransferModel(state.result);
+              } else {
+                showSnackBar(context: context, content: 'تم', failure: false);
+                Navigator.pop(context);
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => TransfersListPage(
                       transfer_type: widget.transfer_type,
-                    );
-                  },
-                ),
+                    ),
+                  ),
+                );
+              }
+            } else if (state is InventoryError) {
+              // Handle "No ItemTransfer matches" error specifically
+
+              // Handle other errors
+              showSnackBar(
+                context: context,
+                content: state.errorMessage,
+                failure: true,
               );
+              Navigator.pop(context);
+
+              // Reset item search state if applicable
+              setState(() {
+                _isSearchingItem = false;
+                _currentItemSearchIndex = null;
+              });
             } else if (state is InventoryError) {
               setState(() {
                 _isSearchingItem = false;
@@ -1081,9 +1184,8 @@ class _TransferPageChildState extends State<TransferPageChild> {
                           true; // Set flag to indicate dialog is opening
                       WidgetsBinding.instance.addPostFrameCallback((_) {
                         if (mounted) {
-                          _showItemSearchDialog(_currentItemSearchIndex!).then((
-                            _,
-                          ) {
+                          _showItemSearchDialog(_currentItemSearchIndex!)
+                              .then((_) {
                             _isSelectingItem =
                                 false; // Reset flag after dialog closes
                           });
@@ -1123,6 +1225,9 @@ class _TransferPageChildState extends State<TransferPageChild> {
           },
           builder: (context, state) {
             bool isLoadingSearch = state is InventoryLoading;
+            if (isLoadingSearch) {
+              return const Center(child: Loader());
+            }
             return Form(
               key: _formKey,
               child: Column(
@@ -1149,15 +1254,15 @@ class _TransferPageChildState extends State<TransferPageChild> {
                                       child: MyTextField(
                                         readOnly: true,
                                         controller: _dateController,
-                                        labelText: 'تاريخ المناقلة',
+                                        labelText: 'التاريخ ',
                                         onTap: () async {
                                           DateTime? pickedDate =
                                               await showDatePicker(
-                                                context: context,
-                                                initialDate: DateTime.now(),
-                                                firstDate: DateTime(2000),
-                                                lastDate: DateTime(2100),
-                                              );
+                                            context: context,
+                                            initialDate: DateTime.now(),
+                                            firstDate: DateTime(2000),
+                                            lastDate: DateTime(2100),
+                                          );
                                           if (pickedDate != null) {
                                             setState(() {
                                               _dateController.text = DateFormat(
@@ -1175,24 +1280,39 @@ class _TransferPageChildState extends State<TransferPageChild> {
                                       ),
                                     ),
                                     const SizedBox(width: 7),
-                                    Expanded(
-                                      flex: 3,
-                                      child: MyTextField(
-                                        readOnly: true,
-                                        controller: _idController,
-                                        labelText: 'الرقم',
+                                    if (widget.transferModel != null)
+                                      Expanded(
+                                        flex: 3,
+                                        child: MyTextField(
+                                          controller: _serialController,
+                                          focusNode:
+                                              _serialFocusNode, // Add this
+                                          labelText: 'الرقم',
+                                          keyboardType: TextInputType.number,
+                                          validator: (value) {
+                                            if (value == null ||
+                                                value.isEmpty) {
+                                              return 'الرجاء إدخال الرقم';
+                                            }
+                                            if (int.tryParse(value) == null) {
+                                              return 'الرجاء إدخال رقم صحيح';
+                                            }
+                                            return null;
+                                          },
+                                        ),
                                       ),
-                                    ),
                                   ],
                                 ),
                                 const SizedBox(height: 7),
-                                MyTextField(
-                                  controller: _fromWarehouseController,
-                                  labelText: 'من المستودع',
-                                  focusNode: _fromWarehouseFocusNode,
-                                  suffixIcon:
-                                      (_fromWarehouseController.text.isNotEmpty
-                                      ? (isLoadingSearch &&
+                                if (widget.transfer_type < 100 ||
+                                    widget.transfer_type == 102)
+                                  MyTextField(
+                                    controller: _fromWarehouseController,
+                                    labelText: 'من المستودع',
+                                    focusNode: _fromWarehouseFocusNode,
+                                    suffixIcon: (_fromWarehouseController
+                                            .text.isNotEmpty
+                                        ? (isLoadingSearch &&
                                                 _lastSearchField == 'from'
                                             ? const Padding(
                                                 padding: EdgeInsets.all(10),
@@ -1201,8 +1321,8 @@ class _TransferPageChildState extends State<TransferPageChild> {
                                                   width: 20,
                                                   child:
                                                       CircularProgressIndicator(
-                                                        strokeWidth: 2,
-                                                      ),
+                                                    strokeWidth: 2,
+                                                  ),
                                                 ),
                                               )
                                             : IconButton(
@@ -1216,16 +1336,18 @@ class _TransferPageChildState extends State<TransferPageChild> {
                                                   });
                                                 },
                                               ))
-                                      : null),
-                                ),
+                                        : null),
+                                  ),
                                 const SizedBox(height: 7),
-                                MyTextField(
-                                  controller: _toWarehouseController,
-                                  labelText: 'إلى المستودع',
-                                  focusNode: _toWarehouseFocusNode,
-                                  suffixIcon:
-                                      (_toWarehouseController.text.isNotEmpty
-                                      ? (isLoadingSearch &&
+                                if (widget.transfer_type < 100 ||
+                                    widget.transfer_type == 101)
+                                  MyTextField(
+                                    controller: _toWarehouseController,
+                                    labelText: 'إلى المستودع',
+                                    focusNode: _toWarehouseFocusNode,
+                                    suffixIcon: (_toWarehouseController
+                                            .text.isNotEmpty
+                                        ? (isLoadingSearch &&
                                                 _lastSearchField == 'to'
                                             ? const Padding(
                                                 padding: EdgeInsets.all(10),
@@ -1234,8 +1356,8 @@ class _TransferPageChildState extends State<TransferPageChild> {
                                                   width: 20,
                                                   child:
                                                       CircularProgressIndicator(
-                                                        strokeWidth: 2,
-                                                      ),
+                                                    strokeWidth: 2,
+                                                  ),
                                                 ),
                                               )
                                             : IconButton(
@@ -1249,8 +1371,8 @@ class _TransferPageChildState extends State<TransferPageChild> {
                                                   });
                                                 },
                                               ))
-                                      : null),
-                                ),
+                                        : null),
+                                  ),
                                 const SizedBox(height: 7),
                                 MyTextField(
                                   controller: _noteController,
@@ -1299,8 +1421,7 @@ class _TransferPageChildState extends State<TransferPageChild> {
                                               suffixIcon: SizedBox(
                                                 width: 24, // Single space width
                                                 height: 24, // Fixed height
-                                                child:
-                                                    _isSearchingItem &&
+                                                child: _isSearchingItem &&
                                                         _currentItemSearchIndex ==
                                                             index
                                                     ? const Center(
@@ -1309,16 +1430,14 @@ class _TransferPageChildState extends State<TransferPageChild> {
                                                           height: 16,
                                                           child:
                                                               CircularProgressIndicator(
-                                                                strokeWidth:
-                                                                    1.5,
-                                                              ),
+                                                            strokeWidth: 1.5,
+                                                          ),
                                                         ),
                                                       )
                                                     : IconButton(
                                                         icon: const Icon(
-                                                          Icons.warehouse,
-                                                          size: 18,
-                                                        ),
+                                                            Icons.warehouse,
+                                                            size: 18),
                                                         padding:
                                                             EdgeInsets.zero,
                                                         constraints:
@@ -1326,8 +1445,7 @@ class _TransferPageChildState extends State<TransferPageChild> {
                                                         tooltip: 'عرض الأرصدة',
                                                         onPressed: () =>
                                                             _showBalanceDialog(
-                                                              index,
-                                                            ),
+                                                                index),
                                                       ),
                                               ),
                                               controller:
@@ -1380,21 +1498,20 @@ class _TransferPageChildState extends State<TransferPageChild> {
                                             child: MyTextField(
                                               controller:
                                                   _quantityControllers[index],
-                                              focusNode:
-                                                  _quantityFocusNodes[index], // Add this line
+                                              focusNode: _quantityFocusNodes[
+                                                  index], // Add this line
                                               labelText: 'الكمية',
-                                              keyboardType:
-                                                  const TextInputType.numberWithOptions(
-                                                    decimal: true,
-                                                  ),
+                                              keyboardType: const TextInputType
+                                                  .numberWithOptions(
+                                                decimal: true,
+                                              ),
                                               validator: (value) {
                                                 if (value == null ||
                                                     value.isEmpty) {
                                                   return 'الرجاء إدخال الكمية';
                                                 }
-                                                if (double.tryParse(
-                                                      value.replaceAll(',', ''),
-                                                    ) ==
+                                                if (double.tryParse(value
+                                                        .replaceAll(',', '')) ==
                                                     null) {
                                                   return 'الرجاء إدخال رقم صحيح';
                                                 }
@@ -1409,25 +1526,22 @@ class _TransferPageChildState extends State<TransferPageChild> {
                                               controller:
                                                   _priceControllers[index],
                                               labelText: 'السعر',
-                                              keyboardType:
-                                                  const TextInputType.numberWithOptions(
-                                                    decimal: true,
-                                                  ),
+                                              keyboardType: const TextInputType
+                                                  .numberWithOptions(
+                                                  decimal: true),
                                               suffixIcon: SizedBox(
                                                 width: 24,
                                                 height: 24,
                                                 child: IconButton(
                                                   icon: const Icon(
-                                                    Icons.price_change,
-                                                    size: 20,
-                                                  ),
+                                                      Icons.price_change,
+                                                      size: 20),
                                                   padding: EdgeInsets.zero,
                                                   constraints:
                                                       const BoxConstraints(),
                                                   onPressed: () {
                                                     _showPriceSelectionDialog(
-                                                      index,
-                                                    );
+                                                        index);
                                                   },
                                                 ),
                                               ),
@@ -1436,9 +1550,8 @@ class _TransferPageChildState extends State<TransferPageChild> {
                                                     value.isEmpty) {
                                                   return 'الرجاء إدخال السعر';
                                                 }
-                                                if (double.tryParse(
-                                                      value.replaceAll(',', ''),
-                                                    ) ==
+                                                if (double.tryParse(value
+                                                        .replaceAll(',', '')) ==
                                                     null) {
                                                   return 'الرجاء إدخال رقم صحيح';
                                                 }
@@ -1500,8 +1613,8 @@ class _TransferPageChildState extends State<TransferPageChild> {
                               ? const Loader()
                               : Mybutton(
                                   text: widget.transferModel == null
-                                      ? 'إضافة المناقلة'
-                                      : 'تعديل المناقلة',
+                                      ? 'إضافة '
+                                      : 'تعديل ',
                                   onPressed: _submitForm,
                                 ),
                           const SizedBox(height: 30),
@@ -1718,8 +1831,8 @@ class _TransferPageChildState extends State<TransferPageChild> {
                     onTap: () {
                       Navigator.of(context).pop();
                       setState(() {
-                        _priceControllers[index].text = price['price']
-                            .toString();
+                        _priceControllers[index].text =
+                            price['price'].toString();
                       });
                     },
                   );
@@ -1781,13 +1894,10 @@ class _TransferPageChildState extends State<TransferPageChild> {
 
                     return Container(
                       padding: const EdgeInsets.symmetric(
-                        vertical: 8,
-                        horizontal: 4,
-                      ),
+                          vertical: 8, horizontal: 4),
                       decoration: BoxDecoration(
                         border: Border(
-                          bottom: BorderSide(color: Colors.grey.shade200),
-                        ),
+                            bottom: BorderSide(color: Colors.grey.shade200)),
                       ),
                       child: Row(
                         spacing: 20,
@@ -1831,12 +1941,14 @@ class _TransferPageChildState extends State<TransferPageChild> {
     // Validate the form. If any field's validator returns a string (error), it will be caught here.
     if (_formKey.currentState!.validate()) {
       final model = _fillModelFromForm();
+      //print(model);
       if (widget.transferModel == null) {
         context.read<InventoryBloc>().add(AddTransfer(transferModel: model));
       } else {
         context.read<InventoryBloc>().add(
-          UpdateTransfer(transferModel: model, id: widget.transferModel!.id),
-        );
+              UpdateTransfer(
+                  transferModel: model, id: widget.transferModel!.id),
+            );
       }
     }
   }
@@ -1852,7 +1964,7 @@ class _TransferPageChildState extends State<TransferPageChild> {
             itemId, // Use the ID from the selected ItemsModel or existing item data
         'quantity':
             double.tryParse(_quantityControllers[i].text.replaceAll(',', '')) ??
-            0,
+                0,
         'price':
             double.tryParse(_priceControllers[i].text.replaceAll(',', '')) ?? 0,
         'note': _itemNoteControllers[i].text,
@@ -1866,9 +1978,15 @@ class _TransferPageChildState extends State<TransferPageChild> {
       date: _dateController.text,
       note: _noteController.text,
       items: itemsData,
-      serial: widget.transferModel?.serial, // Keep existing serial for update
-      from_warehouse: _selectedFromWarehouseId, // Use selected ID
-      to_warehouse: _selectedToWarehouseId, // Use selected ID
+      serial: widget.transferModel?.serial,
+      from_warehouse:
+          (widget.transfer_type < 100 || widget.transfer_type == 102)
+              ? _selectedFromWarehouseId
+              : null,
+
+      to_warehouse: (widget.transfer_type < 100 || widget.transfer_type == 101)
+          ? _selectedToWarehouseId
+          : null,
     );
   }
 

@@ -3,9 +3,11 @@ import 'package:gmcappclean/core/common/api/api.dart';
 import 'package:gmcappclean/core/common/entities/user_entity.dart';
 import 'package:gmcappclean/core/error/failures.dart';
 import 'package:gmcappclean/core/services/auth_interactor.dart';
+import 'package:gmcappclean/features/Inventory/models/balance_model.dart';
 import 'package:gmcappclean/features/Inventory/models/groups_model.dart';
 import 'package:gmcappclean/features/Inventory/models/items_model.dart';
 import 'package:gmcappclean/features/Inventory/models/items_tree_model.dart';
+import 'package:gmcappclean/features/Inventory/models/movement_model.dart';
 import 'package:gmcappclean/features/Inventory/models/transfer_brief_model.dart';
 import 'package:gmcappclean/features/Inventory/models/transfer_model.dart';
 import 'package:gmcappclean/features/Inventory/models/warehouses_model.dart';
@@ -441,6 +443,109 @@ class InventoryServices {
         return TransferModel.fromMap(response);
       });
     } catch (e) {
+      return null;
+    }
+  }
+
+  Future<TransferModel?> getOneTransferBySerialAndID(
+      {required int serial, required int transfer_type}) async {
+    try {
+      final userEntity = await getCredentials();
+      return userEntity.fold((failure) {
+        return null;
+      }, (success) async {
+        final response = await _apiClient.getOneMap(
+            user: success,
+            endPoint: 'transfer_by_serial',
+            queryParams: {"transfer_type": transfer_type, "serial": serial});
+
+        if (response == null) {
+          return null;
+        }
+
+        return TransferModel.fromMap(response);
+      });
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<List<BalanceModel>?> getWarehouseBalance({
+    required int page,
+    int? warehouse_id,
+    int? item_id,
+    required String date_1,
+    required String date_2,
+  }) async {
+    try {
+      final userEntity = await getCredentials();
+      return userEntity.fold((failure) {
+        return null;
+      }, (success) async {
+        final Map<String, dynamic> queryParams = {
+          'page': page,
+          'date_1': date_1,
+          'date_2': date_2,
+        };
+
+        if (warehouse_id != null) {
+          queryParams['warehouse_id'] = warehouse_id;
+        }
+        if (item_id != null) {
+          queryParams['item_id'] = item_id;
+        }
+
+        final response = await _apiClient.getPageinated(
+          user: success,
+          endPoint: 'balance',
+          queryParams: queryParams,
+        );
+
+        return List<BalanceModel>.from(
+          response.map((item) => BalanceModel.fromMap(item)),
+        );
+      });
+    } catch (e) {
+      print('Exception caught in getWarehouseBalance: $e');
+      return null;
+    }
+  }
+
+  Future<List<MovementModel>?> getItemActivity({
+    required int page,
+    required String date_1,
+    required String date_2,
+    int? warehouse_id,
+    int? item_id,
+  }) async {
+    try {
+      final userEntity = await getCredentials();
+      return userEntity.fold((failure) {
+        return null;
+      }, (success) async {
+        // Build queryParams without null values
+        final Map<String, dynamic> queryParams = {
+          'page': page,
+          'date_1': date_1,
+          'date_2': date_2,
+        };
+
+        if (warehouse_id != null) {
+          queryParams['warehouse_id'] = warehouse_id;
+        }
+
+        final response = await _apiClient.getPageinated(
+          user: success,
+          endPoint: 'item_activity/$item_id',
+          queryParams: queryParams,
+        );
+
+        return List.generate(response.length, (index) {
+          return MovementModel.fromMap(response[index]);
+        });
+      });
+    } catch (e) {
+      print('exception caught: $e');
       return null;
     }
   }

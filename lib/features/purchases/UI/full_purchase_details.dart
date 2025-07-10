@@ -27,10 +27,12 @@ import 'dart:ui' as ui;
 
 class FullPurchaseDetails extends StatefulWidget {
   final PurchasesModel purchasesModel;
+  final int status;
 
   const FullPurchaseDetails({
     super.key,
     required this.purchasesModel,
+    required this.status,
   });
 
   @override
@@ -253,9 +255,9 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (context) {
-                  return const PurchasesList();
-                },
+                builder: (context) => PurchasesList(
+                  status: widget.status,
+                ),
               ),
             );
           } else if (state is PurchaseSuccess<bool>) {
@@ -265,6 +267,14 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
               failure: false,
             );
             Navigator.pop(context);
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const PurchasesList(
+                  status: 8,
+                ),
+              ),
+            );
           }
         },
         builder: (context, state) {
@@ -326,10 +336,25 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
                                     const SizedBox(
                                       height: 10,
                                     ),
-                                    MyTextField(
-                                        readOnly: true,
-                                        controller: _sectionController,
-                                        labelText: 'القسم'),
+                                    Row(
+                                      spacing: 5,
+                                      children: [
+                                        Expanded(
+                                          flex: 7,
+                                          child: MyTextField(
+                                              readOnly: true,
+                                              controller: _sectionController,
+                                              labelText: 'القسم'),
+                                        ),
+                                        Expanded(
+                                          flex: 3,
+                                          child: MyTextField(
+                                              readOnly: true,
+                                              controller: _iDController,
+                                              labelText: 'الرقم'),
+                                        ),
+                                      ],
+                                    ),
                                     MyTextField(
                                         readOnly: true,
                                         controller: _applicantController,

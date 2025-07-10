@@ -12,13 +12,16 @@ import 'dart:ui' as ui;
 
 import 'package:gmcappclean/features/maintenance/Models/maintenance_model.dart';
 import 'package:gmcappclean/features/maintenance/Services/maintenance_services.dart';
+import 'package:gmcappclean/features/maintenance/UI/maintenance_list_page.dart';
 import 'package:gmcappclean/features/maintenance/bloc/maintenance_bloc.dart';
 import 'package:gmcappclean/init_dependencies.dart';
 import 'package:intl/intl.dart';
 
 class FullMaintanceDetailsPage extends StatefulWidget {
+  final int status;
   final MaintenanceModel maintenanceModel;
-  const FullMaintanceDetailsPage({super.key, required this.maintenanceModel});
+  const FullMaintanceDetailsPage(
+      {super.key, required this.maintenanceModel, required this.status});
 
   @override
   State<FullMaintanceDetailsPage> createState() =>
@@ -144,7 +147,16 @@ class _FullMaintanceDetailsPageState extends State<FullMaintanceDetailsPage> {
               content: 'تم الحفظ',
               failure: false,
             );
+
             Navigator.pop(context);
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => MaintenanceListPage(
+                  status: widget.status,
+                ),
+              ),
+            );
           }
         },
         builder: (context, state) {

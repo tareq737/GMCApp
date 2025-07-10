@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart';
 
 // Example ItemsModel.dart (ensure your actual file has this)
 class ItemsModel {
-  int id; // Now required
+  int id;
   String? code;
   String? name;
   String? unit;
@@ -15,9 +15,8 @@ class ItemsModel {
   String? group_code_name;
   List<dynamic>? default_price;
   List<dynamic>? balances;
-
   ItemsModel({
-    required this.id, // Made required
+    required this.id,
     this.code,
     this.name,
     this.unit,

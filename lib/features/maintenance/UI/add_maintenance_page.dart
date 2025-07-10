@@ -115,7 +115,9 @@ class _AddMaintenancePageState extends State<AddMaintenancePage> {
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const MaintenanceListPage(),
+                      builder: (context) => const MaintenanceListPage(
+                        status: 7,
+                      ),
                     ),
                   );
                 } else if (state is MaintenanceError) {

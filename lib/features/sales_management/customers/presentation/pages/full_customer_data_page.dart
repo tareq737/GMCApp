@@ -18,7 +18,7 @@ import 'package:url_launcher/url_launcher.dart';
 class FullCustomerDataPage extends StatefulWidget {
   final CustomerViewModel? _customerViewModel;
   const FullCustomerDataPage({super.key, customerViewModel})
-    : _customerViewModel = customerViewModel;
+      : _customerViewModel = customerViewModel;
 
   @override
   State<FullCustomerDataPage> createState() => _FullCustomerDataPageState();
@@ -169,6 +169,7 @@ class _FullCustomerDataPageState extends State<FullCustomerDataPage> {
       "شبعا",
       "عقربا",
       "جديدة الخاص",
+      "اوتايا",
     ],
     "القلمون": [
       "التل",
@@ -516,13 +517,12 @@ class _FullCustomerDataPageState extends State<FullCustomerDataPage> {
                       Expanded(
                         child: MyDropdownButton(
                           value: _customerdata.marketInfo.responsible,
-                          items:
-                              responsible.map((type) {
-                                return DropdownMenuItem<String>(
-                                  value: type,
-                                  child: Text(type),
-                                );
-                              }).toList(),
+                          items: responsible.map((type) {
+                            return DropdownMenuItem<String>(
+                              value: type,
+                              child: Text(type),
+                            );
+                          }).toList(),
                           onChanged: (String? newValue) {
                             setState(() {
                               _customerdata.marketInfo.responsible = newValue;
@@ -535,21 +535,18 @@ class _FullCustomerDataPageState extends State<FullCustomerDataPage> {
                         child: CounterRow(
                           label: 'حجم العميل',
                           value: _customerdata.marketInfo.customerSize,
-                          onIncrement:
-                              () => setState(() {
-                                if (_customerdata.marketInfo.customerSize <
-                                    10) {
-                                  _customerdata.marketInfo.customerSize =
-                                      _customerdata.marketInfo.customerSize + 1;
-                                }
-                              }),
-                          onDecrement:
-                              () => setState(() {
-                                if (_customerdata.marketInfo.customerSize > 0) {
-                                  _customerdata.marketInfo.customerSize =
-                                      _customerdata.marketInfo.customerSize - 1;
-                                }
-                              }),
+                          onIncrement: () => setState(() {
+                            if (_customerdata.marketInfo.customerSize < 10) {
+                              _customerdata.marketInfo.customerSize =
+                                  _customerdata.marketInfo.customerSize + 1;
+                            }
+                          }),
+                          onDecrement: () => setState(() {
+                            if (_customerdata.marketInfo.customerSize > 0) {
+                              _customerdata.marketInfo.customerSize =
+                                  _customerdata.marketInfo.customerSize - 1;
+                            }
+                          }),
                         ),
                       ),
                     ],
@@ -593,55 +590,44 @@ class _FullCustomerDataPageState extends State<FullCustomerDataPage> {
                           label: 'عدد الأطفال',
                           value:
                               _customerdata.personalInfo.clientNumberOfChildren,
-                          onIncrement:
-                              () => setState(() {
-                                if (_customerdata
-                                        .personalInfo
-                                        .clientNumberOfChildren <
-                                    10) {
-                                  _customerdata
-                                      .personalInfo
-                                      .clientNumberOfChildren = _customerdata
-                                          .personalInfo
-                                          .clientNumberOfChildren +
-                                      1;
-                                }
-                              }),
-                          onDecrement:
-                              () => setState(() {
-                                if (_customerdata
-                                        .personalInfo
-                                        .clientNumberOfChildren >
-                                    0) {
-                                  _customerdata
-                                      .personalInfo
-                                      .clientNumberOfChildren = _customerdata
-                                          .personalInfo
-                                          .clientNumberOfChildren -
-                                      1;
-                                }
-                              }),
+                          onIncrement: () => setState(() {
+                            if (_customerdata
+                                    .personalInfo.clientNumberOfChildren <
+                                10) {
+                              _customerdata.personalInfo
+                                  .clientNumberOfChildren = _customerdata
+                                      .personalInfo.clientNumberOfChildren +
+                                  1;
+                            }
+                          }),
+                          onDecrement: () => setState(() {
+                            if (_customerdata
+                                    .personalInfo.clientNumberOfChildren >
+                                0) {
+                              _customerdata.personalInfo
+                                  .clientNumberOfChildren = _customerdata
+                                      .personalInfo.clientNumberOfChildren -
+                                  1;
+                            }
+                          }),
                         ),
                       ),
                       Expanded(
                         child: CounterRow(
                           label: 'مساحة المحل',
                           value: _customerdata.shopBasicInfo.shopSpace,
-                          onIncrement:
-                              () => setState(() {
-                                if (_customerdata.shopBasicInfo.shopSpace <
-                                    500) {
-                                  _customerdata.shopBasicInfo.shopSpace =
-                                      _customerdata.shopBasicInfo.shopSpace + 5;
-                                }
-                              }),
-                          onDecrement:
-                              () => setState(() {
-                                if (_customerdata.shopBasicInfo.shopSpace > 0) {
-                                  _customerdata.shopBasicInfo.shopSpace =
-                                      _customerdata.shopBasicInfo.shopSpace - 5;
-                                }
-                              }),
+                          onIncrement: () => setState(() {
+                            if (_customerdata.shopBasicInfo.shopSpace < 500) {
+                              _customerdata.shopBasicInfo.shopSpace =
+                                  _customerdata.shopBasicInfo.shopSpace + 5;
+                            }
+                          }),
+                          onDecrement: () => setState(() {
+                            if (_customerdata.shopBasicInfo.shopSpace > 0) {
+                              _customerdata.shopBasicInfo.shopSpace =
+                                  _customerdata.shopBasicInfo.shopSpace - 5;
+                            }
+                          }),
                         ),
                       ),
                     ],
@@ -652,66 +638,46 @@ class _FullCustomerDataPageState extends State<FullCustomerDataPage> {
                         child: CounterRow(
                           label: 'عدد المستودعات',
                           value: _customerdata.shopBasicInfo.numberOfWarehouses,
-                          onIncrement:
-                              () => setState(() {
-                                if (_customerdata
-                                        .shopBasicInfo
-                                        .numberOfWarehouses <
-                                    10) {
+                          onIncrement: () => setState(() {
+                            if (_customerdata.shopBasicInfo.numberOfWarehouses <
+                                10) {
+                              _customerdata.shopBasicInfo.numberOfWarehouses =
                                   _customerdata
-                                      .shopBasicInfo
-                                      .numberOfWarehouses = _customerdata
-                                          .shopBasicInfo
-                                          .numberOfWarehouses +
+                                          .shopBasicInfo.numberOfWarehouses +
                                       1;
-                                }
-                              }),
-                          onDecrement:
-                              () => setState(() {
-                                if (_customerdata
-                                        .shopBasicInfo
-                                        .numberOfWarehouses >
-                                    0) {
+                            }
+                          }),
+                          onDecrement: () => setState(() {
+                            if (_customerdata.shopBasicInfo.numberOfWarehouses >
+                                0) {
+                              _customerdata.shopBasicInfo.numberOfWarehouses =
                                   _customerdata
-                                      .shopBasicInfo
-                                      .numberOfWarehouses = _customerdata
-                                          .shopBasicInfo
-                                          .numberOfWarehouses -
+                                          .shopBasicInfo.numberOfWarehouses -
                                       1;
-                                }
-                              }),
+                            }
+                          }),
                         ),
                       ),
                       Expanded(
                         child: CounterRow(
                           label: 'عدد العمال',
                           value: _customerdata.shopBasicInfo.numberOfWorkers,
-                          onIncrement:
-                              () => setState(() {
-                                if (_customerdata
-                                        .shopBasicInfo
-                                        .numberOfWorkers <
-                                    10) {
-                                  _customerdata.shopBasicInfo.numberOfWorkers =
-                                      _customerdata
-                                          .shopBasicInfo
-                                          .numberOfWorkers +
+                          onIncrement: () => setState(() {
+                            if (_customerdata.shopBasicInfo.numberOfWorkers <
+                                10) {
+                              _customerdata.shopBasicInfo.numberOfWorkers =
+                                  _customerdata.shopBasicInfo.numberOfWorkers +
                                       1;
-                                }
-                              }),
-                          onDecrement:
-                              () => setState(() {
-                                if (_customerdata
-                                        .shopBasicInfo
-                                        .numberOfWorkers >
-                                    0) {
-                                  _customerdata.shopBasicInfo.numberOfWorkers =
-                                      _customerdata
-                                          .shopBasicInfo
-                                          .numberOfWorkers -
+                            }
+                          }),
+                          onDecrement: () => setState(() {
+                            if (_customerdata.shopBasicInfo.numberOfWorkers >
+                                0) {
+                              _customerdata.shopBasicInfo.numberOfWorkers =
+                                  _customerdata.shopBasicInfo.numberOfWorkers -
                                       1;
-                                }
-                              }),
+                            }
+                          }),
                         ),
                       ),
                     ],
@@ -782,13 +748,12 @@ class _FullCustomerDataPageState extends State<FullCustomerDataPage> {
                   ),
                   MyDropdownButton(
                     value: _customerdata.marketInfo.clientTradeType,
-                    items:
-                        clientTradeType.map((type) {
-                          return DropdownMenuItem<String>(
-                            value: type,
-                            child: Text(type),
-                          );
-                        }).toList(),
+                    items: clientTradeType.map((type) {
+                      return DropdownMenuItem<String>(
+                        value: type,
+                        child: Text(type),
+                      );
+                    }).toList(),
                     onChanged: (String? newValue) {
                       setState(() {
                         _customerdata.marketInfo.clientTradeType = newValue;
@@ -798,13 +763,12 @@ class _FullCustomerDataPageState extends State<FullCustomerDataPage> {
                   ),
                   MyDropdownButton(
                     value: _customerdata.marketInfo.clientSpread,
-                    items:
-                        clientSpread.map((type) {
-                          return DropdownMenuItem<String>(
-                            value: type,
-                            child: Text(type),
-                          );
-                        }).toList(),
+                    items: clientSpread.map((type) {
+                      return DropdownMenuItem<String>(
+                        value: type,
+                        child: Text(type),
+                      );
+                    }).toList(),
                     onChanged: (String? newValue) {
                       setState(() {
                         _customerdata.marketInfo.clientSpread = newValue;
@@ -814,13 +778,12 @@ class _FullCustomerDataPageState extends State<FullCustomerDataPage> {
                   ),
                   MyDropdownButton(
                     value: _customerdata.marketInfo.paintProffesion,
-                    items:
-                        paintProffession.map((type) {
-                          return DropdownMenuItem<String>(
-                            value: type,
-                            child: Text(type),
-                          );
-                        }).toList(),
+                    items: paintProffession.map((type) {
+                      return DropdownMenuItem<String>(
+                        value: type,
+                        child: Text(type),
+                      );
+                    }).toList(),
                     onChanged: (String? newValue) {
                       setState(() {
                         _customerdata.marketInfo.paintProffesion = newValue;
@@ -836,18 +799,16 @@ class _FullCustomerDataPageState extends State<FullCustomerDataPage> {
                           value: boolToString(
                             _customerdata.marketInfo.isDirectCustomer,
                           ),
-                          items:
-                              isDirectCustomer.map((type) {
-                                return DropdownMenuItem<String>(
-                                  value: type,
-                                  child: Text(type),
-                                );
-                              }).toList(),
+                          items: isDirectCustomer.map((type) {
+                            return DropdownMenuItem<String>(
+                              value: type,
+                              child: Text(type),
+                            );
+                          }).toList(),
                           onChanged: (String? newValue) {
                             setState(() {
-                              _customerdata
-                                  .marketInfo
-                                  .isDirectCustomer = stringToBool(newValue);
+                              _customerdata.marketInfo.isDirectCustomer =
+                                  stringToBool(newValue);
                             });
                           },
                           labelText: 'نوع الزبون',
@@ -856,13 +817,12 @@ class _FullCustomerDataPageState extends State<FullCustomerDataPage> {
                       Expanded(
                         child: MyDropdownButton(
                           value: _customerdata.marketInfo.dependenceOnCompany,
-                          items:
-                              dependenceOnCompany.map((type) {
-                                return DropdownMenuItem<String>(
-                                  value: type,
-                                  child: Text(type),
-                                );
-                              }).toList(),
+                          items: dependenceOnCompany.map((type) {
+                            return DropdownMenuItem<String>(
+                              value: type,
+                              child: Text(type),
+                            );
+                          }).toList(),
                           onChanged: (String? newValue) {
                             setState(() {
                               _customerdata.marketInfo.dependenceOnCompany =
@@ -876,13 +836,12 @@ class _FullCustomerDataPageState extends State<FullCustomerDataPage> {
                   ),
                   MyDropdownButton(
                     value: _customerdata.marketInfo.credFinance,
-                    items:
-                        cred.map((type) {
-                          return DropdownMenuItem<String>(
-                            value: type,
-                            child: Text(type),
-                          );
-                        }).toList(),
+                    items: cred.map((type) {
+                      return DropdownMenuItem<String>(
+                        value: type,
+                        child: Text(type),
+                      );
+                    }).toList(),
                     onChanged: (String? newValue) {
                       setState(() {
                         _customerdata.marketInfo.credFinance = newValue;
@@ -892,13 +851,12 @@ class _FullCustomerDataPageState extends State<FullCustomerDataPage> {
                   ),
                   MyDropdownButton(
                     value: _customerdata.marketInfo.credDeals,
-                    items:
-                        cred.map((type) {
-                          return DropdownMenuItem<String>(
-                            value: type,
-                            child: Text(type),
-                          );
-                        }).toList(),
+                    items: cred.map((type) {
+                      return DropdownMenuItem<String>(
+                        value: type,
+                        child: Text(type),
+                      );
+                    }).toList(),
                     onChanged: (String? newValue) {
                       setState(() {
                         _customerdata.marketInfo.credDeals = newValue;
@@ -908,13 +866,12 @@ class _FullCustomerDataPageState extends State<FullCustomerDataPage> {
                   ),
                   MyDropdownButton(
                     value: _customerdata.marketInfo.credComplains,
-                    items:
-                        cred.map((type) {
-                          return DropdownMenuItem<String>(
-                            value: type,
-                            child: Text(type),
-                          );
-                        }).toList(),
+                    items: cred.map((type) {
+                      return DropdownMenuItem<String>(
+                        value: type,
+                        child: Text(type),
+                      );
+                    }).toList(),
                     onChanged: (String? newValue) {
                       setState(() {
                         _customerdata.marketInfo.credComplains = newValue;
@@ -959,14 +916,11 @@ class _FullCustomerDataPageState extends State<FullCustomerDataPage> {
                                   'دفعات',
                                   style: TextStyle(fontSize: 12),
                                 ),
-                                value:
-                                    _customerdata
-                                        .methodsOfDealing
-                                        .methodPayments,
+                                value: _customerdata
+                                    .methodsOfDealing.methodPayments,
                                 onChanged: (bool? value) {
                                   setState(() {
-                                    _customerdata
-                                        .methodsOfDealing
+                                    _customerdata.methodsOfDealing
                                         .methodPayments = value ?? false;
                                   });
                                 },
@@ -980,8 +934,7 @@ class _FullCustomerDataPageState extends State<FullCustomerDataPage> {
                                     _customerdata.methodsOfDealing.methodOffers,
                                 onChanged: (bool? value) {
                                   setState(() {
-                                    _customerdata
-                                        .methodsOfDealing
+                                    _customerdata.methodsOfDealing
                                         .methodOffers = value ?? false;
                                   });
                                 },
@@ -991,14 +944,11 @@ class _FullCustomerDataPageState extends State<FullCustomerDataPage> {
                                   'بالأمانة',
                                   style: TextStyle(fontSize: 12),
                                 ),
-                                value:
-                                    _customerdata
-                                        .methodsOfDealing
-                                        .methodCustody,
+                                value: _customerdata
+                                    .methodsOfDealing.methodCustody,
                                 onChanged: (bool? value) {
                                   setState(() {
-                                    _customerdata
-                                        .methodsOfDealing
+                                    _customerdata.methodsOfDealing
                                         .methodCustody = value ?? false;
                                   });
                                 },
@@ -1071,8 +1021,7 @@ class _FullCustomerDataPageState extends State<FullCustomerDataPage> {
                                     _customerdata.activity.activityHaberdashery,
                                 onChanged: (bool? value) {
                                   setState(() {
-                                    _customerdata
-                                        .activity
+                                    _customerdata.activity
                                         .activityHaberdashery = value ?? false;
                                   });
                                 },
@@ -1127,122 +1076,123 @@ class _FullCustomerDataPageState extends State<FullCustomerDataPage> {
                       ? _isLoading
                           ? const Loader()
                           : Mybutton(
-                            onPressed: () async {
-                              setState(() {
-                                _isLoading = true; // Start loading
-                              });
-
-                              try {
-                                Position position = await _determinePosition();
+                              onPressed: () async {
                                 setState(() {
-                                  _customerdata.address.shopCoordinates =
-                                      '${position.latitude},${position.longitude}';
+                                  _isLoading = true; // Start loading
                                 });
-                              } catch (e) {
-                                print('Error: $e');
-                              } finally {
-                                setState(() {
-                                  _isLoading = false; // Stop loading
-                                });
-                              }
-                            },
-                            text: 'إضافة موقع',
-                          )
-                      : Column(
-                        spacing: 10,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              Mybutton(
-                                text: 'عرض الموقع',
-                                onPressed: () async {
-                                  final Uri _url = Uri.parse(
-                                    'https://www.google.com/maps?q=${_customerdata.address.shopCoordinates}',
-                                  );
 
-                                  if (!await launchUrl(_url)) {
-                                    throw Exception('Could not launch $_url');
-                                  }
-                                },
-                              ),
-                              _isLoading
-                                  ? const Loader() // Loader while updating location
-                                  : Mybutton(
-                                    text: 'تعديل الموقع',
-                                    onPressed: () async {
-                                      setState(() {
-                                        _isLoading = true; // Start loading
-                                      });
-
-                                      try {
-                                        Position position =
-                                            await _determinePosition();
-                                        setState(() {
-                                          _customerdata
-                                                  .address
-                                                  .shopCoordinates =
-                                              '${position.latitude},${position.longitude}';
-                                        });
-                                      } catch (e) {
-                                        print('Error: $e');
-                                      } finally {
-                                        setState(() {
-                                          _isLoading = false; // Stop loading
-                                        });
-                                      }
-                                    },
-                                  ),
-                              Mybutton(
-                                text: 'إزالة الموقع',
-                                onPressed: () {
+                                try {
+                                  Position position =
+                                      await _determinePosition();
                                   setState(() {
-                                    _customerdata.address.shopCoordinates = '';
+                                    _customerdata.address.shopCoordinates =
+                                        '${position.latitude},${position.longitude}';
                                   });
-                                },
-                              ),
-                            ],
-                          ),
-                          Text(
-                            _customerdata.address.shopCoordinates ?? '',
-                            style: const TextStyle(fontSize: 10),
-                          ),
-                        ],
-                      ),
+                                } catch (e) {
+                                  print('Error: $e');
+                                } finally {
+                                  setState(() {
+                                    _isLoading = false; // Stop loading
+                                  });
+                                }
+                              },
+                              text: 'إضافة موقع',
+                            )
+                      : Column(
+                          spacing: 10,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                Mybutton(
+                                  text: 'عرض الموقع',
+                                  onPressed: () async {
+                                    final Uri _url = Uri.parse(
+                                      'https://www.google.com/maps?q=${_customerdata.address.shopCoordinates}',
+                                    );
+
+                                    if (!await launchUrl(_url)) {
+                                      throw Exception('Could not launch $_url');
+                                    }
+                                  },
+                                ),
+                                _isLoading
+                                    ? const Loader() // Loader while updating location
+                                    : Mybutton(
+                                        text: 'تعديل الموقع',
+                                        onPressed: () async {
+                                          setState(() {
+                                            _isLoading = true; // Start loading
+                                          });
+
+                                          try {
+                                            Position position =
+                                                await _determinePosition();
+                                            setState(() {
+                                              _customerdata
+                                                      .address.shopCoordinates =
+                                                  '${position.latitude},${position.longitude}';
+                                            });
+                                          } catch (e) {
+                                            print('Error: $e');
+                                          } finally {
+                                            setState(() {
+                                              _isLoading =
+                                                  false; // Stop loading
+                                            });
+                                          }
+                                        },
+                                      ),
+                                Mybutton(
+                                  text: 'إزالة الموقع',
+                                  onPressed: () {
+                                    setState(() {
+                                      _customerdata.address.shopCoordinates =
+                                          '';
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                            Text(
+                              _customerdata.address.shopCoordinates ?? '',
+                              style: const TextStyle(fontSize: 10),
+                            ),
+                          ],
+                        ),
                 ],
-                bottomNavigationBarItems:
-                    _isLoadingOperation
-                        ? [
-                          const BottomNavigationBarItem(
-                            icon: Loader(), // Use your Loader widget here
-                            label: 'جاري المعالجة',
-                          ),
-                          const BottomNavigationBarItem(
-                            icon: SizedBox(),
-                            label: '',
-                          ),
-                        ]
-                        : isCustomerViewModel
+                bottomNavigationBarItems: _isLoadingOperation
+                    ? [
+                        const BottomNavigationBarItem(
+                          icon: Loader(), // Use your Loader widget here
+                          label: 'جاري المعالجة',
+                        ),
+                        const BottomNavigationBarItem(
+                          icon: SizedBox(),
+                          label: '',
+                        ),
+                      ]
+                    : isCustomerViewModel
                         ? const [
-                          BottomNavigationBarItem(
-                            icon: Icon(Icons.edit, color: Colors.grey),
-                            label: 'تعديل',
-                          ),
-                          BottomNavigationBarItem(
-                            icon: Icon(Icons.delete, color: Colors.red),
-                            label: 'حذف',
-                          ),
-                        ]
+                            BottomNavigationBarItem(
+                              icon: Icon(Icons.edit, color: Colors.grey),
+                              label: 'تعديل',
+                            ),
+                            BottomNavigationBarItem(
+                              icon: Icon(Icons.delete, color: Colors.red),
+                              label: 'حذف',
+                            ),
+                          ]
                         : const [
-                          BottomNavigationBarItem(
-                            icon: Icon(Icons.add_circle, color: Colors.green),
-                            label: 'إضافة',
-                          ),
-                          BottomNavigationBarItem(
-                            icon: Icon(Icons.cancel, color: Colors.red),
-                            label: 'رجوع',
-                          ),
-                        ],
+                            BottomNavigationBarItem(
+                              icon: Icon(Icons.add_circle, color: Colors.green),
+                              label: 'إضافة',
+                            ),
+                            BottomNavigationBarItem(
+                              icon: Icon(Icons.cancel, color: Colors.red),
+                              label: 'رجوع',
+                            ),
+                          ],
                 onTap: (index) async {
                   if (isCustomerViewModel) {
                     if (index == 0) {
@@ -1252,8 +1202,8 @@ class _FullCustomerDataPageState extends State<FullCustomerDataPage> {
                       });
                       _fillCustomerDatafromForm();
                       context.read<SalesBloc>().add(
-                        SalesUpdateCustomer(item: _customerdata),
-                      );
+                            SalesUpdateCustomer(item: _customerdata),
+                          );
                     } else if (index == 1) {
                       showSnackBar(
                         context: context,
@@ -1269,8 +1219,8 @@ class _FullCustomerDataPageState extends State<FullCustomerDataPage> {
                       });
                       _fillCustomerDatafromForm();
                       context.read<SalesBloc>().add(
-                        SalesAddCustomer(item: _customerdata),
-                      );
+                            SalesAddCustomer(item: _customerdata),
+                          );
                     } else if (index == 1) {
                       // Cancel action
                       Navigator.pop(context);

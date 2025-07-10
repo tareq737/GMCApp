@@ -1,4 +1,5 @@
 import 'package:bloc/bloc.dart';
+import 'package:dio/dio.dart';
 import 'package:gmcappclean/features/Inventory/models/groups_model.dart';
 import 'package:gmcappclean/features/Inventory/models/items_model.dart';
 import 'package:gmcappclean/features/Inventory/models/transfer_model.dart';
@@ -263,6 +264,61 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
         emit(InventoryLoading());
         var result = await _inventoryServices.updateTransfer(
             event.id, event.transferModel);
+        if (result == null) {
+          emit(InventoryError(errorMessage: 'Error'));
+        } else {
+          emit(InventorySuccess(result: result));
+        }
+      },
+    );
+    on<GetOneTransferBySerial>(
+      (event, emit) async {
+        emit(InventoryLoading());
+        try {
+          var result = await _inventoryServices.getOneTransferBySerialAndID(
+              serial: event.serial, transfer_type: event.transfer_type);
+
+          if (result == null) {
+            emit(InventoryError(errorMessage: 'لا يوجد مناقلة بهذا الرقم'));
+          } else {
+            emit(InventorySuccess(result: result));
+          }
+        } catch (e) {
+          if (e is DioException && e.response?.statusCode == 404) {
+            emit(InventoryError(errorMessage: 'لا يوجد مناقلة بهذا الرقم'));
+          } else {
+            emit(InventoryError(errorMessage: 'حدث خطأ أثناء جلب البيانات'));
+          }
+        }
+      },
+    );
+    on<GetWarehouseBalance>(
+      (event, emit) async {
+        emit(InventoryLoading());
+        var result = await _inventoryServices.getWarehouseBalance(
+          page: event.page,
+          date_1: event.date_1,
+          date_2: event.date_2,
+          warehouse_id: event.warehouse_id,
+          item_id: event.item_id,
+        );
+        if (result == null) {
+          emit(InventoryError(errorMessage: 'Error'));
+        } else {
+          emit(InventorySuccess(result: result));
+        }
+      },
+    );
+    on<GetItemActivity>(
+      (event, emit) async {
+        emit(InventoryLoading());
+        var result = await _inventoryServices.getItemActivity(
+          page: event.page,
+          date_1: event.date_1,
+          date_2: event.date_2,
+          warehouse_id: event.warehouse_id,
+          item_id: event.item_id,
+        );
         if (result == null) {
           emit(InventoryError(errorMessage: 'Error'));
         } else {

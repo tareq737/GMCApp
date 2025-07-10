@@ -252,9 +252,10 @@ class ApiClient {
     }
   }
 
-  Future<Map<String, dynamic>> getOneMap({
+  Future<Map<String, dynamic>?> getOneMap({
     required UserEntity user,
     required String endPoint,
+    Map<String, dynamic>? queryParams,
   }) async {
     try {
       final response = await dio.get(
@@ -262,12 +263,19 @@ class ApiClient {
         options: Options(
           headers: {'Authorization': 'Bearer ${user.accessToken}'},
         ),
+        queryParameters: queryParams,
       );
+
       if (response.statusCode == 200) {
         return response.data;
-      } else {
-        return {};
       }
+      return null;
+    } on DioException catch (e) {
+      // Handle Dio-specific errors
+      if (e.response?.statusCode == 404) {
+        return null;
+      }
+      rethrow;
     } catch (e) {
       rethrow;
     }

@@ -683,7 +683,7 @@ class PurchaseService {
         final response = await _apiClient.getPageinated(
           user: success,
           endPoint: 'purchases/for_payment',
-          queryParams: {'page': page},
+          queryParams: {'page': page,'page_size': 100,},
         );
         return List.generate(response.length, (index) {
           return ForPaymentsModel.fromMap(response[index]);

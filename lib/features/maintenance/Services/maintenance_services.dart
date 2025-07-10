@@ -122,6 +122,9 @@ class MaintenanceServices {
           user: success,
           endPoint: 'machines',
         );
+        if (response == null) {
+          return null;
+        }
         return MachineMaintenanceModel.fromMap(response);
       });
     } catch (e) {

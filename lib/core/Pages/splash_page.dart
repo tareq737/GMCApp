@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gmcappclean/core/Pages/home_page.dart';
 import 'package:gmcappclean/core/common/cubits/app_user/app_user_cubit.dart';
 import 'package:gmcappclean/core/services/version_checker.dart';
+import 'package:gmcappclean/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:gmcappclean/features/auth/presentation/pages/singin_page.dart';
 
 class SplashPage extends StatefulWidget {
@@ -38,13 +39,20 @@ class _SplashPageState extends State<SplashPage> {
     }
   }
 
-  void _checkToNavigate() {
+  void _checkToNavigate() async {
     if (_isTimerDone) {
+      await Future.delayed(const Duration(seconds: 1));
+      context.read<AuthBloc>().add(AuthIsUserLoggedin());
+      await Future.delayed(const Duration(milliseconds: 500));
+
       final initialMessage = widget.initialMessage;
       if (initialMessage != null &&
           initialMessage.data['navigate_to'] != null) {
-        final targetRoute = initialMessage.data['navigate_to'];
-        Navigator.pushReplacementNamed(context, targetRoute);
+        SplashNavigator.navigateBasedNavigate(
+          context,
+          context.read<AppUserCubit>().state,
+          initialMessage,
+        );
       } else {
         SplashNavigator.navigateBasedOnState(
           context,
@@ -82,5 +90,19 @@ class SplashNavigator {
     final target =
         state is AppUserLoggedIn ? const HomePage() : const SinginPage();
     Navigator.pushReplacement(context, _fadeRoute(target));
+  }
+
+  static void navigateBasedNavigate(
+    BuildContext context,
+    AppUserState state,
+    RemoteMessage initialMessage,
+  ) {
+    final targetRoute = initialMessage.data['navigate_to'];
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (_) => HomePage(navigateTo: targetRoute),
+      ),
+    );
   }
 }

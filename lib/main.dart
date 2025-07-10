@@ -43,8 +43,6 @@ Future<void> main() async {
     }
   });
 
-  FirebaseMessaging.onMessageOpenedApp.listen(_handleMessage);
-
   runApp(
     MultiBlocProvider(
       providers: [
@@ -73,9 +71,13 @@ class MyApp extends StatelessWidget {
           home: SplashPage(initialMessage: globalInitialMessage),
           routes: {
             'RateListPage': (context) => const RateListPage(),
-            'PurchasesList': (context) => const PurchasesList(),
+            'PurchasesList': (context) => const PurchasesList(
+                  status: 1,
+                ),
             'OperationsDatePage': (context) => const OperationsDatePage(),
-            'MaintenanceListPage': (context) => const MaintenanceListPage(),
+            'MaintenanceListPage': (context) => const MaintenanceListPage(
+                  status: 1,
+                ),
             'FullCoustomersPage': (context) => const FullCoustomersPage(),
           },
         );
@@ -85,30 +87,6 @@ class MyApp extends StatelessWidget {
 }
 
 Future<void> initializeLocalNotification() async {
-  const AndroidInitializationSettings androidSettings =
-      AndroidInitializationSettings('@mipmap/ic_launcher');
-
-  const InitializationSettings settings = InitializationSettings(
-    android: androidSettings,
-  );
-
-  await flutterLocalNotificationsPlugin.initialize(
-    settings,
-    onDidReceiveNotificationResponse: (response) {
-      final payload = response.payload;
-      if (payload != null) {
-        try {
-          final data = jsonDecode(payload);
-          if (data is Map<String, dynamic> && data['navigate_to'] != null) {
-            navigatorKey.currentState?.pushNamed(data['navigate_to']);
-          }
-        } catch (e) {
-          debugPrint('Error decoding notification payload: $e');
-        }
-      }
-    },
-  );
-
   const AndroidNotificationChannel channel = AndroidNotificationChannel(
     'your_channel_id',
     'Your Channel Name',
@@ -132,7 +110,6 @@ Future<void> showNotification(RemoteMessage message) async {
     importance: Importance.max,
     priority: Priority.max,
     playSound: true,
-    sound: RawResourceAndroidNotificationSound('noti'),
     color: Color(0xFF2196F3),
     showWhen: true,
   );
@@ -148,11 +125,4 @@ Future<void> showNotification(RemoteMessage message) async {
     notificationDetails,
     payload: jsonEncode(message.data),
   );
-}
-
-void _handleMessage(RemoteMessage message) {
-  final data = message.data;
-  if (data['navigate_to'] != null) {
-    navigatorKey.currentState?.pushNamed(data['navigate_to']);
-  }
 }

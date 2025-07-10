@@ -123,7 +123,9 @@ class _AddPurchasePageState extends State<AddPurchasePage> {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const PurchasesList(),
+                    builder: (context) => const PurchasesList(
+                      status: 2,
+                    ),
                   ),
                 );
               } else if (state is PurchaseError) {

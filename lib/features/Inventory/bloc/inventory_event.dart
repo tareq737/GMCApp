@@ -143,3 +143,41 @@ class UpdateTransfer extends InventoryEvent {
 
   UpdateTransfer({required this.transferModel, required this.id});
 }
+
+class GetOneTransferBySerial extends InventoryEvent {
+  final int serial;
+  final int transfer_type;
+  GetOneTransferBySerial({required this.serial, required this.transfer_type});
+}
+
+class GetWarehouseBalance extends InventoryEvent {
+  final int page;
+
+  final String date_1;
+  final String date_2;
+  final int? warehouse_id;
+  final int? item_id;
+  GetWarehouseBalance({
+    required this.date_1,
+    required this.date_2,
+    required this.page,
+    this.warehouse_id,
+    this.item_id,
+  });
+}
+
+class GetItemActivity extends InventoryEvent {
+  final int page;
+
+  final String date_1;
+  final String date_2;
+  final int? warehouse_id;
+  final int? item_id;
+  GetItemActivity({
+    required this.date_1,
+    required this.date_2,
+    required this.page,
+    this.warehouse_id,
+    this.item_id,
+  });
+}

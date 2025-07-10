@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'dart:ui' as ui; // Alias for disambiguation
 
@@ -17,8 +18,6 @@ import 'package:gmcappclean/features/purchases/Models/purchases_model.dart';
 import 'package:gmcappclean/features/purchases/Services/purchase_service.dart';
 import 'package:gmcappclean/features/purchases/UI/full_purchase_details.dart';
 import 'package:gmcappclean/init_dependencies.dart';
-import 'package:open_filex/open_filex.dart';
-import 'package:path_provider/path_provider.dart';
 
 class ListForPaymentPage extends StatefulWidget {
   const ListForPaymentPage({super.key});
@@ -93,7 +92,6 @@ class _ListForPayaymentPageChildState extends State<ListForPayaymentPageChild> {
       }
     });
   }
-  // ----------------------------------------------------------------
 
   @override
   Widget build(BuildContext context) {
@@ -189,6 +187,7 @@ class _ListForPayaymentPageChildState extends State<ListForPayaymentPageChild> {
                           builder: (context) {
                             return FullPurchaseDetails(
                               purchasesModel: state.result,
+                              status: 7,
                             );
                           },
                         ),
@@ -369,26 +368,58 @@ class _ListForPayaymentPageChildState extends State<ListForPayaymentPageChild> {
         );
   }
 
+  // Future<void> _saveFile(Uint8List bytes, BuildContext context) async {
+  //   try {
+  //     final directory = await getTemporaryDirectory();
+
+  //     const fileName = 'طلبات مشتريات بحاجة شراء.xlsx';
+  //     final path = '${directory.path}/$fileName'; // Use '/' for path separator
+
+  //     final file = File(path);
+  //     await file.writeAsBytes(bytes);
+
+  //     await _showDialog(context, 'نجاح', 'تم حفظ الملف وسيتم فتحه الآن');
+
+  //     final result = await OpenFilex.open(path);
+
+  //     if (result.type != ResultType.done) {
+  //       await _showDialog(
+  //           context, 'خطأ', 'لم يتم فتح الملف: ${result.message}');
+  //     }
+  //   } catch (e) {
+  //     await _showDialog(context, 'خطأ', 'فشل في حفظ/فتح الملف:\n$e');
+  //   }
+  // }
   Future<void> _saveFile(Uint8List bytes, BuildContext context) async {
     try {
-      final directory = await getTemporaryDirectory();
+      const String fileName = 'أمر الصرف.xlsx';
 
-      const fileName = 'طلبات مشتريات بحاجة شراء.xlsx';
-      final path = '${directory.path}/$fileName'; // Use '/' for path separator
+      // Show the dialog
+      final FileSaveLocation? location = await getSaveLocation(
+        suggestedName: fileName,
+        acceptedTypeGroups: [
+          const XTypeGroup(label: 'Excel', extensions: ['xlsx']),
+        ],
+      ); // returns null if user pressed “Cancel”
 
-      final file = File(path);
-      await file.writeAsBytes(bytes);
+      if (location == null) return;
 
-      await _showDialog(context, 'نجاح', 'تم حفظ الملف وسيتم فتحه الآن');
+      // Write the bytes
+      final XFile xFile = XFile.fromData(
+        bytes,
+        name: fileName,
+        mimeType:
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      );
+      await xFile.saveTo(location.path);
 
-      final result = await OpenFilex.open(path);
-
-      if (result.type != ResultType.done) {
-        await _showDialog(
-            context, 'خطأ', 'لم يتم فتح الملف: ${result.message}');
-      }
+      await _showDialog(
+        context,
+        'نجاح',
+        'تم حفظ الملف في:\n${location.path}',
+      );
     } catch (e) {
-      await _showDialog(context, 'خطأ', 'فشل في حفظ/فتح الملف:\n$e');
+      await _showDialog(context, 'خطأ', 'فشل في حفظ الملف:\n$e');
     }
   }
 

@@ -23,7 +23,8 @@ import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 
 class PurchasesList extends StatelessWidget {
-  const PurchasesList({super.key});
+  final int status;
+  const PurchasesList({required this.status, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -33,16 +34,19 @@ class PurchasesList extends StatelessWidget {
           apiClient: getIt<ApiClient>(),
           authInteractor: getIt<AuthInteractor>(),
         ),
-      )..add(GetAllPurchases(page: 1, status: 1, department: '')),
+      )..add(GetAllPurchases(page: 1, status: status, department: '')),
       child: Builder(builder: (context) {
-        return const PurchasesListChild();
+        return PurchasesListChild(
+          status: status,
+        );
       }),
     );
   }
 }
 
 class PurchasesListChild extends StatefulWidget {
-  const PurchasesListChild({super.key});
+  final int status;
+  const PurchasesListChild({required this.status, super.key});
 
   @override
   State<PurchasesListChild> createState() => _PurchasesListChildState();
@@ -77,13 +81,15 @@ class _PurchasesListChildState extends State<PurchasesListChild> {
     'شركة النور'
   ];
 
-  String? _selectedStatus = "الطلبات الغير موافقة من المدير";
+  late String _selectedStatus;
+
   String? _selectedItemDepartment;
   List<String>? groups;
 
   @override
   void initState() {
     super.initState();
+    _selectedStatus = _getItemStatusString(widget.status);
     _scrollController.addListener(_onScroll);
   }
 
@@ -226,12 +232,15 @@ class _PurchasesListChildState extends State<PurchasesListChild> {
                           ),
                           value: _selectedStatus,
                           onChanged: (String? newValue) {
-                            setState(() {
-                              currentPage = 1;
-                              _selectedStatus = newValue;
-                            });
-                            _briefPurchases = [];
-                            runBloc();
+                            if (newValue != null) {
+                              // Add null check
+                              setState(() {
+                                currentPage = 1;
+                                _selectedStatus = newValue;
+                              });
+                              _briefPurchases = [];
+                              runBloc();
+                            }
                           },
                           isExpanded: true,
                           underline: const SizedBox(),
@@ -360,12 +369,14 @@ class _PurchasesListChildState extends State<PurchasesListChild> {
                           },
                         );
                       } else if (state is PurchaseSuccess<PurchasesModel>) {
+                        int statusID = _getItemStatusID();
                         Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) {
                               return FullPurchaseDetails(
                                 purchasesModel: state.result,
+                                status: statusID,
                               );
                             },
                           ),
@@ -647,6 +658,10 @@ class _PurchasesListChildState extends State<PurchasesListChild> {
 
     // If no matching entry is found, return null
     return 1;
+  }
+
+  String _getItemStatusString(int statusID) {
+    return _itemStatus[statusID] ?? '';
   }
 
   void runBloc() {

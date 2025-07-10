@@ -15,7 +15,8 @@ import 'package:gmcappclean/init_dependencies.dart';
 import 'dart:ui' as ui;
 
 class MaintenanceListPage extends StatelessWidget {
-  const MaintenanceListPage({super.key});
+  final int status;
+  const MaintenanceListPage({super.key, required this.status});
 
   @override
   Widget build(BuildContext context) {
@@ -24,17 +25,20 @@ class MaintenanceListPage extends StatelessWidget {
           apiClient: getIt<ApiClient>(),
           authInteractor: getIt<AuthInteractor>()))
         ..add(
-          GetAllMaintenance(page: 1, status: 1, department: ''),
+          GetAllMaintenance(page: 1, status: status, department: ''),
         ),
       child: Builder(builder: (context) {
-        return const MaintenanceListChild();
+        return MaintenanceListChild(
+          status: status,
+        );
       }),
     );
   }
 }
 
 class MaintenanceListChild extends StatefulWidget {
-  const MaintenanceListChild({super.key});
+  final int status;
+  const MaintenanceListChild({super.key, required this.status});
 
   @override
   State<MaintenanceListChild> createState() => _MaintenanceListChildState();
@@ -70,13 +74,14 @@ class _MaintenanceListChildState extends State<MaintenanceListChild> {
     'شركة النور',
   ];
 
-  String? _selectedStatus = "الطلبات الغير موافقة من المدير";
+  late String _selectedStatus;
   String? _selectedItemDepartment;
   List<String>? groups;
 
   @override
   void initState() {
     super.initState();
+    _selectedStatus = _getItemStatusString(widget.status);
     _scrollController.addListener(_onScroll);
   }
 
@@ -156,12 +161,15 @@ class _MaintenanceListChildState extends State<MaintenanceListChild> {
                           ),
                           value: _selectedStatus,
                           onChanged: (String? newValue) {
-                            setState(() {
-                              currentPage = 1;
-                              _selectedStatus = newValue;
-                            });
-                            _briefMaintenance = [];
-                            runBloc();
+                            if (newValue != null) {
+                              // Add null check
+                              setState(() {
+                                currentPage = 1;
+                                _selectedStatus = newValue;
+                              });
+                              _briefMaintenance = [];
+                              runBloc();
+                            }
                           },
                           isExpanded: true,
                           underline: const SizedBox(),
@@ -285,12 +293,14 @@ class _MaintenanceListChildState extends State<MaintenanceListChild> {
                         );
                       } else if (state
                           is MaintenanceSuccess<MaintenanceModel>) {
+                        int statusID = _getItemStatusID();
                         Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) {
                               return FullMaintanceDetailsPage(
                                 maintenanceModel: state.result,
+                                status: statusID,
                               );
                             },
                           ),
@@ -519,6 +529,10 @@ class _MaintenanceListChildState extends State<MaintenanceListChild> {
     currentPage++;
 
     runBloc();
+  }
+
+  String _getItemStatusString(int statusID) {
+    return _itemStatus[statusID] ?? '';
   }
 
   int _getItemStatusID() {
