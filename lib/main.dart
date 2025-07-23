@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-
 import 'package:gmcappclean/core/Pages/splash_page.dart';
 import 'package:gmcappclean/core/common/cubits/app_user/app_user_cubit.dart';
 import 'package:gmcappclean/core/common/log/logger_service.dart';
@@ -72,7 +71,7 @@ class MyApp extends StatelessWidget {
           routes: {
             'RateListPage': (context) => const RateListPage(),
             'PurchasesList': (context) => const PurchasesList(
-                  status: 1,
+                  status: 8,
                 ),
             'OperationsDatePage': (context) => const OperationsDatePage(),
             'MaintenanceListPage': (context) => const MaintenanceListPage(

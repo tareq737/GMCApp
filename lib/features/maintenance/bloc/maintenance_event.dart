@@ -1,3 +1,4 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 part of 'maintenance_bloc.dart';
 
 @immutable
@@ -33,3 +34,22 @@ class UpdateMaintenance extends MaintenanceEvent {
 }
 
 class GetAllMachines extends MaintenanceEvent {}
+
+class GetSearchMachines extends MaintenanceEvent {
+  final String search;
+  final int page;
+
+  GetSearchMachines({
+    required this.search,
+    required this.page,
+  });
+}
+
+class GetMachineLog extends MaintenanceEvent {
+  final int machineId;
+  final int page;
+  GetMachineLog({
+    required this.machineId,
+    required this.page,
+  });
+}

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:fpdart/fpdart.dart';
 import 'package:gmcappclean/core/common/api/api.dart';
 import 'package:gmcappclean/core/common/entities/user_entity.dart';
@@ -7,6 +9,8 @@ import 'package:gmcappclean/features/Inventory/models/balance_model.dart';
 import 'package:gmcappclean/features/Inventory/models/groups_model.dart';
 import 'package:gmcappclean/features/Inventory/models/items_model.dart';
 import 'package:gmcappclean/features/Inventory/models/items_tree_model.dart';
+import 'package:gmcappclean/features/Inventory/models/manufacturing/brief_manufacturing_model.dart';
+import 'package:gmcappclean/features/Inventory/models/manufacturing/main_manufacturing_model.dart';
 import 'package:gmcappclean/features/Inventory/models/movement_model.dart';
 import 'package:gmcappclean/features/Inventory/models/transfer_brief_model.dart';
 import 'package:gmcappclean/features/Inventory/models/transfer_model.dart';
@@ -546,6 +550,112 @@ class InventoryServices {
       });
     } catch (e) {
       print('exception caught: $e');
+      return null;
+    }
+  }
+
+  //Manufacturing
+  Future<List<BriefManufacturingModel>?> manufacturingBrief(
+      {required int page, String? search}) async {
+    try {
+      final userEntity = await getCredentials();
+      return userEntity.fold((failure) {
+        return null;
+      }, (success) async {
+        final response = await _apiClient.getPageinated(
+          user: success,
+          endPoint: 'brief_manufacturing',
+          queryParams: {
+            'page': page,
+            'search': search,
+          },
+        );
+        return List.generate(response.length, (index) {
+          return BriefManufacturingModel.fromMap(response[index]);
+        });
+      });
+    } catch (e) {
+      print('exception caught');
+      return null;
+    }
+  }
+
+  Future<MainManufacturingModel?> getOneManufacturingID(
+    int id,
+  ) async {
+    try {
+      final userEntity = await getCredentials();
+      return userEntity.fold((failure) {
+        return null;
+      }, (success) async {
+        final response = await _apiClient.getById(
+          user: success,
+          endPoint: 'manufacturing-operations',
+          id: id,
+        );
+        return MainManufacturingModel.fromMap(response);
+      });
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<MainManufacturingModel?> addManufacturing(
+      Map<String, dynamic> data) async {
+    try {
+      final userEntity = await getCredentials();
+      return userEntity.fold((failure) {
+        return null;
+      }, (success) async {
+        final response = await _apiClient.add(
+          userTokens: success,
+          endPoint: 'manufacturing-operations',
+          data: jsonEncode(data),
+        );
+        return MainManufacturingModel.fromMap(response);
+      });
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<MainManufacturingModel?> updateManufacturing(
+      int id, Map<String, dynamic> data) async {
+    try {
+      final userEntity = await getCredentials();
+      return userEntity.fold((failure) {
+        return null;
+      }, (success) async {
+        final response = await _apiClient.updateViaPatch(
+          user: success,
+          endPoint: 'manufacturing-operations',
+          data: jsonEncode(data),
+          id: id,
+        );
+        return MainManufacturingModel.fromMap(response);
+      });
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<MainManufacturingModel?> getOneManufacturingBySerial(
+      {required int serial}) async {
+    try {
+      final userEntity = await getCredentials();
+      return userEntity.fold((failure) {
+        return null;
+      }, (success) async {
+        final response = await _apiClient.getById(
+            user: success, endPoint: 'manufacturing', id: serial);
+
+        if (response == null) {
+          return null;
+        }
+
+        return MainManufacturingModel.fromMap(response);
+      });
+    } catch (e) {
       return null;
     }
   }

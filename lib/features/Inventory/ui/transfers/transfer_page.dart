@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gmcappclean/core/common/api/api.dart';
+import 'package:gmcappclean/core/common/cubits/app_user/app_user_cubit.dart';
 import 'package:gmcappclean/core/common/widgets/loader.dart';
 import 'package:gmcappclean/core/common/widgets/mybutton.dart';
 import 'package:gmcappclean/core/common/widgets/mytextfield.dart';
@@ -719,7 +720,7 @@ class _TransferPageChildState extends State<TransferPageChild> {
         _quantityControllers[index].clear();
         _priceControllers[index].clear();
         _itemNoteControllers[index].clear();
-        _selectedItemData[index] = null; // Clear selected item data
+        _selectedItemData[index] = null;
       });
       _updateTotals();
       return;
@@ -728,14 +729,132 @@ class _TransferPageChildState extends State<TransferPageChild> {
     setState(() {
       _isSearchingItem = true;
       _currentItemSearchIndex = index;
-      _itemsList.clear(); // Clear previous search results for a new search
-      currentItemSearchPage = 1; // Reset page for a new search
-      isLoadingMore = false; // Reset loading state
+      _itemsList.clear();
+      currentItemSearchPage = 1;
+      isLoadingMore = false;
     });
 
     context.read<InventoryBloc>().add(
           SearchItems(search: _itemNameControllers[index].text, page: 1),
         );
+  }
+
+  Future<void> _showItemSearchDialog(int index) async {
+    _scrollController.addListener(_onScroll);
+
+    final selectedItem = await showDialog<ItemsModel?>(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return Directionality(
+          textDirection: ui.TextDirection.rtl,
+          child: BlocProvider.value(
+            value: BlocProvider.of<InventoryBloc>(context),
+            child: Builder(
+              builder: (context) {
+                return AlertDialog(
+                  title: const Text('بحث عن مادة', textAlign: TextAlign.right),
+                  content: SizedBox(
+                    width: double.maxFinite,
+                    child: BlocBuilder<InventoryBloc, InventoryState>(
+                      builder: (context, state) {
+                        if (state is InventoryLoading &&
+                            currentItemSearchPage == 1) {
+                          return const Center(child: Loader());
+                        } else if (state is InventoryError &&
+                            currentItemSearchPage == 1) {
+                          return Center(
+                            child: Text(
+                              'خطأ: ${state.errorMessage}',
+                              textAlign: TextAlign.right,
+                            ),
+                          );
+                        }
+                        return ListView.builder(
+                          controller: _scrollController,
+                          itemCount:
+                              _itemsList.length + (isLoadingMore ? 1 : 0),
+                          itemBuilder: (context, i) {
+                            if (i == _itemsList.length) {
+                              return const Center(child: Loader());
+                            }
+                            final item = _itemsList[i];
+                            return ListTile(
+                              contentPadding:
+                                  const EdgeInsets.symmetric(horizontal: 16),
+                              title: Text(
+                                '${item.code ?? ''}=${item.name ?? ''} (${item.unit ?? ''})',
+                                textAlign: TextAlign.right,
+                                textDirection: ui.TextDirection.rtl,
+                              ),
+                              onTap: () {
+                                Navigator.of(dialogContext).pop(item);
+                              },
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                  actionsAlignment: MainAxisAlignment.start,
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(dialogContext).pop(null);
+                      },
+                      child: const Text('إلغاء',
+                          textDirection: ui.TextDirection.rtl),
+                    ),
+                  ],
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  alignment: Alignment.centerRight,
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+
+    _scrollController.removeListener(_onScroll);
+    setState(() {
+      _isSearchingItem = false;
+      _currentItemSearchIndex = null;
+
+      if (selectedItem != null) {
+        _editableItems[index]['item'] = selectedItem.id;
+        _itemNameControllers[index].text =
+            '${selectedItem.code ?? ''}-${selectedItem.name ?? ''}';
+        _itemUnitControllers[index].text = selectedItem.unit ?? '';
+        _selectedItemData[index] = selectedItem;
+
+        final defaultPriceA = selectedItem.default_price?.firstWhere(
+          (price) => price['list_name'] == 'A',
+          orElse: () => <String, dynamic>{},
+        );
+        if (defaultPriceA.isNotEmpty && defaultPriceA.containsKey('price')) {
+          _priceControllers[index].text = defaultPriceA['price'].toString();
+        } else {
+          _priceControllers[index].clear();
+        }
+
+        // Focus on quantity after item is selected
+        WidgetsBinding.instance
+            .addPostFrameCallback((_) => _focusToQuantity(index));
+      } else {
+        if (_itemNameControllers[index].text.isNotEmpty) {
+          _itemNameControllers[index].clear();
+          _editableItems[index]['item'] = null;
+          _itemUnitControllers[index].clear();
+          _quantityControllers[index].clear();
+          _priceControllers[index].clear();
+          _itemNoteControllers[index].clear();
+          _selectedItemData[index] = null;
+        }
+      }
+    });
+    _updateTotals();
   }
 
   void _onScroll() {
@@ -787,123 +906,6 @@ class _TransferPageChildState extends State<TransferPageChild> {
         !_isSelectingItem) {
       _searchForItem(index);
     }
-  }
-
-  Future<void> _showItemSearchDialog(int index) async {
-    _scrollController.addListener(_onScroll);
-
-    final selectedItem = await showDialog<ItemsModel?>(
-      context: context,
-      builder: (BuildContext dialogContext) {
-        return Directionality(
-          textDirection: ui.TextDirection.rtl, // Force RTL direction
-          child: BlocProvider.value(
-            value: BlocProvider.of<InventoryBloc>(context),
-            child: Builder(
-              builder: (context) {
-                return AlertDialog(
-                  title: const Text('بحث عن مادة', textAlign: TextAlign.right),
-                  content: SizedBox(
-                    width: double.maxFinite,
-                    child: BlocBuilder<InventoryBloc, InventoryState>(
-                      builder: (context, state) {
-                        if (state is InventoryLoading &&
-                            currentItemSearchPage == 1) {
-                          return const Center(child: Loader());
-                        } else if (state is InventoryError &&
-                            currentItemSearchPage == 1) {
-                          return Center(
-                            child: Text(
-                              'خطأ: ${state.errorMessage}',
-                              textAlign: TextAlign.right,
-                            ),
-                          );
-                        }
-                        // Display items list
-                        return ListView.builder(
-                          controller: _scrollController,
-                          itemCount:
-                              _itemsList.length + (isLoadingMore ? 1 : 0),
-                          itemBuilder: (context, i) {
-                            if (i == _itemsList.length) {
-                              return const Center(child: Loader());
-                            }
-                            final item = _itemsList[i];
-                            return ListTile(
-                              contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 16),
-                              title: Text(
-                                '${item.code ?? ''}=${item.name ?? ''} (${item.unit ?? ''})',
-                                textAlign: TextAlign.right,
-                                textDirection: ui.TextDirection.rtl,
-                              ),
-                              onTap: () {
-                                Navigator.of(dialogContext).pop(item);
-                              },
-                            );
-                          },
-                        );
-                      },
-                    ),
-                  ),
-                  actionsAlignment:
-                      MainAxisAlignment.start, // Align actions to the right
-                  actions: [
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(dialogContext).pop(null);
-                      },
-                      child: const Text('إلغاء',
-                          textDirection: ui.TextDirection.rtl),
-                    ),
-                  ],
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  alignment: Alignment.centerRight, // Align dialog to right
-                );
-              },
-            ),
-          ),
-        );
-      },
-    );
-
-    _scrollController.removeListener(_onScroll);
-    setState(() {
-      _isSearchingItem = false;
-      _currentItemSearchIndex = null;
-
-      if (selectedItem != null) {
-        _editableItems[index]['item'] = selectedItem.id;
-        _itemNameControllers[index].text =
-            '${selectedItem.code ?? ''}-${selectedItem.name ?? ''}';
-        _itemUnitControllers[index].text = selectedItem.unit ?? '';
-        _selectedItemData[index] = selectedItem;
-
-        // Set the price from "A" list if available
-        final defaultPriceA = selectedItem.default_price?.firstWhere(
-          (price) => price['list_name'] == 'A',
-          orElse: () => <String, dynamic>{},
-        );
-        if (defaultPriceA.isNotEmpty && defaultPriceA.containsKey('price')) {
-          _priceControllers[index].text = defaultPriceA['price'].toString();
-        } else {
-          _priceControllers[index].clear();
-        }
-      } else {
-        if (_itemNameControllers[index].text.isNotEmpty) {
-          _itemNameControllers[index].clear();
-          _editableItems[index]['item'] = null;
-          _itemUnitControllers[index].clear();
-          _quantityControllers[index].clear();
-          _priceControllers[index].clear();
-          _itemNoteControllers[index].clear();
-          _selectedItemData[index] = null;
-        }
-      }
-    });
-    _updateTotals();
   }
 
   void _onFromWarehouseFocusChange() {
@@ -1046,8 +1048,14 @@ class _TransferPageChildState extends State<TransferPageChild> {
     }
   }
 
+  List<String>? groups;
   @override
   Widget build(BuildContext context) {
+    AppUserState state = context.read<AppUserCubit>().state;
+
+    if (state is AppUserLoggedIn) {
+      groups = state.userEntity.groups;
+    }
     return Directionality(
       textDirection: ui.TextDirection.rtl,
       child: Scaffold(
@@ -1081,47 +1089,16 @@ class _TransferPageChildState extends State<TransferPageChild> {
                 );
               }
             } else if (state is InventoryError) {
-              // Handle "No ItemTransfer matches" error specifically
-
-              // Handle other errors
               showSnackBar(
                 context: context,
                 content: state.errorMessage,
                 failure: true,
               );
               Navigator.pop(context);
-
-              // Reset item search state if applicable
               setState(() {
                 _isSearchingItem = false;
                 _currentItemSearchIndex = null;
               });
-            } else if (state is InventoryError) {
-              setState(() {
-                _isSearchingItem = false;
-                _currentItemSearchIndex = null;
-                // Only clear fields if the error is related to the current item search
-                // and the field is still associated with that search.
-                if (_currentItemSearchIndex != null &&
-                    _itemNameControllers[_currentItemSearchIndex!]
-                        .text
-                        .isNotEmpty) {
-                  _itemNameControllers[_currentItemSearchIndex!].clear();
-                  _editableItems[_currentItemSearchIndex!]['item'] = null;
-                  _itemUnitControllers[_currentItemSearchIndex!].clear();
-                  _quantityControllers[_currentItemSearchIndex!].clear();
-                  _priceControllers[_currentItemSearchIndex!].clear();
-                  _itemNoteControllers[_currentItemSearchIndex!].clear();
-                  _selectedItemData[_currentItemSearchIndex!] =
-                      null; // Clear selected item data
-                }
-              });
-              _updateTotals();
-              showSnackBar(
-                context: context,
-                content: state.errorMessage,
-                failure: true,
-              );
             } else if (state is InventorySuccess<List<ItemsModel>>) {
               setState(() {
                 if (currentItemSearchPage == 1) {
@@ -1139,15 +1116,13 @@ class _TransferPageChildState extends State<TransferPageChild> {
                       content: 'لا توجد نتائج للمادة المدخلة.',
                       failure: true,
                     );
-                    // Clear fields if no results found for initial search
                     _itemNameControllers[_currentItemSearchIndex!].clear();
                     _editableItems[_currentItemSearchIndex!]['item'] = null;
                     _itemUnitControllers[_currentItemSearchIndex!].clear();
                     _quantityControllers[_currentItemSearchIndex!].clear();
                     _priceControllers[_currentItemSearchIndex!].clear();
                     _itemNoteControllers[_currentItemSearchIndex!].clear();
-                    _selectedItemData[_currentItemSearchIndex!] =
-                        null; // Clear selected item data
+                    _selectedItemData[_currentItemSearchIndex!] = null;
                   } else if (_itemsList.length == 1 &&
                       currentItemSearchPage == 1) {
                     final item = _itemsList.first;
@@ -1156,16 +1131,12 @@ class _TransferPageChildState extends State<TransferPageChild> {
                         '${item.code ?? ''}-${item.name ?? ''}';
                     _itemUnitControllers[_currentItemSearchIndex!].text =
                         item.unit ?? '';
-                    _selectedItemData[_currentItemSearchIndex!] =
-                        item; // Store the single found item
+                    _selectedItemData[_currentItemSearchIndex!] = item;
 
-                    // Set the price from "A" list if available
                     final defaultPriceA = item.default_price?.firstWhere(
                       (price) => price['list_name'] == 'A',
-                      orElse: () =>
-                          <String, dynamic>{}, // Provide a default empty map
+                      orElse: () => <String, dynamic>{},
                     );
-                    // Only update price if it's currently empty, or if specifically triggered
                     if (_priceControllers[_currentItemSearchIndex!]
                         .text
                         .isEmpty) {
@@ -1177,17 +1148,19 @@ class _TransferPageChildState extends State<TransferPageChild> {
                         _priceControllers[_currentItemSearchIndex!].clear();
                       }
                     }
+
+                    // Focus on quantity after single item is found
+                    WidgetsBinding.instance.addPostFrameCallback(
+                        (_) => _focusToQuantity(_currentItemSearchIndex!));
                   } else if (_itemsList.length > 1 &&
                       currentItemSearchPage == 1) {
                     if (!_isSelectingItem) {
-                      _isSelectingItem =
-                          true; // Set flag to indicate dialog is opening
+                      _isSelectingItem = true;
                       WidgetsBinding.instance.addPostFrameCallback((_) {
                         if (mounted) {
                           _showItemSearchDialog(_currentItemSearchIndex!)
                               .then((_) {
-                            _isSelectingItem =
-                                false; // Reset flag after dialog closes
+                            _isSelectingItem = false;
                           });
                         }
                       });
@@ -1195,7 +1168,7 @@ class _TransferPageChildState extends State<TransferPageChild> {
                   }
                 }
               });
-              _updateTotals(); // Recalculate total after item search results
+              _updateTotals();
             } else if (state is InventorySuccess<List<WarehousesModel>>) {
               if (_lastSearchField == 'from') {
                 _handleFromWarehouseSearchResults(context, state.result);
@@ -1209,7 +1182,6 @@ class _TransferPageChildState extends State<TransferPageChild> {
                 content: state.errorMessage,
                 failure: true,
               );
-              // Clear warehouse fields if search failed and they are empty
               if (_lastSearchField == 'from' &&
                   _fromWarehouseController.text.isEmpty) {
                 setState(() {
@@ -1224,10 +1196,6 @@ class _TransferPageChildState extends State<TransferPageChild> {
             }
           },
           builder: (context, state) {
-            bool isLoadingSearch = state is InventoryLoading;
-            if (isLoadingSearch) {
-              return const Center(child: Loader());
-            }
             return Form(
               key: _formKey,
               child: Column(
@@ -1285,8 +1253,7 @@ class _TransferPageChildState extends State<TransferPageChild> {
                                         flex: 3,
                                         child: MyTextField(
                                           controller: _serialController,
-                                          focusNode:
-                                              _serialFocusNode, // Add this
+                                          focusNode: _serialFocusNode,
                                           labelText: 'الرقم',
                                           keyboardType: TextInputType.number,
                                           validator: (value) {
@@ -1312,7 +1279,7 @@ class _TransferPageChildState extends State<TransferPageChild> {
                                     focusNode: _fromWarehouseFocusNode,
                                     suffixIcon: (_fromWarehouseController
                                             .text.isNotEmpty
-                                        ? (isLoadingSearch &&
+                                        ? (state is InventoryLoading &&
                                                 _lastSearchField == 'from'
                                             ? const Padding(
                                                 padding: EdgeInsets.all(10),
@@ -1347,7 +1314,7 @@ class _TransferPageChildState extends State<TransferPageChild> {
                                     focusNode: _toWarehouseFocusNode,
                                     suffixIcon: (_toWarehouseController
                                             .text.isNotEmpty
-                                        ? (isLoadingSearch &&
+                                        ? (state is InventoryLoading &&
                                                 _lastSearchField == 'to'
                                             ? const Padding(
                                                 padding: EdgeInsets.all(10),
@@ -1419,8 +1386,8 @@ class _TransferPageChildState extends State<TransferPageChild> {
                                             flex: 12,
                                             child: MyTextField(
                                               suffixIcon: SizedBox(
-                                                width: 24, // Single space width
-                                                height: 24, // Fixed height
+                                                width: 24,
+                                                height: 24,
                                                 child: _isSearchingItem &&
                                                         _currentItemSearchIndex ==
                                                             index
@@ -1498,8 +1465,8 @@ class _TransferPageChildState extends State<TransferPageChild> {
                                             child: MyTextField(
                                               controller:
                                                   _quantityControllers[index],
-                                              focusNode: _quantityFocusNodes[
-                                                  index], // Add this line
+                                              focusNode:
+                                                  _quantityFocusNodes[index],
                                               labelText: 'الكمية',
                                               keyboardType: const TextInputType
                                                   .numberWithOptions(
@@ -1520,45 +1487,51 @@ class _TransferPageChildState extends State<TransferPageChild> {
                                             ),
                                           ),
                                           const SizedBox(width: 8),
-                                          Expanded(
-                                            flex: 2,
-                                            child: MyTextField(
-                                              controller:
-                                                  _priceControllers[index],
-                                              labelText: 'السعر',
-                                              keyboardType: const TextInputType
-                                                  .numberWithOptions(
-                                                  decimal: true),
-                                              suffixIcon: SizedBox(
-                                                width: 24,
-                                                height: 24,
-                                                child: IconButton(
-                                                  icon: const Icon(
-                                                      Icons.price_change,
-                                                      size: 20),
-                                                  padding: EdgeInsets.zero,
-                                                  constraints:
-                                                      const BoxConstraints(),
-                                                  onPressed: () {
-                                                    _showPriceSelectionDialog(
-                                                        index);
-                                                  },
+                                          if (groups != null &&
+                                              (groups!.contains(
+                                                      'accounting_price') ||
+                                                  groups!.contains('admins')))
+                                            Expanded(
+                                              flex: 2,
+                                              child: MyTextField(
+                                                controller:
+                                                    _priceControllers[index],
+                                                labelText: 'السعر',
+                                                keyboardType:
+                                                    const TextInputType
+                                                        .numberWithOptions(
+                                                        decimal: true),
+                                                suffixIcon: SizedBox(
+                                                  width: 24,
+                                                  height: 24,
+                                                  child: IconButton(
+                                                    icon: const Icon(
+                                                        Icons.price_change,
+                                                        size: 20),
+                                                    padding: EdgeInsets.zero,
+                                                    constraints:
+                                                        const BoxConstraints(),
+                                                    onPressed: () {
+                                                      _showPriceSelectionDialog(
+                                                          index);
+                                                    },
+                                                  ),
                                                 ),
+                                                validator: (value) {
+                                                  if (value == null ||
+                                                      value.isEmpty) {
+                                                    return 'الرجاء إدخال السعر';
+                                                  }
+                                                  if (double.tryParse(
+                                                          value.replaceAll(
+                                                              ',', '')) ==
+                                                      null) {
+                                                    return 'الرجاء إدخال رقم صحيح';
+                                                  }
+                                                  return null;
+                                                },
                                               ),
-                                              validator: (value) {
-                                                if (value == null ||
-                                                    value.isEmpty) {
-                                                  return 'الرجاء إدخال السعر';
-                                                }
-                                                if (double.tryParse(value
-                                                        .replaceAll(',', '')) ==
-                                                    null) {
-                                                  return 'الرجاء إدخال رقم صحيح';
-                                                }
-                                                return null;
-                                              },
                                             ),
-                                          ),
                                         ],
                                       ),
                                       const SizedBox(height: 10),
@@ -1631,6 +1604,16 @@ class _TransferPageChildState extends State<TransferPageChild> {
     );
   }
 
+  void _focusToWarehouse() {
+    FocusScope.of(context).requestFocus(_toWarehouseFocusNode);
+  }
+
+  void _focusToQuantity(int index) {
+    if (index >= 0 && index < _quantityFocusNodes.length) {
+      FocusScope.of(context).requestFocus(_quantityFocusNodes[index]);
+    }
+  }
+
   void _handleFromWarehouseSearchResults(
     BuildContext context,
     List<WarehousesModel> results,
@@ -1645,6 +1628,8 @@ class _TransferPageChildState extends State<TransferPageChild> {
       });
       FocusScope.of(context).unfocus();
       _isSelectingFromWarehouse = false;
+      // Add this line to focus on to warehouse after selection
+      WidgetsBinding.instance.addPostFrameCallback((_) => _focusToWarehouse());
     } else if (results.length > 1) {
       _showFromWarehouseSelectionDialog(context, results);
     } else {
@@ -1674,6 +1659,12 @@ class _TransferPageChildState extends State<TransferPageChild> {
       });
       FocusScope.of(context).unfocus();
       _isSelectingToWarehouse = false;
+      // After to warehouse is selected, focus on first item field if exists
+      if (_itemNameFocusNodes.isNotEmpty) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          FocusScope.of(context).requestFocus(_itemNameFocusNodes[0]);
+        });
+      }
     } else if (results.length > 1) {
       _showToWarehouseSelectionDialog(context, results);
     } else {
@@ -1728,6 +1719,8 @@ class _TransferPageChildState extends State<TransferPageChild> {
         _selectedFromWarehouseId = selectedFromWarehouse.id;
       });
       FocusScope.of(context).unfocus();
+      // Add this line to focus on to warehouse after selection
+      WidgetsBinding.instance.addPostFrameCallback((_) => _focusToWarehouse());
     } else {
       setState(() {
         _fromWarehouseController.clear();
@@ -1777,6 +1770,13 @@ class _TransferPageChildState extends State<TransferPageChild> {
         _selectedToWarehouseId = selectedToWarehouse.id;
       });
       FocusScope.of(context).unfocus();
+      _isSelectingToWarehouse = false;
+      // After to warehouse is selected, focus on first item field if exists
+      if (_itemNameFocusNodes.isNotEmpty) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          FocusScope.of(context).requestFocus(_itemNameFocusNodes[0]);
+        });
+      }
     } else {
       setState(() {
         _toWarehouseController.clear();

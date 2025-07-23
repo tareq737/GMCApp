@@ -177,3 +177,9 @@ class ExportExcelForPayment extends PurchaseEvent {
 
   ExportExcelForPayment({required this.ids});
 }
+
+class ArchiveList extends PurchaseEvent {
+  final List ids;
+
+  ArchiveList({required this.ids});
+}

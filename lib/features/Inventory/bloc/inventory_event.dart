@@ -181,3 +181,36 @@ class GetItemActivity extends InventoryEvent {
     this.item_id,
   });
 }
+
+//Manufacturing
+class GetListBriefManufacturing extends InventoryEvent {
+  final int page;
+  final String? search;
+  GetListBriefManufacturing({
+    required this.page,
+    this.search,
+  });
+}
+
+class GetOneManufacturing extends InventoryEvent {
+  final int id;
+  GetOneManufacturing({required this.id});
+}
+
+class AddManufacturing extends InventoryEvent {
+  final Map<String, dynamic> manufacturingData;
+
+  AddManufacturing({required this.manufacturingData});
+}
+
+class UpdateManufacturing extends InventoryEvent {
+  final int id;
+  final Map<String, dynamic> manufacturingData;
+
+  UpdateManufacturing({required this.manufacturingData, required this.id});
+}
+
+class GetOneManufacturingBySerial extends InventoryEvent {
+  final int serial;
+  GetOneManufacturingBySerial({required this.serial});
+}

@@ -77,3 +77,9 @@ class Archive extends ProductionEvent {
 
 //   SeachArchive({required this.lexum});
 // }
+class AllProduction extends ProductionEvent {
+  final int page;
+  final String search;
+
+  AllProduction({required this.page, required this.search});
+}

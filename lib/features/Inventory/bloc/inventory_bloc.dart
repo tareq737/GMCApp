@@ -2,6 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:dio/dio.dart';
 import 'package:gmcappclean/features/Inventory/models/groups_model.dart';
 import 'package:gmcappclean/features/Inventory/models/items_model.dart';
+import 'package:gmcappclean/features/Inventory/models/manufacturing/main_manufacturing_model.dart';
 import 'package:gmcappclean/features/Inventory/models/transfer_model.dart';
 import 'package:gmcappclean/features/Inventory/models/warehouses_model.dart';
 import 'package:gmcappclean/features/Inventory/services/inventory_services.dart';
@@ -323,6 +324,107 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
           emit(InventoryError(errorMessage: 'Error'));
         } else {
           emit(InventorySuccess(result: result));
+        }
+      },
+    );
+
+    //Manufacturing
+    on<GetListBriefManufacturing>(
+      (event, emit) async {
+        emit(InventoryLoading());
+        var result = await _inventoryServices.manufacturingBrief(
+            page: event.page, search: event.search);
+        if (result == null) {
+          emit(InventoryError(errorMessage: 'Error'));
+        } else {
+          emit(InventorySuccess(result: result));
+        }
+      },
+    );
+    on<GetOneManufacturing>(
+      (event, emit) async {
+        emit(InventoryLoading());
+        var result = await _inventoryServices.getOneManufacturingID(event.id);
+        if (result == null) {
+          emit(InventoryError(
+              errorMessage: 'Error fetching  with ID: ${event.id}'));
+        } else {
+          emit(InventorySuccess(result: result));
+        }
+      },
+    );
+    on<AddManufacturing>(
+      (event, emit) async {
+        emit(InventoryLoading());
+        try {
+          var result = await _inventoryServices
+              .addManufacturing(event.manufacturingData);
+
+          if (result == null) {
+            emit(InventoryError(errorMessage: 'فشل في إضافة التصنيع'));
+          } else {
+            emit(InventorySuccessAddManufacturing(result: result));
+          }
+        } catch (e) {
+          if (e is DioException) {
+            if (e.response?.statusCode == 400) {
+              emit(InventoryError(errorMessage: 'بيانات غير صالحة'));
+            } else {
+              emit(InventoryError(errorMessage: 'حدث خطأ أثناء إضافة التصنيع'));
+            }
+          } else {
+            emit(InventoryError(errorMessage: 'حدث خطأ غير متوقع'));
+          }
+        }
+      },
+    );
+
+    on<UpdateManufacturing>(
+      (event, emit) async {
+        emit(InventoryLoading());
+        try {
+          var result = await _inventoryServices.updateManufacturing(
+              event.id, event.manufacturingData);
+
+          if (result == null) {
+            emit(InventoryError(errorMessage: 'فشل في تحديث التصنيع'));
+          } else {
+            emit(InventorySuccessUpdateManufacturing(result: result));
+          }
+        } catch (e) {
+          if (e is DioException) {
+            if (e.response?.statusCode == 404) {
+              emit(InventoryError(errorMessage: 'التصنيع غير موجود'));
+            } else if (e.response?.statusCode == 400) {
+              emit(InventoryError(errorMessage: 'بيانات غير صالحة'));
+            } else {
+              emit(InventoryError(errorMessage: 'حدث خطأ أثناء تحديث التصنيع'));
+            }
+          } else {
+            emit(InventoryError(errorMessage: 'حدث خطأ غير متوقع'));
+          }
+        }
+      },
+    );
+    on<GetOneManufacturingBySerial>(
+      (event, emit) async {
+        emit(InventoryLoading());
+        try {
+          var result = await _inventoryServices.getOneManufacturingBySerial(
+              serial: event.serial);
+
+          if (result == null) {
+            emit(
+                InventoryError(errorMessage: 'لا يوجد عملية تصنيع بهذا الرقم'));
+          } else {
+            emit(InventorySuccess(result: result));
+          }
+        } catch (e) {
+          if (e is DioException && e.response?.statusCode == 404) {
+            emit(InventoryError(errorMessage: 'لا يوجد تصنيع بهذا الرقم'));
+          } else {
+            emit(InventoryError(errorMessage: 'حدث خطأ أثناء جلب البيانات'));
+          }
         }
       },
     );

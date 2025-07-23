@@ -78,7 +78,9 @@ class _PurchasesListChildState extends State<PurchasesListChild> {
     'المبيعات',
     'أقسام الإنتاج',
     'IT',
-    'شركة النور'
+    'شركة النور',
+    'مواد أولية',
+    'فوارغ',
   ];
 
   late String _selectedStatus;

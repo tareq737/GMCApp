@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gmcappclean/core/common/api/api.dart';
 import 'package:gmcappclean/core/common/cubits/app_user/app_user_cubit.dart';
 import 'package:gmcappclean/core/common/widgets/loader.dart';
@@ -291,13 +292,22 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
                 appBar: AppBar(
                   backgroundColor:
                       isDark ? AppColors.gradient2 : AppColors.lightGradient2,
-                  title: const Text(
-                    'طلب المشتريات',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20,
-                    ),
+                  title: Row(
+                    spacing: 10,
+                    children: [
+                      Text(
+                        'طلب المشتريات رقم ${purchasesModel?.id ?? ''}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                        ),
+                      ),
+                      const FaIcon(
+                        FontAwesomeIcons.shopify,
+                        color: Colors.white,
+                      ),
+                    ],
                   ),
                 ),
                 body: PageView(
@@ -599,6 +609,7 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
                                   children: [
                                     Expanded(
                                       child: MyTextField(
+                                        readOnly: true,
                                         controller: _lastPurchaseController,
                                         labelText: 'تاريخ آخر شراء',
                                         onTap: () async {
@@ -1137,6 +1148,7 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
                                   children: [
                                     Expanded(
                                       child: MyTextField(
+                                          readOnly: true,
                                           controller:
                                               _insertOfferDateController,
                                           labelText:
@@ -1144,6 +1156,7 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
                                     ),
                                     Expanded(
                                       child: MyTextField(
+                                          readOnly: true,
                                           controller:
                                               _applicantApproveDateController,
                                           labelText:
@@ -1156,6 +1169,7 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
                                   children: [
                                     Expanded(
                                       child: MyTextField(
+                                        readOnly: true,
                                         controller: _expectedDateController,
                                         labelText: 'تاريخ الشراء المتوقع',
                                         onTap: () async {
@@ -1192,6 +1206,7 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
                                   children: [
                                     Expanded(
                                       child: MyTextField(
+                                        readOnly: true,
                                         controller: _purchaseDateController,
                                         labelText: 'تاريخ الشراء',
                                         onTap: () async {

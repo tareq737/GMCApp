@@ -73,5 +73,29 @@ class MaintenanceBloc extends Bloc<MaintenanceEvent, MaintenanceState> {
         emit(MaintenanceError(errorMessage: e.toString()));
       }
     });
+    on<GetSearchMachines>((event, emit) async {
+      emit(MaintenanceLoading());
+      try {
+        final machines = await _maintenanceServices.searchMachine(
+          search: event.search,
+          page: event.page,
+        );
+        emit(MaintenanceSuccess(result: machines));
+      } catch (e) {
+        emit(MaintenanceError(errorMessage: e.toString()));
+      }
+    });
+    on<GetMachineLog>((event, emit) async {
+      emit(MaintenanceLoading());
+      try {
+        final log = await _maintenanceServices.machineLog(
+          page: event.page,
+          id: event.machineId,
+        );
+        emit(MaintenanceSuccess(result: log));
+      } catch (e) {
+        emit(MaintenanceError(errorMessage: e.toString()));
+      }
+    });
   }
 }

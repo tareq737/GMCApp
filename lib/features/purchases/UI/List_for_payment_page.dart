@@ -117,31 +117,80 @@ class _ListForPayaymentPageChildState extends State<ListForPayaymentPageChild> {
               ),
             ),
             actions: [
-              // New "Check All" button
-              IconButton(
-                onPressed: () {
-                  _toggleCheckAll(!_checkAll); // Toggle the checkAll state
-                },
-                icon: Icon(
-                  _checkAll
-                      ? FontAwesomeIcons
-                          .solidSquareCheck // Filled checkbox icon when all are checked
-                      : FontAwesomeIcons
-                          .square, // Empty checkbox icon when not all are checked
-                  color: Colors.white,
-                ),
-                tooltip: _checkAll ? 'إلغاء تحديد الكل' : 'تحديد الكل',
-              ),
-              IconButton(
-                onPressed: () {
-                  print("Selected IDs: $selectedIds");
-                  context.read<PurchaseBloc>().add(
-                        ExportExcelForPayment(ids: selectedIds),
+              Row(
+                spacing: 10,
+                children: [
+                  IconButton(
+                    onPressed: () async {
+                      if (selectedIds.isEmpty) {
+                        showSnackBar(
+                            context: context,
+                            content: 'يرجى اختيار طلب شراء واحد على الأقل',
+                            failure: true);
+                        return;
+                      }
+
+                      final confirmed = await showDialog<bool>(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('تأكيد الأرشفة'),
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                  'هل أنت متأكد أنك تريد أرشفة العناصر التالية؟'),
+                              const SizedBox(height: 8),
+                              ...selectedIds.map((id) => Text('- $id')),
+                            ],
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(false),
+                              child: const Text('إلغاء'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(true),
+                              child: const Text('تأكيد'),
+                            ),
+                          ],
+                        ),
                       );
-                },
-                icon: const FaIcon(FontAwesomeIcons.fileExport,
-                    color: Colors.white),
-                tooltip: 'تصدير المحدد إلى Excel',
+
+                      if (confirmed == true) {
+                        print("Selected IDs: $selectedIds");
+                        context.read<PurchaseBloc>().add(
+                              ArchiveList(ids: selectedIds),
+                            );
+                      }
+                    },
+                    icon: const FaIcon(
+                      FontAwesomeIcons.archive,
+                      color: Colors.white,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      _toggleCheckAll(!_checkAll);
+                    },
+                    icon: Icon(
+                      _checkAll
+                          ? FontAwesomeIcons.solidSquareCheck
+                          : FontAwesomeIcons.square,
+                      color: Colors.white,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      print("Selected IDs: $selectedIds");
+                      context.read<PurchaseBloc>().add(
+                            ExportExcelForPayment(ids: selectedIds),
+                          );
+                    },
+                    icon: const FaIcon(FontAwesomeIcons.fileExport,
+                        color: Colors.white),
+                  ),
+                ],
               ),
             ],
           ),
@@ -156,22 +205,24 @@ class _ListForPayaymentPageChildState extends State<ListForPayaymentPageChild> {
                         content: 'حدث خطأ ما',
                         failure: true,
                       );
+                    } else if (state is PurchaseSuccess<Map<String, dynamic>>) {
+                      showSnackBar(
+                        context: context,
+                        content: 'تم أرشفة الطلبات المحددة',
+                        failure: false,
+                      );
+                      Navigator.pop(context);
                     } else if (state
                         is PurchaseSuccess<List<ForPaymentsModel>>) {
                       setState(
                         () {
                           if (currentPage == 1) {
-                            _briefPurchases =
-                                state.result; // First page, replace data
+                            _briefPurchases = state.result;
                           } else {
-                            _briefPurchases
-                                .addAll(state.result); // Append new data
+                            _briefPurchases.addAll(state.result);
                           }
                           isLoadingMore = false;
 
-                          // After new data arrives, check if 'check all' state needs adjustment
-                          // If 'check all' was true, and new items loaded, add them too.
-                          // If all items are selected by checkbox, update _checkAll flag
                           if (_briefPurchases.isNotEmpty &&
                               selectedIds.length == _briefPurchases.length) {
                             _checkAll = true;

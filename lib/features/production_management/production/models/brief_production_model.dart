@@ -2,7 +2,7 @@
 import 'dart:convert';
 
 class BriefProductionModel {
-  int id;
+  int? id;
   String? batch_number;
   String? insert_date;
   String? type;
@@ -17,7 +17,7 @@ class BriefProductionModel {
   bool? packaging_check_6;
   bool? finished_goods_check_3;
   BriefProductionModel({
-    required this.id,
+    this.id,
     this.batch_number,
     this.insert_date,
     this.type,
@@ -91,7 +91,7 @@ class BriefProductionModel {
 
   factory BriefProductionModel.fromMap(Map<String, dynamic> map) {
     return BriefProductionModel(
-      id: map['id'] as int,
+      id: map['id'] != null ? map['id'] as int : null,
       batch_number:
           map['batch_number'] != null ? map['batch_number'] as String : null,
       insert_date:

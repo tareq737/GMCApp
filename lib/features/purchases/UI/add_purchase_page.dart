@@ -33,7 +33,9 @@ class _AddPurchasePageState extends State<AddPurchasePage> {
     'المبيعات',
     'أقسام الإنتاج',
     'IT',
-    'شركة النور'
+    'شركة النور',
+    'مواد أولية',
+    'فوارغ',
   ];
 
   List<DropdownMenuItem<String>> dropdownDepartmentItems() {

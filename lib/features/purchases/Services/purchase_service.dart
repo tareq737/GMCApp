@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:dio/dio.dart';
@@ -683,7 +684,10 @@ class PurchaseService {
         final response = await _apiClient.getPageinated(
           user: success,
           endPoint: 'purchases/for_payment',
-          queryParams: {'page': page,'page_size': 100,},
+          queryParams: {
+            'page': page,
+            'page_size': 100,
+          },
         );
         return List.generate(response.length, (index) {
           return ForPaymentsModel.fromMap(response[index]);
@@ -722,6 +726,36 @@ class PurchaseService {
       print('Caught error in exportExcel service: $e');
       return right(Failure(
           message: 'Unexpected error during Excel export: ${e.toString()}'));
+    }
+  }
+
+  Future<Either<Map<String, dynamic>, Failure>> archiveList(
+      {required List ids}) async {
+    try {
+      final userEntity = await getCredentials();
+      return userEntity.fold(
+        (failure) {
+          return right(Failure(message: 'No tokens found.'));
+        },
+        (success) async {
+          try {
+            final response = await _apiClient.add(
+              userTokens: success,
+              endPoint: 'purchases/archive',
+              data: jsonEncode({"ids": ids}),
+            );
+            return left(response);
+          } catch (e) {
+            print('Error archive: $e');
+            return right(
+                Failure(message: 'Failed to archive: ${e.toString()}'));
+          }
+        },
+      );
+    } catch (e) {
+      print('Error archive: $e');
+      return right(
+          Failure(message: 'Unexpected Error archive: ${e.toString()}'));
     }
   }
 }

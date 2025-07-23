@@ -303,4 +303,30 @@ class ProductionServices {
       return left(Failure(message: e.toString()));
     }
   }
+
+  Future<List<BriefProductionModel>?> allProduction(
+      {required int page, required String search}) async {
+    try {
+      final userEntity = await getCredentials();
+      return userEntity.fold((failure) {
+        return null;
+      }, (success) async {
+        final response = await _apiClient.getPageinated(
+          user: success,
+          endPoint: 'Allproduction',
+          queryParams: {
+            'search': search,
+            'page_size': 15,
+            'page': page,
+          },
+        );
+        return List.generate(response.length, (index) {
+          return BriefProductionModel.fromMap(response[index]);
+        });
+      });
+    } catch (e) {
+      print('exception caught');
+      return null;
+    }
+  }
 }

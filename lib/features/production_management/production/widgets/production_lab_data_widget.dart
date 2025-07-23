@@ -102,7 +102,7 @@ class _ProductionLabDataWidgetState extends State<ProductionLabDataWidget> {
     glossController.text = widget.fullProductionModel.lab.gloss != null
         ? widget.fullProductionModel.lab.gloss!.toStringAsFixed(2)
         : '';
-    labColor = widget.fullProductionModel.lab.lab_color;
+    labColor = widget.fullProductionModel.lab.lab_color ?? false;
     viscosityController.text = widget.fullProductionModel.lab.viscosity != null
         ? widget.fullProductionModel.lab.viscosity!
         : '';
@@ -438,7 +438,7 @@ class _ProductionLabDataWidgetState extends State<ProductionLabDataWidget> {
                                 value: labColor,
                                 onChanged: (bool? value) {
                                   setState(() {
-                                    labColor = value;
+                                    labColor = value ?? false;
                                   });
                                 },
                               ),

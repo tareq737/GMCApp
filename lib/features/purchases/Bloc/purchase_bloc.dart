@@ -405,5 +405,17 @@ class PurchaseBloc extends Bloc<PurchaseEvent, PurchaseState> {
         );
       },
     );
+    on<ArchiveList>((event, emit) async {
+      emit(PurchaseLoading());
+      final result = await _purchaseService.archiveList(ids: event.ids);
+      result.fold(
+        (data) {
+          emit(PurchaseSuccess(result: data));
+        },
+        (failure) {
+          emit(PurchaseError(errorMessage: failure.message));
+        },
+      );
+    });
   }
 }

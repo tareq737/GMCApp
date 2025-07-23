@@ -410,7 +410,7 @@ class _AddAdditionalOperationPageState
                             // "تعديل" button - assuming this is for specific, possibly non-saving, edits
                             // or a redundant button. Keeping it only for admins as per previous logic.
                             if (widget.additionalOperationsModel != null &&
-                                isAdmin)
+                                canAddOperation)
                               Mybutton(
                                 text: 'تعديل',
                                 onPressed: () {

@@ -10,6 +10,7 @@ import 'package:gmcappclean/features/maintenance/Models/maintenance_model.dart';
 import 'package:gmcappclean/features/maintenance/Services/maintenance_services.dart';
 import 'package:gmcappclean/features/maintenance/UI/Full_maintance_details_page.dart';
 import 'package:gmcappclean/features/maintenance/UI/add_maintenance_page.dart';
+import 'package:gmcappclean/features/maintenance/UI/machine_maintenance_log_page.dart';
 import 'package:gmcappclean/features/maintenance/bloc/maintenance_bloc.dart';
 import 'package:gmcappclean/init_dependencies.dart';
 import 'dart:ui' as ui;
@@ -108,20 +109,37 @@ class _MaintenanceListChildState extends State<MaintenanceListChild> {
             appBar: AppBar(
               actions: [
                 IconButton(
-                    onPressed: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) {
-                            return const AddMaintenancePage();
-                          },
-                        ),
-                      );
-                    },
-                    icon: const Icon(
-                      Icons.add,
-                      color: Colors.white,
-                    ))
+                  onPressed: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) {
+                          return const AddMaintenancePage();
+                        },
+                      ),
+                    );
+                  },
+                  icon: const Icon(
+                    Icons.add,
+                    color: Colors.white,
+                  ),
+                ),
+                IconButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) {
+                          return const MachineMaintenanceLogPage();
+                        },
+                      ),
+                    );
+                  },
+                  icon: const Icon(
+                    Icons.list_alt,
+                    color: Colors.white,
+                  ),
+                ),
               ],
               backgroundColor:
                   isDark ? AppColors.gradient2 : AppColors.lightGradient2,
@@ -301,6 +319,7 @@ class _MaintenanceListChildState extends State<MaintenanceListChild> {
                               return FullMaintanceDetailsPage(
                                 maintenanceModel: state.result,
                                 status: statusID,
+                                log: true,
                               );
                             },
                           ),

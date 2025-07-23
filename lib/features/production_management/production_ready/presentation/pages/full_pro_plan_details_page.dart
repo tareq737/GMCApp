@@ -78,8 +78,8 @@ class _FullProPlanDetailsPageState extends State<FullProPlanDetailsPage> {
       'لكر 202 نص لمعة',
       'لكر 202 مت',
       'كلاسيك اندركوت',
-      'جمس اقتصادي',
-      'زياتي 202 اقتصادي ',
+      'جمس مميز',
+      'زياتي 202 مميز ',
       'جمس ممدد',
     ],
     'صناعي': [

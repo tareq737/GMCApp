@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gmcappclean/core/common/api/api.dart';
 import 'package:gmcappclean/core/common/cubits/app_user/app_user_cubit.dart';
 import 'package:gmcappclean/core/common/widgets/loader.dart';
@@ -20,8 +21,12 @@ import 'package:intl/intl.dart';
 class FullMaintanceDetailsPage extends StatefulWidget {
   final int status;
   final MaintenanceModel maintenanceModel;
+  final bool? log;
   const FullMaintanceDetailsPage(
-      {super.key, required this.maintenanceModel, required this.status});
+      {super.key,
+      required this.maintenanceModel,
+      required this.status,
+      this.log});
 
   @override
   State<FullMaintanceDetailsPage> createState() =>
@@ -173,13 +178,22 @@ class _FullMaintanceDetailsPageState extends State<FullMaintanceDetailsPage> {
                 appBar: AppBar(
                   backgroundColor:
                       isDark ? AppColors.gradient2 : AppColors.lightGradient2,
-                  title: const Text(
-                    'طلب الصيانة',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20,
-                    ),
+                  title: Row(
+                    spacing: 10,
+                    children: [
+                      Text(
+                        'طلب الصيانة رقم ${maintenanceModel?.id ?? ''}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                        ),
+                      ),
+                      const FaIcon(
+                        FontAwesomeIcons.screwdriverWrench,
+                        color: Colors.white,
+                      ),
+                    ],
                   ),
                 ),
                 body: PageView(
@@ -270,8 +284,9 @@ class _FullMaintanceDetailsPageState extends State<FullMaintanceDetailsPage> {
                                         maxLines: 10,
                                         controller: _problemController,
                                         labelText: 'العطل'),
-                                    if (groups != null &&
-                                        (groups!.contains('admins')))
+                                    if (widget.log != true &&
+                                        groups != null &&
+                                        groups!.contains('admins'))
                                       Mybutton(
                                         text: 'تعديل طلب الصيانة',
                                         onPressed: () {
@@ -495,7 +510,8 @@ class _FullMaintanceDetailsPageState extends State<FullMaintanceDetailsPage> {
                                     )
                                   ],
                                 ),
-                                if (groups != null &&
+                                if (widget.log != true &&
+                                    groups != null &&
                                     (groups!.contains('maintenance_managers') ||
                                         groups!.contains('admins')))
                                   Center(
@@ -568,22 +584,25 @@ class _FullMaintanceDetailsPageState extends State<FullMaintanceDetailsPage> {
                                     maxLines: 10,
                                     controller: _recievedNotesController,
                                     labelText: 'ملاحظة الاستلام'),
-                                if (name == _applicantController.text ||
-                                    groups != null &&
-                                        groups!.contains('admins'))
+                                if (widget.log != true &&
+                                    (name == _applicantController.text ||
+                                        (groups != null &&
+                                            groups!.contains('admins'))) &&
+                                    (widget.log == null || widget.log == false))
                                   Center(
                                     child: Mybutton(
-                                        onPressed: () {
-                                          _fillRecieveModelfromForm();
-                                          context.read<MaintenanceBloc>().add(
-                                                UpdateMaintenance(
-                                                    id: widget
-                                                        .maintenanceModel.id,
-                                                    maintenanceModel:
-                                                        maintenanceModel!),
-                                              );
-                                        },
-                                        text: 'حفظ الاستلام'),
+                                      onPressed: () {
+                                        _fillRecieveModelfromForm();
+                                        context.read<MaintenanceBloc>().add(
+                                              UpdateMaintenance(
+                                                id: widget.maintenanceModel.id,
+                                                maintenanceModel:
+                                                    maintenanceModel!,
+                                              ),
+                                            );
+                                      },
+                                      text: 'حفظ الاستلام',
+                                    ),
                                   )
                               ],
                             ),

@@ -309,12 +309,12 @@ class _FullProdPageChildState extends State<FullProdPageChild> {
             onTap: () {
               if (widget.type == 'Production') {
                 context.read<ProductionBloc>().add(
-                      GetOneProductionByID(id: briefProductionModel[index].id),
+                      GetOneProductionByID(id: briefProductionModel[index].id!),
                     );
               } else if (widget.type == 'Archive') {
                 context.read<ProductionBloc>().add(
                       GetOneProductionArchiveByID(
-                          id: briefProductionModel[index].id),
+                          id: briefProductionModel[index].id!),
                     );
               }
             },

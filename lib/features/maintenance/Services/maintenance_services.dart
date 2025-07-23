@@ -5,6 +5,7 @@ import 'package:gmcappclean/core/error/failures.dart';
 import 'package:gmcappclean/core/services/auth_interactor.dart';
 import 'package:gmcappclean/features/maintenance/Models/brief_maintenance_model.dart';
 import 'package:gmcappclean/features/maintenance/Models/machine_maintenance_model.dart';
+import 'package:gmcappclean/features/maintenance/Models/machine_model.dart';
 import 'package:gmcappclean/features/maintenance/Models/maintenance_model.dart';
 
 class MaintenanceServices {
@@ -128,6 +129,56 @@ class MaintenanceServices {
         return MachineMaintenanceModel.fromMap(response);
       });
     } catch (e) {
+      return null;
+    }
+  }
+
+  Future<List<MachineModel>?> searchMachine(
+      {required String search, required int page}) async {
+    try {
+      final userEntity = await getCredentials();
+      return userEntity.fold((failure) {
+        return null;
+      }, (success) async {
+        final response = await _apiClient.getPageinated(
+          user: success,
+          endPoint: 'machine',
+          queryParams: {
+            'search': search,
+            'page': page,
+          },
+        );
+        return List.generate(response.length, (index) {
+          return MachineModel.fromMap(response[index]);
+        });
+      });
+    } catch (e) {
+      print('exception caught');
+      return null;
+    }
+  }
+
+  Future<List<BriefMaintenanceModel>?> machineLog(
+      {required int id, required int page}) async {
+    try {
+      final userEntity = await getCredentials();
+      return userEntity.fold((failure) {
+        return null;
+      }, (success) async {
+        final response = await _apiClient.getPageinated(
+          user: success,
+          endPoint: 'machine_log',
+          queryParams: {
+            'machine_id': id,
+            'page': page,
+          },
+        );
+        return List.generate(response.length, (index) {
+          return BriefMaintenanceModel.fromMap(response[index]);
+        });
+      });
+    } catch (e) {
+      print('exception caught');
       return null;
     }
   }
