@@ -21,15 +21,19 @@ import 'package:gmcappclean/features/Inventory/ui/transfers/transfers_list_page.
 import 'package:gmcappclean/features/Inventory/ui/warehouses/warehouse_list_page.dart';
 import 'package:gmcappclean/features/Prayer_times/bloc/prayer_times_bloc.dart';
 import 'package:gmcappclean/features/Prayer_times/services/prayer_times_service.dart';
-import 'package:gmcappclean/features/Purchases/UI/purchases_list.dart';
 import 'package:gmcappclean/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:gmcappclean/features/auth/presentation/pages/singin_page.dart';
+import 'package:gmcappclean/features/gardening/ui/add_garden_activity_page.dart';
+import 'package:gmcappclean/features/gardening/ui/genral_list_garden_tasks_page.dart';
+import 'package:gmcappclean/features/gardening/ui/list_garden_tasks_page.dart';
 import 'package:gmcappclean/features/maintenance/UI/maintenance_list_page.dart';
 import 'package:gmcappclean/features/production_management/additional_operations/ui/list_additional_operations_page.dart';
 import 'package:gmcappclean/features/production_management/production/ui/production_list.dart';
 import 'package:gmcappclean/features/production_management/production_ready/presentation/pages/full_prod_plan_page.dart';
 import 'package:gmcappclean/features/production_management/total_production/ui/export_excel_tasks_page.dart';
 import 'package:gmcappclean/features/production_management/total_production/ui/total_production_page.dart';
+import 'package:gmcappclean/features/purchases/UI/general%20purchases/purchases_list.dart';
+import 'package:gmcappclean/features/purchases/UI/production%20purchases/production_purchases_list.dart';
 import 'package:gmcappclean/features/reset_password/ui/change_password_page.dart';
 import 'package:gmcappclean/features/reset_password/ui/reset_password_page.dart';
 import 'package:gmcappclean/features/sales_management/customers/presentation/pages/full_coustomers_page.dart';
@@ -345,14 +349,16 @@ class _HomePageState extends State<HomePage>
                       ),
                     ),
                     if (groups != null &&
-                        (groups.contains('Sales') || groups.contains('admins')))
+                        (groups.contains('Sales') ||
+                            groups.contains('managers') ||
+                            groups.contains('admins')))
                       ExpansionTile(
                         leading: SizedBox(
                           height: 30,
                           width: 30,
                           child: Image.asset('assets/images/sales_dep.png'),
                         ),
-                        title: const Text('قسم المبيعات'),
+                        title: const Text('المبيعات'),
                         children: [
                           ListTile(
                             title: const Text('كافة الزبائن'),
@@ -435,6 +441,7 @@ class _HomePageState extends State<HomePage>
                       ),
                     if (groups != null &&
                         (groups.contains('Accounting') ||
+                            groups.contains('managers') ||
                             groups.contains('admins')))
                       ExpansionTile(
                         leading: SizedBox(
@@ -442,7 +449,7 @@ class _HomePageState extends State<HomePage>
                           width: 30,
                           child: Image.asset('assets/images/warehouse_dep.png'),
                         ),
-                        title: const Text('قسم المستودعات'),
+                        title: const Text('المستودعات'),
                         children: [
                           ExpansionTile(
                             title: const Text('المواد'),
@@ -699,6 +706,7 @@ class _HomePageState extends State<HomePage>
                       ),
                     if (groups != null &&
                         (groups.contains('production') ||
+                            groups.contains('managers') ||
                             groups.contains('admins')))
                       ExpansionTile(
                         leading: SizedBox(
@@ -708,7 +716,7 @@ class _HomePageState extends State<HomePage>
                             'assets/images/manufacturing.png',
                           ),
                         ),
-                        title: const Text('قسم الإنتاج'),
+                        title: const Text('الإنتاج'),
                         children: [
                           ListTile(
                             title: const Text('الجهوزية'),
@@ -907,25 +915,99 @@ class _HomePageState extends State<HomePage>
                           ),
                         ],
                       ),
-                    ListTile(
+                    if (groups != null &&
+                        (groups.contains('Gardening') ||
+                            groups.contains('managers') ||
+                            groups.contains('admins')))
+                      ExpansionTile(
+                        title: const Text('الزراعة'),
+                        leading: SizedBox(
+                          height: 30,
+                          width: 30,
+                          child: Image.asset('assets/images/Gardening_dep.png'),
+                        ),
+                        children: [
+                          ListTile(
+                            title: const Text('البرنامج اليومي'),
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) {
+                                    return const ListGardenTasksPage();
+                                  },
+                                ),
+                              );
+                            },
+                          ),
+                          ListTile(
+                            title: const Text('البرنامج العام'),
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) {
+                                    return const GenralListGardenTasksPage();
+                                  },
+                                ),
+                              );
+                            },
+                          ),
+                          ListTile(
+                            title: const Text('إضافة مهام'),
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) {
+                                    return const AddGardenActivityPage();
+                                  },
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ExpansionTile(
+                      title: const Text('المشتريات'),
                       leading: SizedBox(
                         height: 30,
                         width: 30,
                         child: Image.asset('assets/images/purchases_dep.png'),
                       ),
-                      title: const Text('المشتريات'),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) {
-                              return const PurchasesList(
-                                status: 1,
+                      children: [
+                        ListTile(
+                          title: const Text('مشتريات عام'),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) {
+                                  return const PurchasesList(status: 1);
+                                },
+                              ),
+                            );
+                          },
+                        ),
+                        if (groups != null &&
+                            (groups.contains('production_purchases') ||
+                                groups.contains('managers') ||
+                                groups.contains('admins')))
+                          ListTile(
+                            title: const Text('مشتريات إنتاج'),
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) {
+                                    return const ProductionPurchasesList(
+                                        status: 1);
+                                  },
+                                ),
                               );
                             },
                           ),
-                        );
-                      },
+                      ],
                     ),
                     ListTile(
                       leading: SizedBox(

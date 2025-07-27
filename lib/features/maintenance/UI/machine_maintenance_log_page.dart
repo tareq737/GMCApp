@@ -122,8 +122,14 @@ class _MachineMaintenanceLogPageChildState
           backgroundColor:
               isDark ? AppColors.gradient2 : AppColors.lightGradient2,
           title: showSearch
-              ? const Text('سجل صيانة آلة')
-              : Text('سجل صيانة: $selectedMachineName'),
+              ? const Text(
+                  'سجل صيانة آلة',
+                  style: TextStyle(color: Colors.white),
+                )
+              : Text(
+                  'سجل صيانة: $selectedMachineName',
+                  style: const TextStyle(color: Colors.white),
+                ),
           actions: [
             if (!showSearch)
               IconButton(

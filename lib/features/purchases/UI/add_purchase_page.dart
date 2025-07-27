@@ -11,32 +11,23 @@ import 'package:gmcappclean/core/services/auth_interactor.dart';
 import 'package:gmcappclean/core/utils/show_snackbar.dart';
 import 'dart:ui' as ui;
 import 'package:gmcappclean/features/Purchases/Bloc/purchase_bloc.dart';
-import 'package:gmcappclean/features/Purchases/UI/purchases_list.dart';
 import 'package:gmcappclean/features/purchases/Models/purchases_model.dart';
 import 'package:gmcappclean/features/purchases/Services/purchase_service.dart';
+import 'package:gmcappclean/features/purchases/UI/general%20purchases/purchases_list.dart';
+import 'package:gmcappclean/features/purchases/UI/production%20purchases/production_purchases_list.dart';
 import 'package:gmcappclean/init_dependencies.dart';
 import 'package:intl/intl.dart';
 
 class AddPurchasePage extends StatefulWidget {
-  const AddPurchasePage({super.key});
+  final String type;
+  const AddPurchasePage({super.key, required this.type});
 
   @override
   State<AddPurchasePage> createState() => _AddPurchasePageState();
 }
 
 class _AddPurchasePageState extends State<AddPurchasePage> {
-  final List<String> departments = [
-    'الصيانة',
-    'الزراعة',
-    'العهد',
-    'الخدمات',
-    'المبيعات',
-    'أقسام الإنتاج',
-    'IT',
-    'شركة النور',
-    'مواد أولية',
-    'فوارغ',
-  ];
+  late List<String> departments;
 
   List<DropdownMenuItem<String>> dropdownDepartmentItems() {
     return departments.toList().map((item) {
@@ -74,6 +65,21 @@ class _AddPurchasePageState extends State<AddPurchasePage> {
     super.initState();
     _insertDateController.text =
         DateFormat('yyyy-MM-dd').format(DateTime.now());
+    // Fill departments based on the type
+    if (widget.type == 'general') {
+      departments = [
+        'الصيانة',
+        'الزراعة',
+        'العهد',
+        'الخدمات',
+        'المبيعات',
+        'أقسام الإنتاج',
+        'IT',
+        'شركة النور',
+      ];
+    } else if (widget.type == 'production') {
+      departments = ['فوارغ', 'مواد أولية'];
+    }
   }
 
   @override
@@ -122,14 +128,26 @@ class _AddPurchasePageState extends State<AddPurchasePage> {
                   failure: false,
                 );
                 Navigator.pop(context);
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const PurchasesList(
-                      status: 2,
+                if (widget.type == 'general') {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const PurchasesList(
+                        status: 2,
+                      ),
                     ),
-                  ),
-                );
+                  );
+                }
+                if (widget.type == 'production') {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ProductionPurchasesList(
+                        status: 1,
+                      ),
+                    ),
+                  );
+                }
               } else if (state is PurchaseError) {
                 showSnackBar(
                   context: context,
@@ -142,7 +160,13 @@ class _AddPurchasePageState extends State<AddPurchasePage> {
               textDirection: ui.TextDirection.rtl,
               child: Scaffold(
                 appBar: AppBar(
-                  title: const Text('طلب شراء جديد'),
+                  title: Text(
+                    widget.type == 'general'
+                        ? 'طلب شراء جديد - عام'
+                        : widget.type == 'production'
+                            ? 'طلب شراء جديد - إنتاج'
+                            : 'طلب شراء جديد',
+                  ),
                 ),
                 body: Padding(
                   padding: const EdgeInsets.all(8.0),

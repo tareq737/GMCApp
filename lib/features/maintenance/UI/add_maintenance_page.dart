@@ -112,6 +112,7 @@ class _AddMaintenancePageState extends State<AddMaintenancePage> {
                     content: 'تمت إضافة طلب الصيانة بنجاح',
                     failure: false,
                   );
+                  Navigator.pop(context);
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(

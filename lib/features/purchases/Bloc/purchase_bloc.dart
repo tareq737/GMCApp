@@ -48,7 +48,35 @@ class PurchaseBloc extends Bloc<PurchaseEvent, PurchaseState> {
         }
       },
     );
+    on<GetAllProductionPurchases>(
+      (event, emit) async {
+        emit(PurchaseLoading()); // Move it inside the specific event handler
+        var result = await _purchaseService.getAllProductionPurchase(
+          page: event.page,
+          status: event.status,
+        );
+        if (result == null) {
+          emit(PurchaseError(errorMessage: 'Error'));
+        } else {
+          emit(PurchaseSuccess(result: result));
+        }
+      },
+    );
 
+    on<SearchProductionPurchases>(
+      (event, emit) async {
+        emit(PurchaseLoading());
+        var result = await _purchaseService.searchProductionPurchase(
+          search: event.search,
+          page: event.page,
+        );
+        if (result == null) {
+          emit(PurchaseError(errorMessage: 'Error'));
+        } else {
+          emit(PurchaseSuccess(result: result));
+        }
+      },
+    );
     on<GetOnePurchase>(
       (event, emit) async {
         emit(PurchaseLoading());
@@ -105,7 +133,7 @@ class PurchaseBloc extends Bloc<PurchaseEvent, PurchaseState> {
         if (result == null) {
           emit(PurchaseError(errorMessage: 'Error'));
         } else {
-          emit(PurchaseSuccess(result: result));
+          emit(PurchaseImageSuccess(result: result));
         }
       },
     );

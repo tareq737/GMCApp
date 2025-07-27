@@ -1,35 +1,42 @@
+import 'dart:io';
+import 'dart:typed_data';
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gmcappclean/core/common/api/api.dart';
+import 'package:gmcappclean/core/common/cubits/app_user/app_user_cubit.dart';
 import 'package:gmcappclean/core/common/widgets/loader.dart';
+import 'package:gmcappclean/core/common/widgets/search_row.dart';
 import 'package:gmcappclean/core/services/auth_interactor.dart';
 import 'package:gmcappclean/core/theme/app_colors.dart';
 import 'package:gmcappclean/core/utils/show_snackbar.dart';
-import 'package:gmcappclean/features/maintenance/Models/brief_maintenance_model.dart';
-import 'package:gmcappclean/features/maintenance/Models/maintenance_model.dart';
-import 'package:gmcappclean/features/maintenance/Services/maintenance_services.dart';
-import 'package:gmcappclean/features/maintenance/UI/Full_maintance_details_page.dart';
-import 'package:gmcappclean/features/maintenance/UI/add_maintenance_page.dart';
-import 'package:gmcappclean/features/maintenance/UI/machine_maintenance_log_page.dart';
-import 'package:gmcappclean/features/maintenance/bloc/maintenance_bloc.dart';
+import 'package:gmcappclean/features/purchases/Bloc/purchase_bloc.dart';
+import 'package:gmcappclean/features/purchases/Models/brief_purchase_model.dart';
+import 'package:gmcappclean/features/purchases/Models/purchases_model.dart';
+import 'package:gmcappclean/features/purchases/Services/purchase_service.dart';
+import 'package:gmcappclean/features/purchases/UI/general%20purchases/List_for_payment_page.dart';
+import 'package:gmcappclean/features/purchases/UI/add_purchase_page.dart';
+import 'package:gmcappclean/features/purchases/UI/general%20purchases/full_purchase_details.dart';
 import 'package:gmcappclean/init_dependencies.dart';
-import 'dart:ui' as ui;
+import 'package:open_filex/open_filex.dart';
+import 'package:path_provider/path_provider.dart';
 
-class MaintenanceListPage extends StatelessWidget {
+class PurchasesList extends StatelessWidget {
   final int status;
-  const MaintenanceListPage({super.key, required this.status});
+  const PurchasesList({required this.status, super.key});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => MaintenanceBloc(MaintenanceServices(
+      create: (context) => PurchaseBloc(
+        PurchaseService(
           apiClient: getIt<ApiClient>(),
-          authInteractor: getIt<AuthInteractor>()))
-        ..add(
-          GetAllMaintenance(page: 1, status: status, department: ''),
+          authInteractor: getIt<AuthInteractor>(),
         ),
+      )..add(GetAllPurchases(page: 1, status: status, department: '')),
       child: Builder(builder: (context) {
-        return MaintenanceListChild(
+        return PurchasesListChild(
           status: status,
         );
       }),
@@ -37,45 +44,45 @@ class MaintenanceListPage extends StatelessWidget {
   }
 }
 
-class MaintenanceListChild extends StatefulWidget {
+class PurchasesListChild extends StatefulWidget {
   final int status;
-  const MaintenanceListChild({super.key, required this.status});
+  const PurchasesListChild({required this.status, super.key});
 
   @override
-  State<MaintenanceListChild> createState() => _MaintenanceListChildState();
+  State<PurchasesListChild> createState() => _PurchasesListChildState();
 }
 
-class _MaintenanceListChildState extends State<MaintenanceListChild> {
+class _PurchasesListChildState extends State<PurchasesListChild> {
   int currentPage = 1;
   final ScrollController _scrollController = ScrollController();
+  final TextEditingController _searchController = TextEditingController();
   bool isLoadingMore = false;
-  List<BriefMaintenanceModel> _briefMaintenance = [];
+  List<BriefPurchaseModel> _briefPurchases = [];
+
   final Map<int, String> _itemStatus = {
+    2: 'طلبات بدون ملاحظة المشتريات',
+    9: 'طلبات بدون موافقة عرض السعر',
     1: 'الطلبات الغير موافقة من المدير',
-    2: 'الطلبات الموافقة من المدير',
-    3: 'الطلبات المرفوضة من المدير',
-    4: 'الطلبات الموافقة من المدير وغير منفذة',
-    5: 'الطلبات الغير مستلمة',
-    6: 'كافة الطلبات الغير مؤرشفة',
-    7: 'كافة طلبات الصيانة',
+    3: 'الطلبات الموافقة من المدير',
+    4: 'الطلبات المرفوضة من المدير',
+    5: 'الطلبات الموافقة من المدير وغير منفذة',
+    6: 'الطلبات الغير مؤرشفة وغير مستلمة',
+    7: 'كافة الطلبات الغير مؤرشفة',
+    8: 'كافة طلبات المشتريات',
   };
-  final List<String> _itemsDepartment = [
-    'الأولية',
+  final List<String> _itemsSection = [
     'الصيانة',
-    'التصنيع',
-    'التعبئة',
-    'الجاهزة',
     'الزراعة',
-    'المخبر',
-    'الجودة',
-    'المكيفات',
+    'العهد',
     'الخدمات',
+    'المبيعات',
+    'أقسام الإنتاج',
     'IT',
-    'المركبات',
     'شركة النور',
   ];
 
   late String _selectedStatus;
+
   String? _selectedItemDepartment;
   List<String>? groups;
 
@@ -89,16 +96,23 @@ class _MaintenanceListChildState extends State<MaintenanceListChild> {
   @override
   void dispose() {
     _scrollController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     bool isDark = Theme.of(context).brightness == Brightness.dark;
+    AppUserState state = context.read<AppUserCubit>().state;
+
+    if (state is AppUserLoggedIn) {
+      groups = state.userEntity.groups;
+    }
+
     return Builder(builder: (context) {
-      return BlocListener<MaintenanceBloc, MaintenanceState>(
+      return BlocListener<PurchaseBloc, PurchaseState>(
         listener: (context, state) {
-          if (state is MaintenanceError) {
+          if (state is PurchaseError) {
             showSnackBar(
                 context: context, content: 'حدث خطأ ما', failure: true);
           }
@@ -110,11 +124,13 @@ class _MaintenanceListChildState extends State<MaintenanceListChild> {
               actions: [
                 IconButton(
                   onPressed: () {
-                    Navigator.pushReplacement(
+                    Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) {
-                          return const AddMaintenancePage();
+                          return const AddPurchasePage(
+                            type: 'general',
+                          );
                         },
                       ),
                     );
@@ -124,27 +140,66 @@ class _MaintenanceListChildState extends State<MaintenanceListChild> {
                     color: Colors.white,
                   ),
                 ),
-                IconButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) {
-                          return const MachineMaintenanceLogPage();
-                        },
+                if (groups != null &&
+                    (groups!.contains('purchase_admins') ||
+                        groups!.contains('admins')) &&
+                    Platform.isWindows)
+                  PopupMenuButton<String>(
+                    icon: const Icon(Icons.more_vert, color: Colors.white),
+                    onSelected: (value) {
+                      // Handle selection based on the value
+                      switch (value) {
+                        case 'quotes':
+                          // Handle "بحاجة عروض أسعار"
+                          context.read<PurchaseBloc>().add(
+                                ExportExcelPendingOffers(),
+                              );
+
+                          break;
+                        case 'purchase':
+                          context.read<PurchaseBloc>().add(
+                                ExportExcelReadyToBuy(),
+                              );
+                          break;
+                        case 'payment':
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const ListForPaymentPage()),
+                          );
+                          break;
+                      }
+                    },
+                    itemBuilder: (BuildContext context) =>
+                        <PopupMenuEntry<String>>[
+                      const PopupMenuItem<String>(
+                        value: 'quotes', // Unique value for this item
+                        child: ListTile(
+                          leading: Icon(Icons.call),
+                          title: Text('بحاجة عروض أسعار'),
+                        ),
                       ),
-                    );
-                  },
-                  icon: const Icon(
-                    Icons.list_alt,
-                    color: Colors.white,
+                      const PopupMenuItem<String>(
+                        value: 'purchase', // Unique value for this item
+                        child: ListTile(
+                          leading: Icon(Icons.shopping_cart_outlined),
+                          title: Text('بحاجة شراء'),
+                        ),
+                      ),
+                      const PopupMenuItem<String>(
+                        value: 'payment', // Unique value for this item
+                        child: ListTile(
+                          leading: Icon(Icons.attach_money),
+                          title: Text('أمر الصرف'),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
               ],
               backgroundColor:
                   isDark ? AppColors.gradient2 : AppColors.lightGradient2,
               title: const Text(
-                'طلبات الصيانة',
+                'طلبات مشتريات عام',
                 style: TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
@@ -185,7 +240,7 @@ class _MaintenanceListChildState extends State<MaintenanceListChild> {
                                 currentPage = 1;
                                 _selectedStatus = newValue;
                               });
-                              _briefMaintenance = [];
+                              _briefPurchases = [];
                               runBloc();
                             }
                           },
@@ -238,13 +293,13 @@ class _MaintenanceListChildState extends State<MaintenanceListChild> {
                                     currentPage = 1;
                                     _selectedItemDepartment = newValue;
                                   });
-                                  _briefMaintenance = [];
+                                  _briefPurchases = [];
                                   runBloc();
                                 },
                                 isExpanded: true,
                                 underline:
                                     const SizedBox(), // Remove the default underline
-                                items: _itemsDepartment
+                                items: _itemsSection
                                     .map<DropdownMenuItem<String>>(
                                         (String value) {
                                   return DropdownMenuItem<String>(
@@ -271,7 +326,7 @@ class _MaintenanceListChildState extends State<MaintenanceListChild> {
                                   setState(() {
                                     _selectedItemDepartment = null;
                                   });
-                                  _briefMaintenance = [];
+                                  _briefPurchases = [];
                                   runBloc();
                                 },
                                 child: const Icon(
@@ -282,61 +337,66 @@ class _MaintenanceListChildState extends State<MaintenanceListChild> {
                           ],
                         ),
                       ),
+                      SearchRow(
+                          textEditingController: _searchController,
+                          onSearch: () {
+                            _briefPurchases = [];
+                            runBlocSearch();
+                          })
                     ],
                   ),
                 ),
                 Expanded(
                   flex: 14,
-                  child: BlocConsumer<MaintenanceBloc, MaintenanceState>(
-                    listener: (context, state) {
-                      if (state is MaintenanceError) {
+                  child: BlocConsumer<PurchaseBloc, PurchaseState>(
+                    listener: (context, state) async {
+                      if (state is PurchaseError) {
                         showSnackBar(
                           context: context,
                           content: 'حدث خطأ ما',
                           failure: true,
                         );
                       } else if (state
-                          is MaintenanceSuccess<List<BriefMaintenanceModel>>) {
+                          is PurchaseSuccess<List<BriefPurchaseModel>>) {
                         setState(
                           () {
                             if (currentPage == 1) {
-                              _briefMaintenance =
+                              _briefPurchases =
                                   state.result; // First page, replace data
                             } else {
-                              _briefMaintenance
+                              _briefPurchases
                                   .addAll(state.result); // Append new data
                             }
                             isLoadingMore = false;
                           },
                         );
-                      } else if (state
-                          is MaintenanceSuccess<MaintenanceModel>) {
+                      } else if (state is PurchaseSuccess<PurchasesModel>) {
                         int statusID = _getItemStatusID();
                         Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) {
-                              return FullMaintanceDetailsPage(
-                                maintenanceModel: state.result,
+                              return FullPurchaseDetails(
+                                purchasesModel: state.result,
                                 status: statusID,
-                                log: false,
                               );
                             },
                           ),
                         );
+                      } else if (state is PurchaseSuccess<Uint8List>) {
+                        await _saveFile(state.result, context);
                       }
                     },
                     builder: (context, state) {
-                      if (state is MaintenanceInitial) {
+                      if (state is PurchaseInitial) {
                         return const SizedBox();
-                      } else if (state is MaintenanceLoading &&
-                          currentPage == 1) {
+                      } else if (state is PurchaseLoading && currentPage == 1) {
                         return const Center(
                           child: Loader(),
                         );
-                      } else if (state is MaintenanceError) {
+                      } else if (state is PurchaseError) {
                         return const Center(child: Text('حدث خطأ ما'));
-                      } else if (_briefMaintenance.isEmpty) {
+                      } else if (_briefPurchases.isEmpty) {
                         // This is the new condition for empty list
                         return Center(
                           child: Column(
@@ -349,7 +409,7 @@ class _MaintenanceListChildState extends State<MaintenanceListChild> {
                               ),
                               const SizedBox(height: 16),
                               Text(
-                                'لا توجد طلبات صيانة لعرضها',
+                                'لا توجد طلبات مشتريات لعرضها',
                                 style: TextStyle(
                                   fontSize: 18,
                                   color: Colors.grey[600],
@@ -358,13 +418,13 @@ class _MaintenanceListChildState extends State<MaintenanceListChild> {
                             ],
                           ),
                         );
-                      } else if (_briefMaintenance.isNotEmpty) {
+                      } else if (_briefPurchases.isNotEmpty) {
                         return Builder(builder: (context) {
                           return ListView.builder(
                             controller: _scrollController,
-                            itemCount: _briefMaintenance.length + 1,
+                            itemCount: _briefPurchases.length + 1,
                             itemBuilder: (context, index) {
-                              if (index == _briefMaintenance.length) {
+                              if (index == _briefPurchases.length) {
                                 return isLoadingMore
                                     ? const Padding(
                                         padding: EdgeInsets.all(16.0),
@@ -378,9 +438,9 @@ class _MaintenanceListChildState extends State<MaintenanceListChild> {
                                   MediaQuery.of(context).size.width;
                               return InkWell(
                                 onTap: () {
-                                  context.read<MaintenanceBloc>().add(
-                                        GetOneMaintenance(
-                                            id: _briefMaintenance[index].id),
+                                  context.read<PurchaseBloc>().add(
+                                        GetOnePurchase(
+                                            id: _briefPurchases[index].id),
                                       );
                                 },
                                 child: Card(
@@ -394,8 +454,7 @@ class _MaintenanceListChildState extends State<MaintenanceListChild> {
                                     title: SizedBox(
                                       width: screenWidth * 0.20,
                                       child: Text(
-                                        _briefMaintenance[index].machine_name ??
-                                            "",
+                                        _briefPurchases[index].type ?? "",
                                         style: const TextStyle(
                                             fontWeight: FontWeight.w500),
                                       ),
@@ -411,22 +470,37 @@ class _MaintenanceListChildState extends State<MaintenanceListChild> {
                                                 MainAxisAlignment.center,
                                             children: [
                                               Icon(
-                                                _briefMaintenance[index]
+                                                (_briefPurchases[index]
+                                                                .last_price ??
+                                                            "")
+                                                        .isNotEmpty
+                                                    ? Icons.check
+                                                    : Icons.close,
+                                                color: (_briefPurchases[index]
+                                                                .last_price ??
+                                                            "")
+                                                        .isNotEmpty
+                                                    ? Colors.green
+                                                    : Colors.red,
+                                                size: 15,
+                                              ),
+                                              Icon(
+                                                _briefPurchases[index]
                                                             .manager_check ==
                                                         true
                                                     ? Icons
                                                         .check // ✅ If true, show check mark
-                                                    : _briefMaintenance[index]
+                                                    : _briefPurchases[index]
                                                                 .manager_check ==
                                                             false
                                                         ? Icons.close
                                                         : Icons
                                                             .stop_circle_outlined,
-                                                color: _briefMaintenance[index]
+                                                color: _briefPurchases[index]
                                                             .manager_check ==
                                                         true
                                                     ? Colors.green
-                                                    : _briefMaintenance[index]
+                                                    : _briefPurchases[index]
                                                                 .manager_check ==
                                                             false
                                                         ? Colors.red
@@ -434,34 +508,49 @@ class _MaintenanceListChildState extends State<MaintenanceListChild> {
                                                 size: 15,
                                               ),
                                               Icon(
-                                                (_briefMaintenance[index]
-                                                            .received ==
+                                                (_briefPurchases[index]
+                                                            .received_check ==
                                                         true)
                                                     ? Icons.check
                                                     : Icons.close,
-                                                color: (_briefMaintenance[index]
-                                                            .received ==
+                                                color: (_briefPurchases[index]
+                                                            .received_check ==
                                                         true)
                                                     ? Colors.green
                                                     : Colors.red,
                                                 size: 15,
                                               ),
                                               Icon(
-                                                (_briefMaintenance[index]
+                                                (_briefPurchases[index]
                                                             .archived ==
                                                         true)
                                                     ? Icons.check
                                                     : Icons.close,
-                                                color: (_briefMaintenance[index]
+                                                color: (_briefPurchases[index]
                                                             .archived ==
                                                         true)
                                                     ? Colors.green
                                                     : Colors.red,
                                                 size: 15,
                                               ),
+                                              Icon(
+                                                (_briefPurchases[index]
+                                                            .bill
+                                                            ?.isNotEmpty ??
+                                                        false)
+                                                    ? Icons.check
+                                                    : Icons.close,
+                                                color: (_briefPurchases[index]
+                                                            .bill
+                                                            ?.isNotEmpty ??
+                                                        false)
+                                                    ? Colors.green
+                                                    : Colors.red,
+                                                size: 15,
+                                              ),
                                             ],
                                           ),
-                                          Text(_briefMaintenance[index]
+                                          Text(_briefPurchases[index]
                                                   .insert_date ??
                                               '')
                                         ],
@@ -470,13 +559,12 @@ class _MaintenanceListChildState extends State<MaintenanceListChild> {
                                     subtitle: SizedBox(
                                         width: screenWidth * 0.6,
                                         child: Text(
-                                          _briefMaintenance[index].problem ??
-                                              "",
+                                          _briefPurchases[index].details ?? "",
                                           style: TextStyle(
                                               color: Colors.grey.shade600),
                                         )),
                                     leading: SizedBox(
-                                      width: screenWidth * 0.08,
+                                      width: screenWidth * 0.10,
                                       child: Column(
                                         mainAxisAlignment:
                                             MainAxisAlignment.center,
@@ -485,7 +573,7 @@ class _MaintenanceListChildState extends State<MaintenanceListChild> {
                                             backgroundColor: Colors.teal,
                                             radius: 11,
                                             child: Text(
-                                              _briefMaintenance[index]
+                                              _briefPurchases[index]
                                                   .id
                                                   .toString(),
                                               style: const TextStyle(
@@ -493,13 +581,17 @@ class _MaintenanceListChildState extends State<MaintenanceListChild> {
                                                   fontSize: 8),
                                             ),
                                           ),
-                                          Text(
-                                            textAlign: TextAlign.center,
-                                            _briefMaintenance[index]
-                                                    .department ??
-                                                "",
-                                            style: const TextStyle(fontSize: 8),
-                                          ),
+                                          FittedBox(
+                                            fit: BoxFit.scaleDown,
+                                            child: Text(
+                                              _briefPurchases[index]
+                                                      .department ??
+                                                  "",
+                                              textAlign: TextAlign.center,
+                                              style:
+                                                  const TextStyle(fontSize: 8),
+                                            ),
+                                          )
                                         ],
                                       ),
                                     ),
@@ -509,7 +601,7 @@ class _MaintenanceListChildState extends State<MaintenanceListChild> {
                             },
                           );
                         });
-                      } else if (state is MaintenanceError) {
+                      } else if (state is PurchaseError) {
                         return const Center(
                           child: Text(
                             'حدث خطأ ما',
@@ -546,12 +638,11 @@ class _MaintenanceListChildState extends State<MaintenanceListChild> {
       isLoadingMore = true;
     });
     currentPage++;
-
-    runBloc();
-  }
-
-  String _getItemStatusString(int statusID) {
-    return _itemStatus[statusID] ?? '';
+    if (_searchController.text == "") {
+      runBloc();
+    } else {
+      runBlocSearch();
+    }
   }
 
   int _getItemStatusID() {
@@ -571,13 +662,64 @@ class _MaintenanceListChildState extends State<MaintenanceListChild> {
     return 1;
   }
 
+  String _getItemStatusString(int statusID) {
+    return _itemStatus[statusID] ?? '';
+  }
+
   void runBloc() {
     int statusID = _getItemStatusID();
-    context.read<MaintenanceBloc>().add(
-          GetAllMaintenance(
+    context.read<PurchaseBloc>().add(
+          GetAllPurchases(
               page: currentPage,
               status: statusID,
               department: _selectedItemDepartment ?? ''),
         );
   }
+
+  void runBlocSearch() {
+    context.read<PurchaseBloc>().add(
+          SearchPurchases(page: currentPage, search: _searchController.text),
+        );
+  }
+}
+
+Future<void> _saveFile(Uint8List bytes, BuildContext context) async {
+  try {
+    final directory = await getTemporaryDirectory();
+
+    const fileName = 'تقرير مشتريات.xlsx';
+    final path = '${directory.path}\\$fileName';
+
+    final file = File(path);
+    await file.writeAsBytes(bytes);
+
+    await _showDialog(context, 'نجاح', 'تم حفظ الملف وسيتم فتحه الآن');
+
+    // Open the file
+    final result = await OpenFilex.open(path);
+
+    if (result.type != ResultType.done) {
+      await _showDialog(
+          context, 'Error', 'لم يتم فتح الملف: ${result.message}');
+    }
+  } catch (e) {
+    await _showDialog(context, 'Error', 'Failed to save/open file:\n$e');
+  }
+}
+
+Future<void> _showDialog(BuildContext context, String title, String message) {
+  return showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (_) => AlertDialog(
+      title: Text(title),
+      content: Text(message),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(), // Close the dialog
+          child: const Text('OK'),
+        ),
+      ],
+    ),
+  );
 }

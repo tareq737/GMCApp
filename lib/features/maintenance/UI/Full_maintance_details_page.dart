@@ -382,7 +382,8 @@ class _FullMaintanceDetailsPageState extends State<FullMaintanceDetailsPage> {
                                 const SizedBox(
                                   height: 10,
                                 ),
-                                if (groups != null &&
+                                if (widget.log != true &&
+                                    groups != null &&
                                     groups!.contains('admins'))
                                   Center(
                                     child: Mybutton(

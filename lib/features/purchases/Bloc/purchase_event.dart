@@ -23,6 +23,24 @@ class SearchPurchases extends PurchaseEvent {
   });
 }
 
+class GetAllProductionPurchases extends PurchaseEvent {
+  final int page;
+  final int status;
+  GetAllProductionPurchases({
+    required this.page,
+    required this.status,
+  });
+}
+
+class SearchProductionPurchases extends PurchaseEvent {
+  final String search;
+  final int page;
+  SearchProductionPurchases({
+    required this.search,
+    required this.page,
+  });
+}
+
 class GetOnePurchase extends PurchaseEvent {
   final int id;
   GetOnePurchase({required this.id});

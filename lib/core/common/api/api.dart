@@ -281,6 +281,35 @@ class ApiClient {
     }
   }
 
+  Future<List?> getOneList({
+    required UserEntity user,
+    required String endPoint,
+    Map<String, dynamic>? queryParams,
+  }) async {
+    try {
+      final response = await dio.get(
+        '$baseURL/$endPoint',
+        options: Options(
+          headers: {'Authorization': 'Bearer ${user.accessToken}'},
+        ),
+        queryParameters: queryParams,
+      );
+
+      if (response.statusCode == 200) {
+        return response.data;
+      }
+      return null;
+    } on DioException catch (e) {
+      // Handle Dio-specific errors
+      if (e.response?.statusCode == 404) {
+        return null;
+      }
+      rethrow;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<Uint8List> getImage({
     required UserEntity user,
     required String endPoint,

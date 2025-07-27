@@ -10,7 +10,8 @@ import 'package:gmcappclean/core/common/log/logger_service.dart';
 import 'package:gmcappclean/features/Exchange Rate/ui/rate_list_page.dart';
 import 'package:gmcappclean/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:gmcappclean/features/maintenance/UI/maintenance_list_page.dart';
-import 'package:gmcappclean/features/purchases/UI/purchases_list.dart';
+import 'package:gmcappclean/features/purchases/UI/general%20purchases/purchases_list.dart';
+import 'package:gmcappclean/features/purchases/UI/production%20purchases/production_purchases_list.dart';
 import 'package:gmcappclean/features/sales_management/customers/presentation/pages/full_coustomers_page.dart';
 import 'package:gmcappclean/features/sales_management/operations/ui/operations_date_page.dart';
 import 'package:gmcappclean/init_dependencies.dart';
@@ -78,6 +79,10 @@ class MyApp extends StatelessWidget {
                   status: 1,
                 ),
             'FullCoustomersPage': (context) => const FullCoustomersPage(),
+            'ProductionPurchasesList': (context) =>
+                const ProductionPurchasesList(
+                  status: 1,
+                ),
           },
         );
       },

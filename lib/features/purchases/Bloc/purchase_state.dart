@@ -20,3 +20,9 @@ class PurchaseSuccess<T> extends PurchaseState {
 
   PurchaseSuccess({required this.result});
 }
+
+class PurchaseImageSuccess<T> extends PurchaseState {
+  final T result;
+
+  PurchaseImageSuccess({required this.result});
+}

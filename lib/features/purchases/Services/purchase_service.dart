@@ -99,6 +99,57 @@ class PurchaseService {
     }
   }
 
+  Future<List<BriefPurchaseModel>?> getAllProductionPurchase({
+    required int page,
+    required int status,
+  }) async {
+    try {
+      final userEntity = await getCredentials();
+      return userEntity.fold((failure) {
+        return null;
+      }, (success) async {
+        final response = await _apiClient.getPageinated(
+          user: success,
+          endPoint: 'production_purchases',
+          queryParams: {
+            'page_size': 20,
+            'page': page,
+            'status': status,
+          },
+        );
+
+        return List.generate(response.length, (index) {
+          return BriefPurchaseModel.fromMap(response[index]);
+        });
+      });
+    } catch (e) {
+      print('exception caught');
+      return null;
+    }
+  }
+
+  Future<List<BriefPurchaseModel>?> searchProductionPurchase(
+      {required String search, required int page}) async {
+    try {
+      final userEntity = await getCredentials();
+      return userEntity.fold((failure) {
+        return null;
+      }, (success) async {
+        final response = await _apiClient.getPageinated(
+          user: success,
+          endPoint: 'production_purchases',
+          queryParams: {'search': search, 'page': page},
+        );
+        return List.generate(response.length, (index) {
+          return BriefPurchaseModel.fromMap(response[index]);
+        });
+      });
+    } catch (e) {
+      print('exception caught');
+      return null;
+    }
+  }
+
   Future<PurchasesModel?> addPurchase(PurchasesModel purchasesModel) async {
     try {
       final userEntity = await getCredentials();

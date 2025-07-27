@@ -17,8 +17,8 @@ import 'package:gmcappclean/core/utils/show_snackbar.dart';
 import 'package:gmcappclean/features/purchases/Bloc/purchase_bloc.dart';
 import 'package:gmcappclean/features/purchases/Models/purchases_model.dart';
 import 'package:gmcappclean/features/purchases/Services/purchase_service.dart';
-import 'package:gmcappclean/features/purchases/UI/purchases_list.dart';
-import 'package:gmcappclean/features/purchases/UI/view_image_page.dart';
+import 'package:gmcappclean/features/purchases/UI/general%20purchases/purchases_list.dart';
+import 'package:gmcappclean/features/purchases/UI/general%20purchases/view_image_page.dart';
 import 'package:gmcappclean/init_dependencies.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -275,6 +275,12 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
                   status: 8,
                 ),
               ),
+            );
+          } else if (state is PurchaseImageSuccess) {
+            showSnackBar(
+              context: context,
+              content: 'تم حفظ الفاتورة',
+              failure: false,
             );
           }
         },
@@ -1404,6 +1410,7 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
                                   height: 10,
                                 ),
                                 if (groups != null &&
+                                        groups!.contains('managers') ||
                                     groups!.contains('admins'))
                                   Center(
                                     child: Mybutton(
@@ -1501,6 +1508,7 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
                     ),
                     if (groups != null &&
                         (groups!.contains('purchase_admins') ||
+                            groups!.contains('managers') ||
                             groups!.contains('admins')))
                       Center(
                         child: Column(

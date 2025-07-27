@@ -1431,15 +1431,6 @@ class _ManufacturingPageChildState extends State<ManufacturingPageChild> {
                 ? 'إضافة عملية تصنيع'
                 : 'تعديل عملية تصنيع',
           ),
-          actions: [
-            Mybutton(
-              text: 'text',
-              onPressed: () {
-                print(_selectedProduction);
-                print(widget.mainModel?.batch_code);
-              },
-            )
-          ],
         ),
         body: BlocConsumer<InventoryBloc, InventoryState>(
           listener: (context, state) {

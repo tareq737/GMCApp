@@ -1,7 +1,4 @@
-import 'dart:io';
-import 'dart:typed_data';
 import 'dart:ui' as ui;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gmcappclean/core/common/api/api.dart';
@@ -15,16 +12,14 @@ import 'package:gmcappclean/features/purchases/Bloc/purchase_bloc.dart';
 import 'package:gmcappclean/features/purchases/Models/brief_purchase_model.dart';
 import 'package:gmcappclean/features/purchases/Models/purchases_model.dart';
 import 'package:gmcappclean/features/purchases/Services/purchase_service.dart';
-import 'package:gmcappclean/features/purchases/UI/List_for_payment_page.dart';
 import 'package:gmcappclean/features/purchases/UI/add_purchase_page.dart';
-import 'package:gmcappclean/features/purchases/UI/full_purchase_details.dart';
+import 'package:gmcappclean/features/purchases/UI/general%20purchases/full_purchase_details.dart';
+import 'package:gmcappclean/features/purchases/UI/production%20purchases/full_production_purchase_details.dart';
 import 'package:gmcappclean/init_dependencies.dart';
-import 'package:open_filex/open_filex.dart';
-import 'package:path_provider/path_provider.dart';
 
-class PurchasesList extends StatelessWidget {
+class ProductionPurchasesList extends StatelessWidget {
   final int status;
-  const PurchasesList({required this.status, super.key});
+  const ProductionPurchasesList({required this.status, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -34,9 +29,9 @@ class PurchasesList extends StatelessWidget {
           apiClient: getIt<ApiClient>(),
           authInteractor: getIt<AuthInteractor>(),
         ),
-      )..add(GetAllPurchases(page: 1, status: status, department: '')),
+      )..add(GetAllProductionPurchases(page: 1, status: status)),
       child: Builder(builder: (context) {
-        return PurchasesListChild(
+        return ProductionPurchasesListChild(
           status: status,
         );
       }),
@@ -44,48 +39,32 @@ class PurchasesList extends StatelessWidget {
   }
 }
 
-class PurchasesListChild extends StatefulWidget {
+class ProductionPurchasesListChild extends StatefulWidget {
   final int status;
-  const PurchasesListChild({required this.status, super.key});
+  const ProductionPurchasesListChild({required this.status, super.key});
 
   @override
-  State<PurchasesListChild> createState() => _PurchasesListChildState();
+  State<ProductionPurchasesListChild> createState() =>
+      _ProductionPurchasesListChildState();
 }
 
-class _PurchasesListChildState extends State<PurchasesListChild> {
+class _ProductionPurchasesListChildState
+    extends State<ProductionPurchasesListChild> {
   int currentPage = 1;
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
   bool isLoadingMore = false;
   List<BriefPurchaseModel> _briefPurchases = [];
-
   final Map<int, String> _itemStatus = {
-    2: 'طلبات بدون ملاحظة المشتريات',
-    9: 'طلبات بدون موافقة عرض السعر',
     1: 'الطلبات الغير موافقة من المدير',
-    3: 'الطلبات الموافقة من المدير',
-    4: 'الطلبات المرفوضة من المدير',
-    5: 'الطلبات الموافقة من المدير وغير منفذة',
-    6: 'الطلبات الغير مؤرشفة وغير مستلمة',
-    7: 'كافة الطلبات الغير مؤرشفة',
-    8: 'كافة طلبات المشتريات',
+    2: 'الطلبات الموافقة من المدير وغير منفذة',
+    3: 'الطلبات المنفذة',
+    4: 'الطلبات المرفوضة',
+    5: 'كافة طلبات المشتريات',
   };
-  final List<String> _itemsSection = [
-    'الصيانة',
-    'الزراعة',
-    'العهد',
-    'الخدمات',
-    'المبيعات',
-    'أقسام الإنتاج',
-    'IT',
-    'شركة النور',
-    'مواد أولية',
-    'فوارغ',
-  ];
 
   late String _selectedStatus;
 
-  String? _selectedItemDepartment;
   List<String>? groups;
 
   @override
@@ -93,6 +72,66 @@ class _PurchasesListChildState extends State<PurchasesListChild> {
     super.initState();
     _selectedStatus = _getItemStatusString(widget.status);
     _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    // Calculate the halfway point
+    double halfwayPoint = _scrollController.position.maxScrollExtent / 2;
+
+    // Check if the current scroll position is at or beyond the halfway point
+    if (_scrollController.position.pixels >= halfwayPoint && !isLoadingMore) {
+      _nextPage(context);
+    }
+  }
+
+  void _nextPage(BuildContext context) {
+    setState(() {
+      isLoadingMore = true;
+    });
+    currentPage++;
+    if (_searchController.text == "") {
+      runBloc();
+    } else {
+      runBlocSearch();
+    }
+  }
+
+  int _getItemStatusID() {
+    // Find the entry in the _itemStatus map where the value matches _selectedItemStatus
+    var entry = _itemStatus.entries.firstWhere(
+      (entry) => entry.value == _selectedStatus,
+      orElse: () =>
+          const MapEntry(-1, ''), // Default entry if no match is found
+    );
+
+    // If a matching entry is found, return its key (status ID)
+    if (entry.key != -1) {
+      return entry.key;
+    }
+
+    // If no matching entry is found, return null
+    return 1;
+  }
+
+  String _getItemStatusString(int statusID) {
+    return _itemStatus[statusID] ?? '';
+  }
+
+  void runBloc() {
+    int statusID = _getItemStatusID();
+    context.read<PurchaseBloc>().add(
+          GetAllProductionPurchases(
+            page: currentPage,
+            status: statusID,
+          ),
+        );
+  }
+
+  void runBlocSearch() {
+    context.read<PurchaseBloc>().add(
+          SearchProductionPurchases(
+              page: currentPage, search: _searchController.text),
+        );
   }
 
   @override
@@ -130,7 +169,9 @@ class _PurchasesListChildState extends State<PurchasesListChild> {
                       context,
                       MaterialPageRoute(
                         builder: (context) {
-                          return const AddPurchasePage();
+                          return const AddPurchasePage(
+                            type: 'production',
+                          );
                         },
                       ),
                     );
@@ -140,66 +181,11 @@ class _PurchasesListChildState extends State<PurchasesListChild> {
                     color: Colors.white,
                   ),
                 ),
-                if (groups != null &&
-                    (groups!.contains('purchase_admins') ||
-                        groups!.contains('admins')) &&
-                    Platform.isWindows)
-                  PopupMenuButton<String>(
-                    icon: const Icon(Icons.more_vert, color: Colors.white),
-                    onSelected: (value) {
-                      // Handle selection based on the value
-                      switch (value) {
-                        case 'quotes':
-                          // Handle "بحاجة عروض أسعار"
-                          context.read<PurchaseBloc>().add(
-                                ExportExcelPendingOffers(),
-                              );
-
-                          break;
-                        case 'purchase':
-                          context.read<PurchaseBloc>().add(
-                                ExportExcelReadyToBuy(),
-                              );
-                          break;
-                        case 'payment':
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const ListForPaymentPage()),
-                          );
-                          break;
-                      }
-                    },
-                    itemBuilder: (BuildContext context) =>
-                        <PopupMenuEntry<String>>[
-                      const PopupMenuItem<String>(
-                        value: 'quotes', // Unique value for this item
-                        child: ListTile(
-                          leading: Icon(Icons.call),
-                          title: Text('بحاجة عروض أسعار'),
-                        ),
-                      ),
-                      const PopupMenuItem<String>(
-                        value: 'purchase', // Unique value for this item
-                        child: ListTile(
-                          leading: Icon(Icons.shopping_cart_outlined),
-                          title: Text('بحاجة شراء'),
-                        ),
-                      ),
-                      const PopupMenuItem<String>(
-                        value: 'payment', // Unique value for this item
-                        child: ListTile(
-                          leading: Icon(Icons.attach_money),
-                          title: Text('أمر الصرف'),
-                        ),
-                      ),
-                    ],
-                  ),
               ],
               backgroundColor:
                   isDark ? AppColors.gradient2 : AppColors.lightGradient2,
               title: const Text(
-                'طلبات المشتريات',
+                'طلبات مشتريات إنتاج',
                 style: TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
@@ -267,76 +253,6 @@ class _PurchasesListChildState extends State<PurchasesListChild> {
                       ),
                       const SizedBox(height: 16),
 
-                      // Dropdown for Section
-                      Container(
-                        padding: const EdgeInsets.only(left: 15, right: 15),
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? Colors.grey.shade800
-                              : Colors.orange.shade50,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: DropdownButton<String>(
-                                hint: Text(
-                                  'القسم',
-                                  style: TextStyle(
-                                      color: isDark
-                                          ? Colors.grey.shade200
-                                          : Colors.orange.shade700),
-                                ),
-                                value: _selectedItemDepartment,
-                                onChanged: (String? newValue) {
-                                  setState(() {
-                                    currentPage = 1;
-                                    _selectedItemDepartment = newValue;
-                                  });
-                                  _briefPurchases = [];
-                                  runBloc();
-                                },
-                                isExpanded: true,
-                                underline:
-                                    const SizedBox(), // Remove the default underline
-                                items: _itemsSection
-                                    .map<DropdownMenuItem<String>>(
-                                        (String value) {
-                                  return DropdownMenuItem<String>(
-                                    value: value,
-                                    child: Align(
-                                      alignment: Alignment.centerRight,
-                                      child: Text(
-                                        value,
-                                        style: TextStyle(
-                                            color: isDark
-                                                ? Colors.grey.shade200
-                                                : Colors.orange
-                                                    .shade700), // Dropdown text color
-                                      ),
-                                    ),
-                                  );
-                                }).toList(),
-                              ),
-                            ),
-                            if (_selectedItemDepartment !=
-                                null) // Show clear button only if a value is selected
-                              GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    _selectedItemDepartment = null;
-                                  });
-                                  _briefPurchases = [];
-                                  runBloc();
-                                },
-                                child: const Icon(
-                                  Icons.close,
-                                  color: Colors.red,
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
                       SearchRow(
                           textEditingController: _searchController,
                           onSearch: () {
@@ -376,15 +292,13 @@ class _PurchasesListChildState extends State<PurchasesListChild> {
                           context,
                           MaterialPageRoute(
                             builder: (context) {
-                              return FullPurchaseDetails(
+                              return FullProductionPurchaseDetails(
                                 purchasesModel: state.result,
                                 status: statusID,
                               );
                             },
                           ),
                         );
-                      } else if (state is PurchaseSuccess<Uint8List>) {
-                        await _saveFile(state.result, context);
                       }
                     },
                     builder: (context, state) {
@@ -409,7 +323,7 @@ class _PurchasesListChildState extends State<PurchasesListChild> {
                               ),
                               const SizedBox(height: 16),
                               Text(
-                                'لا توجد طلبات مشتريات لعرضها',
+                                'لا توجد طلبات مشتريات إنتاج لعرضها',
                                 style: TextStyle(
                                   fontSize: 18,
                                   color: Colors.grey[600],
@@ -470,21 +384,6 @@ class _PurchasesListChildState extends State<PurchasesListChild> {
                                                 MainAxisAlignment.center,
                                             children: [
                                               Icon(
-                                                (_briefPurchases[index]
-                                                                .last_price ??
-                                                            "")
-                                                        .isNotEmpty
-                                                    ? Icons.check
-                                                    : Icons.close,
-                                                color: (_briefPurchases[index]
-                                                                .last_price ??
-                                                            "")
-                                                        .isNotEmpty
-                                                    ? Colors.green
-                                                    : Colors.red,
-                                                size: 15,
-                                              ),
-                                              Icon(
                                                 _briefPurchases[index]
                                                             .manager_check ==
                                                         true
@@ -516,34 +415,6 @@ class _PurchasesListChildState extends State<PurchasesListChild> {
                                                 color: (_briefPurchases[index]
                                                             .received_check ==
                                                         true)
-                                                    ? Colors.green
-                                                    : Colors.red,
-                                                size: 15,
-                                              ),
-                                              Icon(
-                                                (_briefPurchases[index]
-                                                            .archived ==
-                                                        true)
-                                                    ? Icons.check
-                                                    : Icons.close,
-                                                color: (_briefPurchases[index]
-                                                            .archived ==
-                                                        true)
-                                                    ? Colors.green
-                                                    : Colors.red,
-                                                size: 15,
-                                              ),
-                                              Icon(
-                                                (_briefPurchases[index]
-                                                            .bill
-                                                            ?.isNotEmpty ??
-                                                        false)
-                                                    ? Icons.check
-                                                    : Icons.close,
-                                                color: (_briefPurchases[index]
-                                                            .bill
-                                                            ?.isNotEmpty ??
-                                                        false)
                                                     ? Colors.green
                                                     : Colors.red,
                                                 size: 15,
@@ -622,104 +493,4 @@ class _PurchasesListChildState extends State<PurchasesListChild> {
       );
     });
   }
-
-  void _onScroll() {
-    // Calculate the halfway point
-    double halfwayPoint = _scrollController.position.maxScrollExtent / 2;
-
-    // Check if the current scroll position is at or beyond the halfway point
-    if (_scrollController.position.pixels >= halfwayPoint && !isLoadingMore) {
-      _nextPage(context);
-    }
-  }
-
-  void _nextPage(BuildContext context) {
-    setState(() {
-      isLoadingMore = true;
-    });
-    currentPage++;
-    if (_searchController.text == "") {
-      runBloc();
-    } else {
-      runBlocSearch();
-    }
-  }
-
-  int _getItemStatusID() {
-    // Find the entry in the _itemStatus map where the value matches _selectedItemStatus
-    var entry = _itemStatus.entries.firstWhere(
-      (entry) => entry.value == _selectedStatus,
-      orElse: () =>
-          const MapEntry(-1, ''), // Default entry if no match is found
-    );
-
-    // If a matching entry is found, return its key (status ID)
-    if (entry.key != -1) {
-      return entry.key;
-    }
-
-    // If no matching entry is found, return null
-    return 1;
-  }
-
-  String _getItemStatusString(int statusID) {
-    return _itemStatus[statusID] ?? '';
-  }
-
-  void runBloc() {
-    int statusID = _getItemStatusID();
-    context.read<PurchaseBloc>().add(
-          GetAllPurchases(
-              page: currentPage,
-              status: statusID,
-              department: _selectedItemDepartment ?? ''),
-        );
-  }
-
-  void runBlocSearch() {
-    context.read<PurchaseBloc>().add(
-          SearchPurchases(page: currentPage, search: _searchController.text),
-        );
-  }
-}
-
-Future<void> _saveFile(Uint8List bytes, BuildContext context) async {
-  try {
-    final directory = await getTemporaryDirectory();
-
-    const fileName = 'تقرير مشتريات.xlsx';
-    final path = '${directory.path}\\$fileName';
-
-    final file = File(path);
-    await file.writeAsBytes(bytes);
-
-    await _showDialog(context, 'نجاح', 'تم حفظ الملف وسيتم فتحه الآن');
-
-    // Open the file
-    final result = await OpenFilex.open(path);
-
-    if (result.type != ResultType.done) {
-      await _showDialog(
-          context, 'Error', 'لم يتم فتح الملف: ${result.message}');
-    }
-  } catch (e) {
-    await _showDialog(context, 'Error', 'Failed to save/open file:\n$e');
-  }
-}
-
-Future<void> _showDialog(BuildContext context, String title, String message) {
-  return showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (_) => AlertDialog(
-      title: Text(title),
-      content: Text(message),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(), // Close the dialog
-          child: const Text('OK'),
-        ),
-      ],
-    ),
-  );
 }

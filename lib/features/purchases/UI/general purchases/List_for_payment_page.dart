@@ -16,7 +16,7 @@ import 'package:gmcappclean/features/purchases/Bloc/purchase_bloc.dart';
 import 'package:gmcappclean/features/purchases/Models/for_payments_model.dart';
 import 'package:gmcappclean/features/purchases/Models/purchases_model.dart';
 import 'package:gmcappclean/features/purchases/Services/purchase_service.dart';
-import 'package:gmcappclean/features/purchases/UI/full_purchase_details.dart';
+import 'package:gmcappclean/features/purchases/UI/general%20purchases/full_purchase_details.dart';
 import 'package:gmcappclean/init_dependencies.dart';
 
 class ListForPaymentPage extends StatefulWidget {
@@ -132,28 +132,43 @@ class _ListForPayaymentPageChildState extends State<ListForPayaymentPageChild> {
 
                       final confirmed = await showDialog<bool>(
                         context: context,
-                        builder: (context) => AlertDialog(
-                          title: const Text('تأكيد الأرشفة'),
-                          content: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                  'هل أنت متأكد أنك تريد أرشفة العناصر التالية؟'),
-                              const SizedBox(height: 8),
-                              ...selectedIds.map((id) => Text('- $id')),
+                        builder: (context) => Directionality(
+                          textDirection: TextDirection.rtl,
+                          child: AlertDialog(
+                            //title: const Text('تأكيد الأرشفة'),
+                            content: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'هل أنت متأكد أنك تريد أرشفة؟',
+                                  style: TextStyle(fontSize: 16),
+                                ),
+                                const SizedBox(height: 16),
+                                ...selectedIds.map((id) {
+                                  final type = _briefPurchases
+                                          .firstWhere(
+                                            (p) => p.id == id,
+                                          )
+                                          .type ??
+                                      'غير معروف';
+                                  return Text('$id: $type');
+                                }),
+                              ],
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () =>
+                                    Navigator.of(context).pop(false),
+                                child: const Text('إلغاء'),
+                              ),
+                              TextButton(
+                                onPressed: () =>
+                                    Navigator.of(context).pop(true),
+                                child: const Text('أرشفة'),
+                              ),
                             ],
                           ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(false),
-                              child: const Text('إلغاء'),
-                            ),
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(true),
-                              child: const Text('تأكيد'),
-                            ),
-                          ],
                         ),
                       );
 
