@@ -105,9 +105,11 @@ class OperationsServices {
       return userEntity.fold((failure) {
         return null;
       }, (success) async {
-        final response = await _apiClient.get(
+        queryParams['page'] = queryParams['page'] ?? 1;
+
+        final response = await _apiClient.getPageinated(
           user: success,
-          endPoint: 'sales_op',
+          endPoint: 'sales_op_paginated',
           queryParams: queryParams,
         );
         print(response.length.toString());

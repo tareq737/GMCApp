@@ -274,33 +274,9 @@ class _ListGardenTasksPageChildState extends State<ListGardenTasksPageChild> {
                   icon: const Icon(Icons.more_vert, color: Colors.white),
                   onSelected: (value) {
                     if (value == 'email') {
-                      showDialog(
-                        context: context,
-                        builder: (context) => Directionality(
-                          textDirection: ui.TextDirection.rtl,
-                          child: AlertDialog(
-                            title: const Text('تأكيد الإرسال'),
-                            content: const Text(
-                                'هل أنت متأكد من إرسال تقرير المهام بالبريد الإلكتروني؟'),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: const Text('إلغاء'),
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.pop(context); // Close dialog
-                                  context.read<GardeningBloc>().add(
-                                      GetMailOfTasks(
-                                          date: _dateController.text));
-                                },
-                                child: const Text('تأكيد',
-                                    style: TextStyle(color: Colors.green)),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
+                      context
+                          .read<GardeningBloc>()
+                          .add(GetMailOfTasks(date: _dateController.text));
                     } else if (value == 'excel') {
                       context.read<GardeningBloc>().add(
                           ExportExcelGardenTasks(date: _dateController.text));

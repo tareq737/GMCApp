@@ -4,12 +4,15 @@ import 'package:avatar_glow/avatar_glow.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:gmcappclean/core/common/api/api.dart';
 import 'package:gmcappclean/core/common/cubits/app_user/app_user_cubit.dart';
 import 'package:gmcappclean/core/common/widgets/loader.dart';
 import 'package:gmcappclean/core/common/widgets/mybutton.dart';
+import 'package:gmcappclean/core/services/auth_interactor.dart';
 import 'package:gmcappclean/core/services/version_checker.dart';
 import 'package:gmcappclean/core/theme/app_colors.dart';
 import 'package:gmcappclean/core/theme/theme_cubit.dart';
+import 'package:gmcappclean/core/utils/show_snackbar.dart';
 import 'package:gmcappclean/features/Exchange%20Rate/ui/rate_list_page.dart';
 import 'package:gmcappclean/features/Inventory/ui/balance%20and%20movement/item_movement_list_page.dart';
 import 'package:gmcappclean/features/Inventory/ui/balance%20and%20movement/warehouse_balance_list_page.dart';
@@ -42,6 +45,11 @@ import 'package:gmcappclean/features/sales_management/operations/ui/new_visit_pa
 import 'package:gmcappclean/features/sales_management/operations/ui/operations_date_page.dart';
 import 'package:gmcappclean/features/sales_management/operations/ui/operations_page.dart';
 import 'package:gmcappclean/features/sales_management/product_efficiency/ui/product_efficiency_list_page.dart';
+import 'package:gmcappclean/features/statistics/bloc/statistics_bloc.dart';
+import 'package:gmcappclean/features/statistics/models/statistics_model.dart';
+import 'package:gmcappclean/features/statistics/services/statistics_services.dart';
+import 'package:gmcappclean/features/statistics/ui/statistics_widget.dart';
+import 'package:gmcappclean/init_dependencies.dart';
 import 'package:intl/intl.dart';
 import 'dart:ui' as ui;
 
@@ -118,8 +126,7 @@ class _HomePageState extends State<HomePage>
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => const ChangePasswordPage(),
-                        ),
+                            builder: (_) => const ChangePasswordPage()),
                       );
                       break;
                     case 'reset_password':
@@ -127,8 +134,7 @@ class _HomePageState extends State<HomePage>
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => const ResetPasswordPage(),
-                          ),
+                              builder: (_) => const ResetPasswordPage()),
                         );
                       }
                       break;
@@ -168,989 +174,1020 @@ class _HomePageState extends State<HomePage>
               ),
             ],
           ),
-          body: GestureDetector(
-            onTap: () {
-              _scaffoldKey.currentState?.openDrawer();
-            },
-            child: Center(
-              child: BlocProvider(
-                create: (context) => PrayerTimesBloc(
-                  prayerTimesService: PrayerTimesService(),
-                )..add(GetPrayerTimes(date: DateTime.now())),
-                child: Column(
-                  children: [
-                    Expanded(
-                      flex: 70,
-                      child: AnimatedBuilder(
-                        animation: _animation,
-                        builder: (context, child) {
-                          return Opacity(
-                            opacity: _animation.value,
-                            child: Image.asset(
-                              'assets/images/app_logo.png',
-                              width: 150,
-                              height: 150,
-                            ),
-                          );
-                        },
-                      ),
+          body: Center(
+            child: MultiBlocProvider(
+              providers: [
+                BlocProvider(
+                  create: (context) => PrayerTimesBloc(
+                    prayerTimesService: PrayerTimesService(),
+                  )..add(GetPrayerTimes(date: DateTime.now())),
+                ),
+                BlocProvider(
+                    create: (context) => StatisticsBloc(
+                          StatisticsServices(
+                            apiClient: getIt<ApiClient>(),
+                            authInteractor: getIt<AuthInteractor>(),
+                          ),
+                        )),
+              ],
+              child: Column(
+                children: [
+                  if (groups != null &&
+                      (groups.contains('managers') ||
+                          groups.contains('admins')))
+                    const Expanded(
+                      child: StatisticsWidget(),
                     ),
+                  if (groups == null ||
+                      (!groups.contains('managers') &&
+                          !groups.contains('admins')))
                     Expanded(
-                      flex: 60,
-                      child: BlocBuilder<PrayerTimesBloc, PrayerTimesState>(
-                        builder: (context, state) {
-                          if (state is PrayerTimesLoading) {
-                            return const Center(
-                              child: SizedBox(
-                                height: 30,
-                                width: 30,
-                                child: Loader(),
+                      child: Column(
+                        children: [
+                          Expanded(
+                            child: InkWell(
+                              onTap: () {
+                                _scaffoldKey.currentState?.openDrawer();
+                              },
+                              child: AnimatedBuilder(
+                                animation: _animation,
+                                builder: (context, child) {
+                                  return Opacity(
+                                    opacity: _animation.value,
+                                    child: Image.asset(
+                                      'assets/images/app_logo.png',
+                                      width: 150,
+                                      height: 150,
+                                    ),
+                                  );
+                                },
                               ),
-                            );
-                          }
-                          if (state is PrayerTimesGetSuccess) {
-                            return Padding(
-                              padding: const EdgeInsets.all(10),
-                              child: Column(
-                                children: [
-                                  Text(
-                                    DateFormat(
-                                      'yyyy-MM-dd',
-                                    ).format(DateTime.now()),
-                                  ),
-                                  Text(
-                                    '${state.opResult.hijriDay}-${state.opResult.hijiMonth}-${state.opResult.hijriYear}',
-                                  ),
-                                  const SizedBox(height: 10),
-                                  Flexible(
-                                    child: GridView.count(
-                                      crossAxisCount: isLandscape ? 6 : 3,
-                                      crossAxisSpacing: 5,
+                            ),
+                          ),
+                          Expanded(
+                            child:
+                                BlocBuilder<PrayerTimesBloc, PrayerTimesState>(
+                              builder: (context, state) {
+                                if (state is PrayerTimesLoading) {
+                                  return const Center(
+                                    child: SizedBox(
+                                      height: 30,
+                                      width: 30,
+                                      child: Loader(),
+                                    ),
+                                  );
+                                }
+                                if (state is PrayerTimesGetSuccess) {
+                                  return Padding(
+                                    padding: const EdgeInsets.all(10),
+                                    child: Column(
                                       children: [
-                                        prayerTimeCard(
-                                          Icons.wb_twighlight,
-                                          'الفجر',
-                                          state.opResult.fajr,
+                                        Text(
+                                          DateFormat(
+                                            'yyyy-MM-dd',
+                                          ).format(DateTime.now()),
                                         ),
-                                        prayerTimeCard(
-                                          Icons.wb_sunny,
-                                          'الشروق',
-                                          state.opResult.sunrise,
+                                        Text(
+                                          '//${state.opResult.hijriDay}-${state.opResult.hijiMonth}-${state.opResult.hijriYear}',
                                         ),
-                                        prayerTimeCard(
-                                          Icons.access_time,
-                                          'الظهر',
-                                          state.opResult.dhuhr,
-                                        ),
-                                        prayerTimeCard(
-                                          Icons.wb_cloudy,
-                                          'العصر',
-                                          state.opResult.asr,
-                                        ),
-                                        prayerTimeCard(
-                                          Icons.nights_stay,
-                                          'المغرب',
-                                          state.opResult.maghrib,
-                                        ),
-                                        prayerTimeCard(
-                                          Icons.brightness_3,
-                                          'العشاء',
-                                          state.opResult.isha,
+                                        const SizedBox(height: 10),
+                                        Flexible(
+                                          child: GridView.count(
+                                            crossAxisCount: isLandscape ? 6 : 3,
+                                            crossAxisSpacing: 5,
+                                            children: [
+                                              prayerTimeCard(
+                                                Icons.wb_twighlight,
+                                                'الفجر',
+                                                state.opResult.fajr,
+                                              ),
+                                              prayerTimeCard(
+                                                Icons.wb_sunny,
+                                                'الشروق',
+                                                state.opResult.sunrise,
+                                              ),
+                                              prayerTimeCard(
+                                                Icons.access_time,
+                                                'الظهر',
+                                                state.opResult.dhuhr,
+                                              ),
+                                              prayerTimeCard(
+                                                Icons.wb_cloudy,
+                                                'العصر',
+                                                state.opResult.asr,
+                                              ),
+                                              prayerTimeCard(
+                                                Icons.nights_stay,
+                                                'المغرب',
+                                                state.opResult.maghrib,
+                                              ),
+                                              prayerTimeCard(
+                                                Icons.brightness_3,
+                                                'العشاء',
+                                                state.opResult.isha,
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ],
                                     ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }
-                          if (state is PrayerTimesGetFailure) {
-                            return const Center(
-                              child: Icon(Icons.error, color: Colors.red),
-                            );
-                          } else {
-                            return const SizedBox();
-                          }
-                        },
+                                  );
+                                }
+                                if (state is PrayerTimesGetFailure) {
+                                  return const Center(
+                                    child: Icon(Icons.error, color: Colors.red),
+                                  );
+                                } else {
+                                  return const SizedBox();
+                                }
+                              },
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
+                ],
               ),
             ),
           ),
           drawer: Drawer(
-            child: Column(children: [
-              Expanded(
-                child: ListView(
-                  padding: EdgeInsets.zero,
-                  children: [
-                    DrawerHeader(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors:
-                              Theme.of(context).brightness == Brightness.dark
-                                  ? [AppColors.gradient1, AppColors.gradient2]
-                                  : [
-                                      AppColors.lightGradient1,
-                                      AppColors.lightGradient2,
-                                    ],
-                          begin: Alignment.bottomLeft,
-                          end: Alignment.topRight,
+            child: Column(
+              children: [
+                Expanded(
+                  child: ListView(
+                    padding: EdgeInsets.zero,
+                    children: [
+                      DrawerHeader(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors:
+                                Theme.of(context).brightness == Brightness.dark
+                                    ? [AppColors.gradient1, AppColors.gradient2]
+                                    : [
+                                        AppColors.lightGradient1,
+                                        AppColors.lightGradient2,
+                                      ],
+                            begin: Alignment.bottomLeft,
+                            end: Alignment.topRight,
+                          ),
                         ),
-                      ),
-                      child: Column(
-                        spacing: 10,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          AvatarGlow(
-                            child: Material(
-                              color: Colors.transparent,
-                              elevation: 8.0,
-                              shape: const CircleBorder(),
-                              child: CircleAvatar(
-                                radius: 30,
-                                backgroundColor: Colors.white.withOpacity(
-                                  0.6,
-                                ),
-                                child: SizedBox(
-                                  width: 40,
-                                  child: Image.asset(
-                                    'assets/images/app_logo.png',
+                        child: Column(
+                          spacing: 10,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            AvatarGlow(
+                              child: Material(
+                                color: Colors.transparent,
+                                elevation: 8.0,
+                                shape: const CircleBorder(),
+                                child: CircleAvatar(
+                                  radius: 30,
+                                  backgroundColor: Colors.white.withOpacity(
+                                    0.6,
+                                  ),
+                                  child: SizedBox(
+                                    width: 40,
+                                    child: Image.asset(
+                                      'assets/images/app_logo.png',
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                BlocBuilder<AppUserCubit, AppUserState>(
+                                  builder: (context, state) {
+                                    if (state is AppUserLoggedIn) {
+                                      return Text(
+                                        "${state.userEntity.firstName} ${state.userEntity.lastName}",
+                                        style: TextStyle(
+                                          color: isDark
+                                              ? Colors.white
+                                              : Colors.black,
+                                          fontSize: 15,
+                                        ),
+                                      );
+                                    } else {
+                                      return const Text('');
+                                    }
+                                  },
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (groups != null &&
+                          (groups.contains('Sales') ||
+                              groups.contains('managers') ||
+                              groups.contains('admins')))
+                        ExpansionTile(
+                          leading: SizedBox(
+                            height: 30,
+                            width: 30,
+                            child: Image.asset('assets/images/sales_dep.png'),
                           ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              BlocBuilder<AppUserCubit, AppUserState>(
-                                builder: (context, state) {
-                                  if (state is AppUserLoggedIn) {
-                                    return Text(
-                                      "${state.userEntity.firstName} ${state.userEntity.lastName}",
-                                      style: TextStyle(
-                                        color: isDark
-                                            ? Colors.white
-                                            : Colors.black,
-                                        fontSize: 15,
+                          title: const Text('المبيعات'),
+                          children: [
+                            ListTile(
+                              title: const Text('كافة الزبائن'),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const FullCoustomersPage(),
+                                  ),
+                                );
+                              },
+                            ),
+                            ListTile(
+                              title: const Text('زيارة جديدة'),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) {
+                                      return const NewVisitPage();
+                                    },
+                                  ),
+                                );
+                              },
+                            ),
+                            ListTile(
+                              title: const Text('اتصال جديد'),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) {
+                                      return const NewCallPage();
+                                    },
+                                  ),
+                                );
+                              },
+                            ),
+                            ListTile(
+                              title: const Text('عمليات زبون'),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) {
+                                      return const OperationsPage();
+                                    },
+                                  ),
+                                );
+                              },
+                            ),
+                            ListTile(
+                              title: const Text('العمليات ضمن مدة'),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) {
+                                      return OperationsDatePage(
+                                        fromDate: DateFormat('yyyy-MM-dd')
+                                            .format(DateTime.now()),
+                                        toDate: DateFormat('yyyy-MM-dd')
+                                            .format(DateTime.now()),
+                                      );
+                                    },
+                                  ),
+                                );
+                              },
+                            ),
+                            ListTile(
+                              title: const Text('كفاءة منتجات'),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) {
+                                      return const ProductEfficiencyListPage();
+                                    },
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      if (groups != null &&
+                          (groups.contains('Accounting') ||
+                              groups.contains('managers') ||
+                              groups.contains('admins')))
+                        ExpansionTile(
+                          leading: SizedBox(
+                            height: 30,
+                            width: 30,
+                            child:
+                                Image.asset('assets/images/warehouse_dep.png'),
+                          ),
+                          title: const Text('المستودعات'),
+                          children: [
+                            ExpansionTile(
+                              title: const Text('المواد'),
+                              children: [
+                                ListTile(
+                                  title: const Text('المستودعات'),
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const WarehouseListPage(),
                                       ),
                                     );
-                                  } else {
-                                    return const Text('');
-                                  }
-                                },
-                              ),
-                            ],
+                                  },
+                                ),
+                                ListTile(
+                                  title: const Text('المجموعات'),
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) {
+                                          return const GroupsListPage();
+                                        },
+                                      ),
+                                    );
+                                  },
+                                ),
+                                ListTile(
+                                  title: const Text('المواد'),
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) {
+                                          return const ItemsListPage();
+                                        },
+                                      ),
+                                    );
+                                  },
+                                ),
+                                ListTile(
+                                  title: const Text('شجرة المواد'),
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) {
+                                          return const ItemsTreePage();
+                                        },
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                            ExpansionTile(
+                              title: const Text('الجرد والحركة'),
+                              children: [
+                                ListTile(
+                                  title: const Text('جرد'),
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) {
+                                          return const WarehouseBalanceListPage();
+                                        },
+                                      ),
+                                    );
+                                  },
+                                ),
+                                ListTile(
+                                  title: const Text('حركة مادة'),
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) {
+                                          return const ItemMovementListPage();
+                                        },
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                            ExpansionTile(
+                              title: const Text('المناقلات'),
+                              children: [
+                                ListTile(
+                                  title: const Text('إدخال جاهزة'),
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const TransfersListPage(
+                                          transfer_type: 1,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                ListTile(
+                                  title: const Text('إخراج جاهزة'),
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const TransfersListPage(
+                                          transfer_type: 2,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                ListTile(
+                                  title: const Text('إدخال أولية'),
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const TransfersListPage(
+                                          transfer_type: 3,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                ListTile(
+                                  title: const Text('إخراج أولية'),
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const TransfersListPage(
+                                          transfer_type: 4,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                ListTile(
+                                  title: const Text('مناقلة بضاعة أمانة'),
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const TransfersListPage(
+                                          transfer_type: 5,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                ListTile(
+                                  title: const Text('مناقلة مستودع'),
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const TransfersListPage(
+                                          transfer_type: 6,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                ListTile(
+                                  title: const Text('إدخال تعبئة'),
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const TransfersListPage(
+                                          transfer_type: 7,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                ListTile(
+                                  title: const Text('إخراج تعبئة'),
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const TransfersListPage(
+                                          transfer_type: 8,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                            ExpansionTile(
+                              title: const Text('الفواتير'),
+                              children: [
+                                ListTile(
+                                  title: const Text('مشتريات'),
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) {
+                                          return const TransfersListPage(
+                                            transfer_type: 101,
+                                          );
+                                        },
+                                      ),
+                                    );
+                                  },
+                                ),
+                                ListTile(
+                                  title: const Text('مبيعات'),
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) {
+                                          return const TransfersListPage(
+                                            transfer_type: 102,
+                                          );
+                                        },
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                            ListTile(
+                              title: const Text('التصنيع'),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const ManufacturingListPage(),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      if (groups != null &&
+                          (groups.contains('production') ||
+                              groups.contains('managers') ||
+                              groups.contains('admins')))
+                        ExpansionTile(
+                          leading: SizedBox(
+                            height: 30,
+                            width: 30,
+                            child: Image.asset(
+                              'assets/images/manufacturing.png',
+                            ),
                           ),
-                        ],
-                      ),
-                    ),
-                    if (groups != null &&
-                        (groups.contains('Sales') ||
-                            groups.contains('managers') ||
-                            groups.contains('admins')))
+                          title: const Text('الإنتاج'),
+                          children: [
+                            ListTile(
+                              title: const Text('الجهوزية'),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const FullProdPlanPage(),
+                                  ),
+                                );
+                              },
+                            ),
+                            ListTile(
+                              title: const Text('الإنتاج'),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const ProductionList(
+                                      type: 'Production',
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                            ListTile(
+                              title: const Text('أرشيف الإنتاج'),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const ProductionList(
+                                      type: 'Archive',
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                            ListTile(
+                              title: const Text('الأعمال الإضافية'),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const ListAdditionalOperationsPage(),
+                                  ),
+                                );
+                              },
+                            ),
+                            ListTile(
+                              title: const Text('عمل الموظفين'),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const TotalProductionPage(),
+                                  ),
+                                );
+                              },
+                            ),
+                            ListTile(
+                              title: const Text('البرنامج الفردي'),
+                              onTap: () async {
+                                if (!Platform.isWindows) {
+                                  showDialog(
+                                    context: context,
+                                    builder: (_) => AlertDialog(
+                                      title: const Text('غير مدعوم'),
+                                      content: const Text(
+                                        'هذه الميزة متاحة فقط على نظام Windows.',
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.pop(context),
+                                          child: const Text('موافق'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                  return;
+                                }
+
+                                final AppUserState appUserState =
+                                    context.read<AppUserCubit>().state;
+                                List<String> userGroups = [];
+                                if (appUserState is AppUserLoggedIn) {
+                                  userGroups =
+                                      appUserState.userEntity.groups ?? [];
+                                }
+
+                                final Map<String, Map<String, String>>
+                                    departmentAccess = {
+                                  'RawMaterials': {
+                                    'displayName': 'قسم الأولية',
+                                    'requiredGroup': 'raw_material_dep'
+                                  },
+                                  'Manufacturing': {
+                                    'displayName': 'قسم التصنيع',
+                                    'requiredGroup': 'manufacturing_dep'
+                                  },
+                                  'Lab': {
+                                    'displayName': 'قسم المخبر',
+                                    'requiredGroup': 'lab_dep'
+                                  },
+                                  'EmptyPackaging': {
+                                    'displayName': 'قسم الفوارغ',
+                                    'requiredGroup': 'emptyPackaging_dep'
+                                  },
+                                  'Packaging': {
+                                    'displayName': 'قسم التعبئة',
+                                    'requiredGroup': 'packaging_dep'
+                                  },
+                                  'FinishedGoods': {
+                                    'displayName': 'قسم الجاهزة',
+                                    'requiredGroup': 'finishedGoods_dep'
+                                  },
+                                };
+                                // Check if the user is an admin
+                                final bool isAdmin =
+                                    userGroups.contains('admins');
+                                final List<
+                                        MapEntry<String, Map<String, String>>>
+                                    accessibleDepartments = isAdmin
+                                        ? departmentAccess.entries
+                                            .toList() // Admins get all departments
+                                        : departmentAccess.entries
+                                            .where((entry) =>
+                                                userGroups.contains(entry
+                                                    .value['requiredGroup']))
+                                            .toList();
+
+                                String? selectedDepartment;
+
+                                if (accessibleDepartments.isEmpty) {
+                                  showDialog(
+                                    context: context,
+                                    builder: (_) => AlertDialog(
+                                      title: const Text('لا توجد أقسام متاحة'),
+                                      content: const Text(
+                                        'ليس لديك صلاحيات للوصول إلى أي قسم.',
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.pop(context),
+                                          child: const Text('موافق'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                  return; // Exit if no accessible departments
+                                } else if (accessibleDepartments.length == 1) {
+                                  // If only one department is accessible, select it automatically
+                                  selectedDepartment =
+                                      accessibleDepartments.first.key;
+                                } else {
+                                  // If multiple departments are accessible, show the dialog for selection
+                                  final List<Widget> departmentListTiles =
+                                      accessibleDepartments.map((entry) {
+                                    return ListTile(
+                                      title: Text(entry.value['displayName']!),
+                                      onTap: () => Navigator.pop(
+                                        context,
+                                        entry
+                                            .key, // Returns the backend department code
+                                      ),
+                                    );
+                                  }).toList();
+
+                                  selectedDepartment = await showDialog<String>(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                      title: const Text('اختر القسم'),
+                                      content: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: departmentListTiles,
+                                      ),
+                                    ),
+                                  );
+                                }
+
+                                // Navigate to ExportExcelTasksPage if a department was selected (either automatically or by user)
+                                if (selectedDepartment != null) {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          ExportExcelTasksPage(
+                                        department: selectedDepartment!,
+                                        departmentDisplayName: departmentAccess[
+                                                selectedDepartment]![
+                                            'displayName']!,
+                                      ),
+                                    ),
+                                  );
+                                }
+                              },
+                            ),
+                          ],
+                        ),
+                      if (groups != null &&
+                          (groups.contains('Gardening') ||
+                              groups.contains('managers') ||
+                              groups.contains('admins')))
+                        ExpansionTile(
+                          title: const Text('الزراعة'),
+                          leading: SizedBox(
+                            height: 30,
+                            width: 30,
+                            child:
+                                Image.asset('assets/images/Gardening_dep.png'),
+                          ),
+                          children: [
+                            ListTile(
+                              title: const Text('البرنامج اليومي'),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) {
+                                      return const ListGardenTasksPage();
+                                    },
+                                  ),
+                                );
+                              },
+                            ),
+                            ListTile(
+                              title: const Text('البرنامج العام'),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) {
+                                      return const GenralListGardenTasksPage();
+                                    },
+                                  ),
+                                );
+                              },
+                            ),
+                            ListTile(
+                              title: const Text('إضافة مهام'),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) {
+                                      return const AddGardenActivityPage();
+                                    },
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
                       ExpansionTile(
+                        title: const Text('المشتريات'),
                         leading: SizedBox(
                           height: 30,
                           width: 30,
-                          child: Image.asset('assets/images/sales_dep.png'),
+                          child: Image.asset('assets/images/purchases_dep.png'),
                         ),
-                        title: const Text('المبيعات'),
                         children: [
                           ListTile(
-                            title: const Text('كافة الزبائن'),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      const FullCoustomersPage(),
-                                ),
-                              );
-                            },
-                          ),
-                          ListTile(
-                            title: const Text('زيارة جديدة'),
+                            title: const Text('مشتريات عام'),
                             onTap: () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) {
-                                    return const NewVisitPage();
+                                    return const PurchasesList(status: 1);
                                   },
                                 ),
                               );
                             },
                           ),
-                          ListTile(
-                            title: const Text('اتصال جديد'),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) {
-                                    return const NewCallPage();
-                                  },
-                                ),
-                              );
-                            },
-                          ),
-                          ListTile(
-                            title: const Text('عمليات زبون'),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) {
-                                    return const OperationsPage();
-                                  },
-                                ),
-                              );
-                            },
-                          ),
-                          ListTile(
-                            title: const Text('العمليات ضمن مدة'),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) {
-                                    return const OperationsDatePage();
-                                  },
-                                ),
-                              );
-                            },
-                          ),
-                          ListTile(
-                            title: const Text('كفاءة منتجات'),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) {
-                                    return const ProductEfficiencyListPage();
-                                  },
-                                ),
-                              );
-                            },
-                          ),
+                          if (groups != null &&
+                              (groups.contains('production_purchases') ||
+                                  groups.contains('managers') ||
+                                  groups.contains('admins')))
+                            ListTile(
+                              title: const Text('مشتريات إنتاج'),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) {
+                                      return const ProductionPurchasesList(
+                                          status: 1);
+                                    },
+                                  ),
+                                );
+                              },
+                            ),
                         ],
                       ),
-                    if (groups != null &&
-                        (groups.contains('Accounting') ||
-                            groups.contains('managers') ||
-                            groups.contains('admins')))
-                      ExpansionTile(
-                        leading: SizedBox(
-                          height: 30,
-                          width: 30,
-                          child: Image.asset('assets/images/warehouse_dep.png'),
-                        ),
-                        title: const Text('المستودعات'),
-                        children: [
-                          ExpansionTile(
-                            title: const Text('المواد'),
-                            children: [
-                              ListTile(
-                                title: const Text('المستودعات'),
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          const WarehouseListPage(),
-                                    ),
-                                  );
-                                },
-                              ),
-                              ListTile(
-                                title: const Text('المجموعات'),
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) {
-                                        return const GroupsListPage();
-                                      },
-                                    ),
-                                  );
-                                },
-                              ),
-                              ListTile(
-                                title: const Text('المواد'),
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) {
-                                        return const ItemsListPage();
-                                      },
-                                    ),
-                                  );
-                                },
-                              ),
-                              ListTile(
-                                title: const Text('شجرة المواد'),
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) {
-                                        return const ItemsTreePage();
-                                      },
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
-                          ExpansionTile(
-                            title: const Text('الجرد والحركة'),
-                            children: [
-                              ListTile(
-                                title: const Text('جرد'),
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) {
-                                        return const WarehouseBalanceListPage();
-                                      },
-                                    ),
-                                  );
-                                },
-                              ),
-                              ListTile(
-                                title: const Text('حركة مادة'),
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) {
-                                        return const ItemMovementListPage();
-                                      },
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
-                          ExpansionTile(
-                            title: const Text('المناقلات'),
-                            children: [
-                              ListTile(
-                                title: const Text('إدخال جاهزة'),
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          const TransfersListPage(
-                                        transfer_type: 1,
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                              ListTile(
-                                title: const Text('إخراج جاهزة'),
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          const TransfersListPage(
-                                        transfer_type: 2,
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                              ListTile(
-                                title: const Text('إدخال أولية'),
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          const TransfersListPage(
-                                        transfer_type: 3,
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                              ListTile(
-                                title: const Text('إخراج أولية'),
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          const TransfersListPage(
-                                        transfer_type: 4,
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                              ListTile(
-                                title: const Text('مناقلة بضاعة أمانة'),
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          const TransfersListPage(
-                                        transfer_type: 5,
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                              ListTile(
-                                title: const Text('مناقلة مستودع'),
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          const TransfersListPage(
-                                        transfer_type: 6,
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                              ListTile(
-                                title: const Text('إدخال تعبئة'),
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          const TransfersListPage(
-                                        transfer_type: 7,
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                              ListTile(
-                                title: const Text('إخراج تعبئة'),
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          const TransfersListPage(
-                                        transfer_type: 8,
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
-                          ExpansionTile(
-                            title: const Text('الفواتير'),
-                            children: [
-                              ListTile(
-                                title: const Text('مشتريات'),
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) {
-                                        return const TransfersListPage(
-                                          transfer_type: 101,
-                                        );
-                                      },
-                                    ),
-                                  );
-                                },
-                              ),
-                              ListTile(
-                                title: const Text('مبيعات'),
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) {
-                                        return const TransfersListPage(
-                                          transfer_type: 102,
-                                        );
-                                      },
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
-                          ListTile(
-                            title: const Text('التصنيع'),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      const ManufacturingListPage(),
-                                ),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                    if (groups != null &&
-                        (groups.contains('production') ||
-                            groups.contains('managers') ||
-                            groups.contains('admins')))
-                      ExpansionTile(
+                      ListTile(
                         leading: SizedBox(
                           height: 30,
                           width: 30,
                           child: Image.asset(
-                            'assets/images/manufacturing.png',
+                            'assets/images/maintenance _dep.png',
                           ),
                         ),
-                        title: const Text('الإنتاج'),
-                        children: [
-                          ListTile(
-                            title: const Text('الجهوزية'),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      const FullProdPlanPage(),
-                                ),
-                              );
-                            },
-                          ),
-                          ListTile(
-                            title: const Text('الإنتاج'),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const ProductionList(
-                                    type: 'Production',
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                          ListTile(
-                            title: const Text('أرشيف الإنتاج'),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const ProductionList(
-                                    type: 'Archive',
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                          ListTile(
-                            title: const Text('الأعمال الإضافية'),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      const ListAdditionalOperationsPage(),
-                                ),
-                              );
-                            },
-                          ),
-                          ListTile(
-                            title: const Text('عمل الموظفين'),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      const TotalProductionPage(),
-                                ),
-                              );
-                            },
-                          ),
-                          ListTile(
-                            title: const Text('البرنامج الفردي'),
-                            onTap: () async {
-                              if (!Platform.isWindows) {
-                                showDialog(
-                                  context: context,
-                                  builder: (_) => AlertDialog(
-                                    title: const Text('غير مدعوم'),
-                                    content: const Text(
-                                      'هذه الميزة متاحة فقط على نظام Windows.',
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () => Navigator.pop(context),
-                                        child: const Text('موافق'),
-                                      ),
-                                    ],
-                                  ),
+                        title: const Text('الصيانة'),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) {
+                                return const MaintenanceListPage(
+                                  status: 1,
                                 );
-                                return;
-                              }
-
-                              final AppUserState appUserState =
-                                  context.read<AppUserCubit>().state;
-                              List<String> userGroups = [];
-                              if (appUserState is AppUserLoggedIn) {
-                                userGroups =
-                                    appUserState.userEntity.groups ?? [];
-                              }
-
-                              final Map<String, Map<String, String>>
-                                  departmentAccess = {
-                                'RawMaterials': {
-                                  'displayName': 'قسم الأولية',
-                                  'requiredGroup': 'raw_material_dep'
-                                },
-                                'Manufacturing': {
-                                  'displayName': 'قسم التصنيع',
-                                  'requiredGroup': 'manufacturing_dep'
-                                },
-                                'Lab': {
-                                  'displayName': 'قسم المخبر',
-                                  'requiredGroup': 'lab_dep'
-                                },
-                                'EmptyPackaging': {
-                                  'displayName': 'قسم الفوارغ',
-                                  'requiredGroup': 'emptyPackaging_dep'
-                                },
-                                'Packaging': {
-                                  'displayName': 'قسم التعبئة',
-                                  'requiredGroup': 'packaging_dep'
-                                },
-                                'FinishedGoods': {
-                                  'displayName': 'قسم الجاهزة',
-                                  'requiredGroup': 'finishedGoods_dep'
-                                },
-                              };
-                              // Check if the user is an admin
-                              final bool isAdmin =
-                                  userGroups.contains('admins');
-                              final List<MapEntry<String, Map<String, String>>>
-                                  accessibleDepartments = isAdmin
-                                      ? departmentAccess.entries
-                                          .toList() // Admins get all departments
-                                      : departmentAccess.entries
-                                          .where((entry) => userGroups.contains(
-                                              entry.value['requiredGroup']))
-                                          .toList();
-
-                              String? selectedDepartment;
-
-                              if (accessibleDepartments.isEmpty) {
-                                showDialog(
-                                  context: context,
-                                  builder: (_) => AlertDialog(
-                                    title: const Text('لا توجد أقسام متاحة'),
-                                    content: const Text(
-                                      'ليس لديك صلاحيات للوصول إلى أي قسم.',
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () => Navigator.pop(context),
-                                        child: const Text('موافق'),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                                return; // Exit if no accessible departments
-                              } else if (accessibleDepartments.length == 1) {
-                                // If only one department is accessible, select it automatically
-                                selectedDepartment =
-                                    accessibleDepartments.first.key;
-                              } else {
-                                // If multiple departments are accessible, show the dialog for selection
-                                final List<Widget> departmentListTiles =
-                                    accessibleDepartments.map((entry) {
-                                  return ListTile(
-                                    title: Text(entry.value['displayName']!),
-                                    onTap: () => Navigator.pop(
-                                      context,
-                                      entry
-                                          .key, // Returns the backend department code
-                                    ),
-                                  );
-                                }).toList();
-
-                                selectedDepartment = await showDialog<String>(
-                                  context: context,
-                                  builder: (context) => AlertDialog(
-                                    title: const Text('اختر القسم'),
-                                    content: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: departmentListTiles,
-                                    ),
-                                  ),
-                                );
-                              }
-
-                              // Navigate to ExportExcelTasksPage if a department was selected (either automatically or by user)
-                              if (selectedDepartment != null) {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => ExportExcelTasksPage(
-                                      department: selectedDepartment!,
-                                      departmentDisplayName: departmentAccess[
-                                          selectedDepartment]!['displayName']!,
-                                    ),
-                                  ),
-                                );
-                              }
-                            },
-                          ),
-                        ],
+                              },
+                            ),
+                          );
+                        },
                       ),
-                    if (groups != null &&
-                        (groups.contains('Gardening') ||
-                            groups.contains('managers') ||
-                            groups.contains('admins')))
-                      ExpansionTile(
-                        title: const Text('الزراعة'),
+                      ListTile(
                         leading: SizedBox(
                           height: 30,
                           width: 30,
-                          child: Image.asset('assets/images/Gardening_dep.png'),
+                          child: Image.asset('assets/images/rate.png'),
                         ),
-                        children: [
-                          ListTile(
-                            title: const Text('البرنامج اليومي'),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) {
-                                    return const ListGardenTasksPage();
-                                  },
-                                ),
-                              );
-                            },
-                          ),
-                          ListTile(
-                            title: const Text('البرنامج العام'),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) {
-                                    return const GenralListGardenTasksPage();
-                                  },
-                                ),
-                              );
-                            },
-                          ),
-                          ListTile(
-                            title: const Text('إضافة مهام'),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) {
-                                    return const AddGardenActivityPage();
-                                  },
-                                ),
-                              );
-                            },
-                          ),
-                        ],
+                        title: const Text('أسعار الصرف'),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) {
+                                return const RateListPage();
+                              },
+                            ),
+                          );
+                        },
                       ),
-                    ExpansionTile(
-                      title: const Text('المشتريات'),
-                      leading: SizedBox(
-                        height: 30,
-                        width: 30,
-                        child: Image.asset('assets/images/purchases_dep.png'),
+                    ],
+                  ),
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    IconButton(
+                      icon: const FaIcon(
+                        FontAwesomeIcons.facebook,
+                        color: Color(0xFF1877F2), // Facebook Blue
                       ),
-                      children: [
-                        ListTile(
-                          title: const Text('مشتريات عام'),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) {
-                                  return const PurchasesList(status: 1);
-                                },
-                              ),
-                            );
-                          },
-                        ),
-                        if (groups != null &&
-                            (groups.contains('production_purchases') ||
-                                groups.contains('managers') ||
-                                groups.contains('admins')))
-                          ListTile(
-                            title: const Text('مشتريات إنتاج'),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) {
-                                    return const ProductionPurchasesList(
-                                        status: 1);
-                                  },
-                                ),
-                              );
-                            },
-                          ),
-                      ],
-                    ),
-                    ListTile(
-                      leading: SizedBox(
-                        height: 30,
-                        width: 30,
-                        child: Image.asset(
-                          'assets/images/maintenance _dep.png',
-                        ),
-                      ),
-                      title: const Text('الصيانة'),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) {
-                              return const MaintenanceListPage(
-                                status: 1,
-                              );
-                            },
-                          ),
-                        );
+                      onPressed: () async {
+                        var url = Uri.https('facebook.com', 'GMCpaint');
+                        if (await canLaunchUrl(url)) {
+                          await launchUrl(url);
+                        } else {
+                          throw 'Could not launch $url';
+                        }
                       },
                     ),
-                    ListTile(
-                      leading: SizedBox(
-                        height: 30,
-                        width: 30,
-                        child: Image.asset('assets/images/rate.png'),
+                    IconButton(
+                      icon: const FaIcon(
+                        FontAwesomeIcons.whatsapp,
+                        color: Color(0xFF25D366), // WhatsApp Green
                       ),
-                      title: const Text('أسعار الصرف'),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) {
-                              return const RateListPage();
-                            },
-                          ),
+                      onPressed: () async {
+                        var url = Uri.parse('https://wa.me/+963991177992');
+                        if (await canLaunchUrl(url)) {
+                          await launchUrl(url);
+                        } else {
+                          throw 'Could not launch $url';
+                        }
+                      },
+                    ),
+                    IconButton(
+                      icon: const FaIcon(
+                        FontAwesomeIcons.telegram,
+                        color: Color(0xFF0088cc), // Telegram Blue
+                      ),
+                      onPressed: () async {
+                        var url = Uri.parse('https://t.me/gmcpaints');
+                        if (await canLaunchUrl(url)) {
+                          await launchUrl(url);
+                        } else {
+                          throw 'Could not launch $url';
+                        }
+                      },
+                    ),
+                    IconButton(
+                      icon: const FaIcon(FontAwesomeIcons.instagram),
+                      color: Color(0xFFE1306C),
+                      onPressed: () async {
+                        Uri url = Uri.parse(
+                          'https://www.instagram.com/gmcpaints',
                         );
+
+                        if (await canLaunchUrl(url)) {
+                          await launchUrl(url);
+                        } else {
+                          throw 'Could not launch $url';
+                        }
+                      },
+                    ),
+                    IconButton(
+                      icon: const FaIcon(
+                        FontAwesomeIcons.globe,
+                        color: Colors.blueGrey,
+                      ),
+                      onPressed: () async {
+                        var url = Uri.https('ofc.com.sy');
+                        if (await canLaunchUrl(url)) {
+                          await launchUrl(url);
+                        } else {
+                          throw 'Could not launch $url';
+                        }
                       },
                     ),
                   ],
                 ),
-              ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  IconButton(
-                    icon: const FaIcon(
-                      FontAwesomeIcons.facebook,
-                      color: Color(0xFF1877F2), // Facebook Blue
+                const Divider(),
+                Column(
+                  children: [
+                    Mybutton(
+                      text: 'تسجيل خروج',
+                      onPressed: () {
+                        context.read<AuthBloc>().add(AuthLogOut());
+                      },
                     ),
-                    onPressed: () async {
-                      var url = Uri.https('facebook.com', 'GMCpaint');
-                      if (await canLaunchUrl(url)) {
-                        await launchUrl(url);
-                      } else {
-                        throw 'Could not launch $url';
-                      }
-                    },
-                  ),
-                  IconButton(
-                    icon: const FaIcon(
-                      FontAwesomeIcons.whatsapp,
-                      color: Color(0xFF25D366), // WhatsApp Green
-                    ),
-                    onPressed: () async {
-                      var url = Uri.parse('https://wa.me/+963991177992');
-                      if (await canLaunchUrl(url)) {
-                        await launchUrl(url);
-                      } else {
-                        throw 'Could not launch $url';
-                      }
-                    },
-                  ),
-                  IconButton(
-                    icon: const FaIcon(
-                      FontAwesomeIcons.telegram,
-                      color: Color(0xFF0088cc), // Telegram Blue
-                    ),
-                    onPressed: () async {
-                      var url = Uri.parse('https://t.me/gmcpaints');
-                      if (await canLaunchUrl(url)) {
-                        await launchUrl(url);
-                      } else {
-                        throw 'Could not launch $url';
-                      }
-                    },
-                  ),
-                  IconButton(
-                    icon: const FaIcon(FontAwesomeIcons.instagram),
-                    color: Color(0xFFE1306C),
-                    onPressed: () async {
-                      Uri url = Uri.parse(
-                        'https://www.instagram.com/gmcpaints',
-                      );
-
-                      if (await canLaunchUrl(url)) {
-                        await launchUrl(url);
-                      } else {
-                        throw 'Could not launch $url';
-                      }
-                    },
-                  ),
-                  IconButton(
-                    icon: const FaIcon(
-                      FontAwesomeIcons.globe,
-                      color: Colors.blueGrey,
-                    ),
-                    onPressed: () async {
-                      var url = Uri.https('ofc.com.sy');
-                      if (await canLaunchUrl(url)) {
-                        await launchUrl(url);
-                      } else {
-                        throw 'Could not launch $url';
-                      }
-                    },
-                  ),
-                ],
-              ),
-              const Divider(),
-              Column(
-                spacing: 10,
-                children: [
-                  const VersionCheckRow(),
-
-                  // AnimatedShadowButton(
-                  //   text: 'تسجيل خروج',
-                  //   onPressed: () {
-                  //     context.read<AuthBloc>().add(AuthLogOut());
-                  //   },
-                  // ),
-                  Mybutton(
-                    text: 'تسجيل خروج',
-                    onPressed: () {
-                      context.read<AuthBloc>().add(AuthLogOut());
-                    },
-                  ),
-                  const SizedBox(height: 10),
-                ],
-              ),
-            ]),
+                    const SizedBox(height: 10),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

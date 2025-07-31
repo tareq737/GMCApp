@@ -19,4 +19,12 @@ class AppUserCubit extends Cubit<AppUserState> {
       emit(AppUserLoggedIn(userEntity: user));
     }
   }
+
+  void updateUserGroups(List<String> newGroups) {
+    if (state is AppUserLoggedIn) {
+      final currentState = state as AppUserLoggedIn;
+      final updatedUser = currentState.userEntity.copyWith(groups: newGroups);
+      emit(AppUserLoggedIn(userEntity: updatedUser));
+    }
+  }
 }

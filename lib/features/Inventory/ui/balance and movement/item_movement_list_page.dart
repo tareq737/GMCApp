@@ -11,8 +11,10 @@ import 'package:gmcappclean/core/utils/show_snackbar.dart';
 import 'package:gmcappclean/features/Inventory/bloc/inventory_bloc.dart';
 import 'package:gmcappclean/features/Inventory/models/items_model.dart';
 import 'package:gmcappclean/features/Inventory/models/movement_model.dart';
+import 'package:gmcappclean/features/Inventory/models/transfer_model.dart';
 import 'package:gmcappclean/features/Inventory/models/warehouses_model.dart';
 import 'package:gmcappclean/features/Inventory/services/inventory_services.dart';
+import 'package:gmcappclean/features/Inventory/ui/transfers/transfer_page.dart';
 import 'package:gmcappclean/init_dependencies.dart';
 import 'package:intl/intl.dart';
 
@@ -439,6 +441,18 @@ class _ItemMovementListPageChildState extends State<ItemMovementListPageChild> {
                     _isFetchingMore = false;
                     _isSearchingWarehouse = false;
                     setState(() {});
+                  } else if (state is InventorySuccess<TransferModel>) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) {
+                          return TransferPage(
+                            transferModel: state.result,
+                            transfer_type: state.result.transfer_type!,
+                          );
+                        },
+                      ),
+                    );
                   } else if (state is InventoryError) {
                     showSnackBar(
                       context: context,
@@ -471,59 +485,85 @@ class _ItemMovementListPageChildState extends State<ItemMovementListPageChild> {
                             itemBuilder: (context, index) {
                               if (index < _movementList.length) {
                                 final movement = _movementList[index];
-                                return Card(
-                                  child: ListTile(
-                                    trailing: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Text(
-                                          'الرصيد: ${movement.balance}',
-                                        ),
-                                        Text(
-                                          'الكمية: ${movement.quantity}',
-                                        ),
-                                      ],
-                                    ),
-                                    leading: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        CircleAvatar(
-                                          backgroundColor: (movement
-                                                      .direction ==
-                                                  'إدخالات')
-                                              ? Colors.green
-                                              : (movement.direction ==
-                                                      'إخراجات')
-                                                  ? Colors.red
-                                                  : Colors
-                                                      .grey, // default color if neither
-                                          radius: 11,
-                                          child: Text(
-                                            movement.transfer_serial.toString(),
-                                            style: const TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 8,
+                                return InkWell(
+                                  onTap: () {
+                                    context.read<InventoryBloc>().add(
+                                          GetOneTransferBySerial(
+                                            serial: _movementList[index]
+                                                .transfer_serial!,
+                                            transfer_type: _movementList[index]
+                                                .transfer_type_id!,
+                                          ),
+                                        );
+                                  },
+                                  child: Card(
+                                    child: ListTile(
+                                      trailing: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            movement.date ?? '',
+                                            style: TextStyle(fontSize: 10),
+                                          ),
+                                          Text(
+                                            'الرصيد: ${movement.balance}',
+                                            style: TextStyle(fontSize: 10),
+                                          ),
+                                          Text(
+                                            'الكمية: ${movement.quantity}',
+                                            style: TextStyle(fontSize: 10),
+                                          ),
+                                        ],
+                                      ),
+                                      leading: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          CircleAvatar(
+                                            backgroundColor: (movement
+                                                        .direction ==
+                                                    'إدخالات')
+                                                ? Colors.green
+                                                : (movement.direction ==
+                                                        'إخراجات')
+                                                    ? Colors.red
+                                                    : Colors
+                                                        .grey, // default color if neither
+                                            radius: 11,
+                                            child: Text(
+                                              movement.transfer_serial
+                                                  .toString(),
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 8,
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                        Text(
-                                          movement.direction ?? '',
-                                        ),
-                                      ],
-                                    ),
-                                    title: Text(
-                                      movement.warehouse ?? '',
-                                      textAlign: TextAlign.center,
-                                    ),
-                                    subtitle: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Text(movement.note ?? ''),
-                                        Text(movement.date ?? ''),
-                                      ],
+                                          Text(
+                                            movement.direction ?? '',
+                                          ),
+                                        ],
+                                      ),
+                                      title: Text(
+                                        movement.warehouse ?? '',
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      subtitle: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Text(movement.note ?? ''),
+                                          Text(
+                                            movement.item ?? '',
+                                            textAlign: TextAlign.center,
+                                          ),
+                                          Text(
+                                            movement.transfer_type ?? '',
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 );

@@ -231,14 +231,16 @@ class _TrasfersListPageChildState extends State<TrasfersListPageChild> {
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        Text(
-                                          'من: ${_transferModel[index].from_warehouse_name ?? ""}',
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        Text(
-                                          'إلى: ${_transferModel[index].to_warehouse_name ?? ""}',
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
+                                        if (widget.transfer_type != 101)
+                                          Text(
+                                            'من: ${_transferModel[index].from_warehouse_name ?? ""}',
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        if (widget.transfer_type != 102)
+                                          Text(
+                                            'إلى: ${_transferModel[index].to_warehouse_name ?? ""}',
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
                                         Text(
                                           'البيان: ${_transferModel[index].note ?? ""}',
                                           overflow: TextOverflow.ellipsis,

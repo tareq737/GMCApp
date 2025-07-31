@@ -2,7 +2,7 @@ name: gmcappclean
 description: "A new Flutter project."
 publish_to: "none"
 
-version: 2.0.30
+version: 2.0.32
 
 environment:
   sdk: ">=3.4.4 <4.0.0"

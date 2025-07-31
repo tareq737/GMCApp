@@ -74,7 +74,6 @@ class MyApp extends StatelessWidget {
             'PurchasesList': (context) => const PurchasesList(
                   status: 8,
                 ),
-            'OperationsDatePage': (context) => const OperationsDatePage(),
             'MaintenanceListPage': (context) => const MaintenanceListPage(
                   status: 1,
                 ),

@@ -537,10 +537,13 @@ class InventoryServices {
         if (warehouse_id != null) {
           queryParams['warehouse_id'] = warehouse_id;
         }
+        if (item_id != null) {
+          queryParams['item_id'] = item_id;
+        }
 
         final response = await _apiClient.getPageinated(
           user: success,
-          endPoint: 'item_activity/$item_id',
+          endPoint: 'item_activity',
           queryParams: queryParams,
         );
 

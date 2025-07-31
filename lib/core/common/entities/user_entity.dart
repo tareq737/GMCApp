@@ -12,4 +12,20 @@ class UserEntity {
     this.lastName,
     this.groups,
   });
+
+  UserEntity copyWith({
+    String? accessToken,
+    String? refreshToken,
+    String? firstName,
+    String? lastName,
+    List<String>? groups,
+  }) {
+    return UserEntity(
+      accessToken: accessToken ?? this.accessToken,
+      refreshToken: refreshToken ?? this.refreshToken,
+      firstName: firstName ?? this.firstName,
+      lastName: lastName ?? this.lastName,
+      groups: groups ?? this.groups,
+    );
+  }
 }

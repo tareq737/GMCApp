@@ -13,7 +13,6 @@ import 'package:gmcappclean/features/purchases/Models/brief_purchase_model.dart'
 import 'package:gmcappclean/features/purchases/Models/purchases_model.dart';
 import 'package:gmcappclean/features/purchases/Services/purchase_service.dart';
 import 'package:gmcappclean/features/purchases/UI/add_purchase_page.dart';
-import 'package:gmcappclean/features/purchases/UI/general%20purchases/full_purchase_details.dart';
 import 'package:gmcappclean/features/purchases/UI/production%20purchases/full_production_purchase_details.dart';
 import 'package:gmcappclean/init_dependencies.dart';
 

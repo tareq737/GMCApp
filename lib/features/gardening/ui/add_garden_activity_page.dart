@@ -84,73 +84,72 @@ class _AddGardenActivityPageState extends State<AddGardenActivityPage> {
             builder: (context, state) {
               final bool isLoading = state is GardeningLoading;
 
-              return SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    spacing: 20,
-                    children: [
-                      MyDropdownButton(
-                        value: selectedActivity,
-                        items: activities.map((activity) {
-                          return DropdownMenuItem<String>(
-                            value: activity,
-                            child: Text(activity),
-                          );
-                        }).toList(),
-                        labelText: 'العمل',
-                        onChanged: (value) {
-                          setState(() {
-                            selectedActivity = value;
-                          });
+              return Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  spacing: 40,
+                  children: [
+                    MyDropdownButton(
+                      value: selectedActivity,
+                      items: activities.map((activity) {
+                        return DropdownMenuItem<String>(
+                          value: activity,
+                          child: Text(activity),
+                        );
+                      }).toList(),
+                      labelText: 'العمل',
+                      onChanged: (value) {
+                        setState(() {
+                          selectedActivity = value;
+                        });
 
-                          // Only fire the detail event if value is not null
-                          if (value != null) {
-                            context.read<GardeningBloc>().add(
-                                  GetAllGardenActivitiesDetails(name: value),
+                        // Only fire the detail event if value is not null
+                        if (value != null) {
+                          context.read<GardeningBloc>().add(
+                                GetAllGardenActivitiesDetails(name: value),
+                              );
+                        }
+                      },
+                    ),
+                    MyTextField(
+                      controller: _detailsController,
+                      labelText: 'تفاصيل المهمة',
+                    ),
+                    isLoading
+                        ? const Loader()
+                        : Mybutton(
+                            text: 'إضافة',
+                            onPressed: () {
+                              if (selectedActivity == null ||
+                                  selectedActivity!.isEmpty) {
+                                showSnackBar(
+                                  context: context,
+                                  content: 'الرجاء اختيار العمل',
+                                  failure: true,
                                 );
-                          }
-                        },
-                      ),
-                      MyTextField(
-                        controller: _detailsController,
-                        labelText: 'تفاصيل المهمة',
-                      ),
-                      isLoading
-                          ? const Loader()
-                          : Mybutton(
-                              text: 'إضافة',
-                              onPressed: () {
-                                if (selectedActivity == null ||
-                                    selectedActivity!.isEmpty) {
-                                  showSnackBar(
-                                    context: context,
-                                    content: 'الرجاء اختيار العمل',
-                                    failure: true,
-                                  );
-                                  return;
-                                }
+                                return;
+                              }
 
-                                if (_detailsController.text.isEmpty) {
-                                  showSnackBar(
-                                    context: context,
-                                    content: 'الرجاء إدخال تفاصيل المهمة',
-                                    failure: true,
-                                  );
-                                  return;
-                                }
-
-                                final model = GardenActivitiesModel(
-                                  name: selectedActivity,
-                                  details: _detailsController.text,
+                              if (_detailsController.text.isEmpty) {
+                                showSnackBar(
+                                  context: context,
+                                  content: 'الرجاء إدخال تفاصيل المهمة',
+                                  failure: true,
                                 );
-                                context.read<GardeningBloc>().add(
-                                    AddGardenActivity(
-                                        gardenActivitiesModel: model));
-                              },
-                            ),
-                    ],
-                  ),
+                                return;
+                              }
+
+                              final model = GardenActivitiesModel(
+                                name: selectedActivity,
+                                details: _detailsController.text,
+                              );
+                              context.read<GardeningBloc>().add(
+                                  AddGardenActivity(
+                                      gardenActivitiesModel: model));
+                            },
+                          ),
+                  ],
                 ),
               );
             },

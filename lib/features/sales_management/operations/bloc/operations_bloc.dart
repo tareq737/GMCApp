@@ -50,8 +50,24 @@ class OperationsBloc extends Bloc<OperationsEvent, OperationsState> {
 
     on<GetAllOperationsForDate>(
       (event, emit) async {
-        var result = await _operationsServices.getAllOperationsForCustomer(
-            {"date1": event.date1, "date2": event.date2});
+        // Explicitly type the map as Map<String, dynamic>
+        final Map<String, dynamic> request = {
+          "date1": event.date1,
+          "date2": event.date2,
+          "page": event.page, // Add page parameter
+        };
+
+        if (event.bill != null) {
+          request["bill"] = event.bill;
+        }
+        if (event.paid_money != null) {
+          request["paid_money"] = event.paid_money;
+        }
+        if (event.reception != null) {
+          request["reception"] = event.reception;
+        }
+
+        var result = await _operationsServices.getAllOperationsForDate(request);
 
         if (result == null) {
           emit(OperationsError(errorMessage: 'خطأ'));

@@ -27,8 +27,19 @@ class GetAllOperationsForCustomer extends OperationsEvent {
 class GetAllOperationsForDate extends OperationsEvent {
   final String date1;
   final String date2;
+  final String? reception;
+  final bool? paid_money;
+  final bool? bill;
+  final int page; // Add page parameter
 
-  GetAllOperationsForDate({required this.date1, required this.date2});
+  GetAllOperationsForDate({
+    required this.date1,
+    required this.date2,
+    this.reception,
+    this.paid_money,
+    this.bill,
+    this.page = 1, // Default to page 1
+  });
 }
 
 class EditCall extends OperationsEvent {

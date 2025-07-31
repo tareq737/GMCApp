@@ -75,6 +75,7 @@ class _AddProdPlanPageState extends State<AddProdPlanPage> {
       'جمس مميز',
       'زياتي 202 مميز ',
       'جمس ممدد',
+      'زياتي 202 ممدد'
     ],
     'صناعي': [
       'جمس ألمنيوم',

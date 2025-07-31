@@ -629,7 +629,7 @@ class _TransferPageChildState extends State<TransferPageChild> {
     if (widget.transfer_type != 101) {
       if (index >= 0 && index < _quantityFocusNodes.length) {
         if (!_quantityFocusNodes[index].hasFocus) {
-          _validateQuantityAgainstInventory(index);
+          // _validateQuantityAgainstInventory(index);
         }
       }
     }
@@ -1584,13 +1584,22 @@ class _TransferPageChildState extends State<TransferPageChild> {
                           const SizedBox(height: 30),
                           state is InventoryLoading
                               ? const Loader()
-                              : Mybutton(
-                                  text: widget.transferModel == null
-                                      ? 'إضافة '
-                                      : 'تعديل ',
-                                  onPressed: _submitForm,
-                                ),
-                          const SizedBox(height: 30),
+                              : Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceAround,
+                                  children: [
+                                    Mybutton(
+                                      text: 'إضافة',
+                                      onPressed: _submitFormAdd,
+                                    ),
+                                    if (widget.transferModel != null)
+                                      Mybutton(
+                                        text: 'تعديل',
+                                        onPressed: _submitFormUpdate,
+                                      ),
+                                  ],
+                                )
+                          //const SizedBox(height: 30),
                         ],
                       ),
                     ),
@@ -1602,6 +1611,23 @@ class _TransferPageChildState extends State<TransferPageChild> {
         ),
       ),
     );
+  }
+
+  void _submitFormAdd() {
+    if (_formKey.currentState!.validate()) {
+      final model = _fillModelFromForm();
+      context.read<InventoryBloc>().add(AddTransfer(transferModel: model));
+    }
+  }
+
+  void _submitFormUpdate() {
+    if (_formKey.currentState!.validate()) {
+      final model = _fillModelFromForm();
+      //print(model);
+      context.read<InventoryBloc>().add(
+            UpdateTransfer(transferModel: model, id: widget.transferModel!.id),
+          );
+    }
   }
 
   void _focusToWarehouse() {
@@ -1935,22 +1961,6 @@ class _TransferPageChildState extends State<TransferPageChild> {
         );
       },
     );
-  }
-
-  void _submitForm() {
-    // Validate the form. If any field's validator returns a string (error), it will be caught here.
-    if (_formKey.currentState!.validate()) {
-      final model = _fillModelFromForm();
-      //print(model);
-      if (widget.transferModel == null) {
-        context.read<InventoryBloc>().add(AddTransfer(transferModel: model));
-      } else {
-        context.read<InventoryBloc>().add(
-              UpdateTransfer(
-                  transferModel: model, id: widget.transferModel!.id),
-            );
-      }
-    }
   }
 
   TransferModel _fillModelFromForm() {

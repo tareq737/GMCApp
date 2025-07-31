@@ -830,6 +830,27 @@ class _NewVisitPageState extends State<NewVisitPage> {
                                           ),
                                           IconButton(
                                             onPressed: () {
+                                              if (processKind == null ||
+                                                  processKind == "") {
+                                                showSnackBar(
+                                                  context: context,
+                                                  content:
+                                                      'يرجى التأكد من تعبئة طبيعة الزيارة',
+                                                  failure: true,
+                                                );
+                                                return;
+                                              }
+                                              if (reception == null ||
+                                                  reception == "") {
+                                                showSnackBar(
+                                                  context: context,
+                                                  content:
+                                                      'يرجى التأكد من تعبئة طريقة الاستقبال',
+                                                  failure: true,
+                                                );
+                                                return;
+                                              }
+
                                               if (widget.operationsModel ==
                                                   null) {
                                                 //Add Visit
@@ -845,10 +866,10 @@ class _NewVisitPageState extends State<NewVisitPage> {
                                                 context
                                                     .read<OperationsBloc>()
                                                     .add(EditVisit(
-                                                        visitModel: _visitModel,
-                                                        id: widget
-                                                            .operationsModel!
-                                                            .id!));
+                                                      visitModel: _visitModel,
+                                                      id: widget
+                                                          .operationsModel!.id!,
+                                                    ));
                                               }
                                             },
                                             icon: Icon(
@@ -887,7 +908,7 @@ class _NewVisitPageState extends State<NewVisitPage> {
                                 if (state is SalesOpLoading) {
                                   return const Center(child: Loader());
                                 } else {
-                                  return Container();
+                                  return const SizedBox();
                                 }
                               },
                             ),

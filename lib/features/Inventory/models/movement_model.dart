@@ -10,6 +10,8 @@ class MovementModel {
   String? warehouse;
   int? transfer_serial;
   String? transfer_type;
+  String? item;
+  int? transfer_type_id;
   MovementModel({
     this.date,
     this.quantity,
@@ -19,6 +21,8 @@ class MovementModel {
     this.warehouse,
     this.transfer_serial,
     this.transfer_type,
+    this.item,
+    this.transfer_type_id,
   });
 
   MovementModel copyWith({
@@ -30,6 +34,8 @@ class MovementModel {
     String? warehouse,
     int? transfer_serial,
     String? transfer_type,
+    String? item,
+    int? transfer_type_id,
   }) {
     return MovementModel(
       date: date ?? this.date,
@@ -40,6 +46,8 @@ class MovementModel {
       warehouse: warehouse ?? this.warehouse,
       transfer_serial: transfer_serial ?? this.transfer_serial,
       transfer_type: transfer_type ?? this.transfer_type,
+      item: item ?? this.item,
+      transfer_type_id: transfer_type_id ?? this.transfer_type_id,
     );
   }
 
@@ -53,6 +61,8 @@ class MovementModel {
       'warehouse': warehouse,
       'transfer_serial': transfer_serial,
       'transfer_type': transfer_type,
+      'item': item,
+      'transfer_type_id': transfer_type_id,
     };
   }
 
@@ -68,6 +78,10 @@ class MovementModel {
           map['transfer_serial'] != null ? map['transfer_serial'] as int : null,
       transfer_type:
           map['transfer_type'] != null ? map['transfer_type'] as String : null,
+      item: map['item'] != null ? map['item'] as String : null,
+      transfer_type_id: map['transfer_type_id'] != null
+          ? map['transfer_type_id'] as int
+          : null,
     );
   }
 
@@ -78,7 +92,7 @@ class MovementModel {
 
   @override
   String toString() {
-    return 'MovementModel(date: $date, quantity: $quantity, direction: $direction, balance: $balance, note: $note, warehouse: $warehouse, transfer_serial: $transfer_serial, transfer_type: $transfer_type)';
+    return 'MovementModel(date: $date, quantity: $quantity, direction: $direction, balance: $balance, note: $note, warehouse: $warehouse, transfer_serial: $transfer_serial, transfer_type: $transfer_type, item: $item, transfer_type_id: $transfer_type_id)';
   }
 
   @override
@@ -92,7 +106,9 @@ class MovementModel {
         other.note == note &&
         other.warehouse == warehouse &&
         other.transfer_serial == transfer_serial &&
-        other.transfer_type == transfer_type;
+        other.transfer_type == transfer_type &&
+        other.item == item &&
+        other.transfer_type_id == transfer_type_id;
   }
 
   @override
@@ -104,6 +120,8 @@ class MovementModel {
         note.hashCode ^
         warehouse.hashCode ^
         transfer_serial.hashCode ^
-        transfer_type.hashCode;
+        transfer_type.hashCode ^
+        item.hashCode ^
+        transfer_type_id.hashCode;
   }
 }

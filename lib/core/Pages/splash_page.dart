@@ -3,10 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gmcappclean/core/Pages/home_page.dart';
+import 'package:gmcappclean/core/common/api/api.dart';
 import 'package:gmcappclean/core/common/cubits/app_user/app_user_cubit.dart';
 import 'package:gmcappclean/core/services/version_checker.dart';
 import 'package:gmcappclean/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:gmcappclean/features/auth/presentation/pages/singin_page.dart';
+import 'package:gmcappclean/core/services/auth_interactor.dart';
+import 'package:gmcappclean/core/services/refresh_groups.dart';
+import 'package:gmcappclean/init_dependencies.dart';
 
 class SplashPage extends StatefulWidget {
   final RemoteMessage? initialMessage;
@@ -22,7 +26,29 @@ class _SplashPageState extends State<SplashPage> {
   @override
   void initState() {
     super.initState();
+    _initAsync();
+  }
+
+  Future<void> _initAsync() async {
+    await _refreshGroups();
+    if (!mounted) return;
     _startTimer();
+  }
+
+  Future<void> _refreshGroups() async {
+    final apiClient = getIt<ApiClient>();
+    final authInteractor = getIt<AuthInteractor>();
+
+    final refresher = RefreshGroups(
+      apiClient: apiClient,
+      authInteractor: authInteractor,
+    );
+
+    await refresher.refreshUserGroup().then((value) {
+      debugPrint("Groups refreshed: $value");
+    }).catchError((e) {
+      debugPrint("Error refreshing groups: $e");
+    });
   }
 
   void _startTimer() async {
