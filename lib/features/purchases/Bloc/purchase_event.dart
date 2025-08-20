@@ -201,3 +201,16 @@ class ArchiveList extends PurchaseEvent {
 
   ArchiveList({required this.ids});
 }
+
+class GetPurchasesFilter extends PurchaseEvent {
+  final int page;
+  final String status;
+  final String date_1;
+  final String date_2;
+  GetPurchasesFilter({
+    required this.page,
+    required this.status,
+    required this.date_1,
+    required this.date_2,
+  });
+}

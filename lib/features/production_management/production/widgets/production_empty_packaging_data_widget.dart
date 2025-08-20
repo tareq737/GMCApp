@@ -11,7 +11,6 @@ import 'package:gmcappclean/features/production_management/production/bloc/produ
 import 'package:gmcappclean/features/production_management/production/models/empty_packaging_model.dart';
 import 'package:gmcappclean/features/production_management/production/models/full_production_model.dart';
 import 'package:gmcappclean/features/production_management/production/services/production_services.dart';
-import 'package:gmcappclean/features/production_management/production/ui/production_full_data_page.dart';
 import 'package:gmcappclean/features/production_management/production/ui/production_list.dart';
 import 'package:gmcappclean/init_dependencies.dart';
 import 'package:intl/intl.dart';
@@ -351,6 +350,14 @@ class _ProductionEmptyPackagingDataWidgetState
                       Mybutton(
                         text: 'حفظ',
                         onPressed: () {
+                          if (!_isDurationValid()) {
+                            showSnackBar(
+                              context: context,
+                              content: 'الوقت غير صحيح ⏳',
+                              failure: true,
+                            );
+                            return;
+                          }
                           _fillEmptyPackagingModelFromFomr();
                           print(_emptyPackagingModel);
                           context.read<ProductionBloc>().add(SaveEmptyPackaging(
@@ -390,6 +397,27 @@ class _ProductionEmptyPackagingDataWidgetState
         });
       }
     }
+  }
+
+  bool _isDurationValid() {
+    if (startTimeController.text.isEmpty || finishTimeController.text.isEmpty) {
+      return true; // Allow empty values
+    }
+    final format = DateFormat('HH:mm');
+    try {
+      final DateTime startTime = format.parse(startTimeController.text);
+      final DateTime finishTime = format.parse(finishTimeController.text);
+
+      final Duration duration = finishTime.difference(startTime);
+
+      // If finish time is before start time OR duration > 9 hours => invalid
+      if (duration.isNegative || duration > const Duration(hours: 9)) {
+        return false;
+      }
+    } catch (e) {
+      return false; // invalid parse means invalid duration
+    }
+    return true;
   }
 
   String _formatDuration(Duration duration) {

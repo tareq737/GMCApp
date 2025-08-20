@@ -166,13 +166,22 @@ class _OperationsPageState extends State<OperationsPage> {
                                   itemBuilder: (context, index) {
                                     return Card(
                                       child: ListTile(
-                                        leading: Icon(
-                                          state.result[index].type == 'visit'
-                                              ? Icons.work_history_outlined
-                                              : state.result[index].type ==
-                                                      'call'
-                                                  ? Icons.call
-                                                  : Icons.error,
+                                        leading: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Icon(
+                                              state.result[index].type ==
+                                                      'visit'
+                                                  ? Icons.work_history_outlined
+                                                  : state.result[index].type ==
+                                                          'call'
+                                                      ? Icons.call
+                                                      : Icons.error,
+                                            ),
+                                            Text(state.result[index].id
+                                                .toString()),
+                                          ],
                                         ),
                                         title: Center(
                                           child:

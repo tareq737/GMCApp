@@ -1,8 +1,7 @@
-import 'dart:io';
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gmcappclean/core/common/api/api.dart';
 import 'package:gmcappclean/core/common/cubits/app_user/app_user_cubit.dart';
 import 'package:gmcappclean/core/common/widgets/loader.dart';
@@ -14,7 +13,6 @@ import 'package:gmcappclean/core/utils/show_snackbar.dart';
 import 'package:gmcappclean/features/gardening/bloc/gardening_bloc.dart';
 import 'package:gmcappclean/features/gardening/models/garden_activities_model.dart';
 import 'package:gmcappclean/features/gardening/models/garden_tasks_model.dart';
-import 'package:gmcappclean/features/gardening/models/worker_hour_model.dart';
 import 'package:gmcappclean/features/gardening/services/gardening_services.dart';
 import 'package:gmcappclean/features/gardening/ui/garden_task_page.dart';
 import 'package:gmcappclean/init_dependencies.dart';
@@ -59,6 +57,7 @@ class GenralListGardenTasksPageChild extends StatefulWidget {
 class _GenralListGardenTasksPageChildState
     extends State<GenralListGardenTasksPageChild> {
   int currentPage = 1;
+  bool hasReachedMax = false;
   final ScrollController _scrollController = ScrollController();
   bool isLoadingMore = false;
   List<GardenTasksModel> _model = [];
@@ -71,6 +70,7 @@ class _GenralListGardenTasksPageChildState
   List<GardenActivitiesModel> gardenActivityDetails = [];
   List<String> workers = [];
   String? selectedWorker;
+  double width = 0;
   @override
   void initState() {
     super.initState();
@@ -93,33 +93,23 @@ class _GenralListGardenTasksPageChildState
   }
 
   void _onScroll() {
-    // Calculate the halfway point
-    double halfwayPoint = _scrollController.position.maxScrollExtent / 2;
-
-    // Check if the current scroll position is at or beyond the halfway point
-    if (_scrollController.position.pixels >= halfwayPoint && !isLoadingMore) {
-      _nextPage(context);
+    if (_scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent * 0.9 &&
+        !isLoadingMore &&
+        !hasReachedMax) {
+      _nextPage();
     }
   }
 
-  void _nextPage(BuildContext context) {
+  void _nextPage() {
     setState(() {
       isLoadingMore = true;
     });
     currentPage++;
 
-    runBloc();
-  }
-
-  void runBloc() {
-    print('Fetching tasks with:');
-    print('Date1: ${_date1Controller.text}');
-    print('Date2: ${_date2Controller.text}');
-    print('activity_name: $selectedActivity');
-    print('activity_details: $selectedDetail');
     context.read<GardeningBloc>().add(
           GetAllGardenTasks(
-            page: 1,
+            page: currentPage,
             date1: _date1Controller.text,
             date2: _date2Controller.text,
             activity_details: selectedDetail,
@@ -130,15 +120,15 @@ class _GenralListGardenTasksPageChildState
   }
 
   void _fetchTasksWithNewfilter() {
-    print('Fetching tasks with:');
-    print('Date1: ${_date1Controller.text}');
-    print('Date2: ${_date2Controller.text}');
-    print('activity_name: $selectedActivity');
-    print('activity_details: $selectedDetail');
+    _model.clear();
+    setState(() {
+      currentPage = 1;
+      hasReachedMax = false;
+    });
 
     context.read<GardeningBloc>().add(
           GetAllGardenTasks(
-            page: 1,
+            page: currentPage,
             date1: _date1Controller.text,
             date2: _date2Controller.text,
             activity_details: selectedDetail,
@@ -150,7 +140,6 @@ class _GenralListGardenTasksPageChildState
 
   String _formatTime(String? time) {
     if (time == null || time.isEmpty) return '--:--';
-
     try {
       final parts = time.split(':');
       if (parts.length >= 2) {
@@ -163,8 +152,7 @@ class _GenralListGardenTasksPageChildState
   }
 
   String _calculateTotalTime(String? from, String? to) {
-    if (from == null || to == null)
-      return '--:--'; // Return dashes for null values
+    if (from == null || to == null) return '--:--';
 
     try {
       final fromParts = from.split(':');
@@ -177,17 +165,14 @@ class _GenralListGardenTasksPageChildState
         final toMin = int.parse(toParts[1]);
 
         final totalMinutes = (toHour * 60 + toMin) - (fromHour * 60 + fromMin);
-
-        // Calculate hours and minutes
         final hours = totalMinutes ~/ 60;
         final minutes = totalMinutes % 60;
 
-        // Format as hh:mm with leading zeros
         return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}';
       }
-      return '--:--'; // Return dashes if time format is invalid
+      return '--:--';
     } catch (e) {
-      return '--:--'; // Return dashes if any error occurs
+      return '--:--';
     }
   }
 
@@ -197,14 +182,16 @@ class _GenralListGardenTasksPageChildState
       final date = DateTime.parse(dateStr);
       return DateFormat('dd-MM').format(date);
     } catch (_) {
-      return dateStr; // fallback if parsing fails
+      return dateStr;
     }
   }
 
   List<String>? groups;
+
   @override
   Widget build(BuildContext context) {
     bool isDark = Theme.of(context).brightness == Brightness.dark;
+    width = MediaQuery.of(context).size.width;
     AppUserState state = context.read<AppUserCubit>().state;
     if (state is AppUserLoggedIn) {
       groups = state.userEntity.groups;
@@ -296,7 +283,6 @@ class _GenralListGardenTasksPageChildState
                       details = [];
                     });
 
-                    // Only fire the detail event if value is not null
                     if (value != null) {
                       context.read<GardeningBloc>().add(
                             GetAllGardenActivitiesDetails(name: value),
@@ -348,7 +334,6 @@ class _GenralListGardenTasksPageChildState
                 flex: 14,
                 child: BlocConsumer<GardeningBloc, GardeningState>(
                   listener: (context, state) async {
-                    print(state);
                     if (state is GardeningError) {
                       showSnackBar(
                         context: context,
@@ -357,16 +342,26 @@ class _GenralListGardenTasksPageChildState
                       );
                     } else if (state
                         is GardeningSuccess<List<GardenTasksModel>>) {
-                      setState(
-                        () {
-                          if (currentPage == 1) {
-                            _model = state.result; // First page, replace data
-                          } else {
-                            _model.addAll(state.result); // Append new data
-                          }
+                      setState(() {
+                        if (state.result.isEmpty) {
+                          hasReachedMax = true;
                           isLoadingMore = false;
-                        },
-                      );
+                          return;
+                        }
+
+                        if (currentPage == 1) {
+                          _model = state.result;
+                        } else {
+                          final newItems = state.result
+                              .where((newItem) => !_model.any((existingItem) =>
+                                  existingItem.id == newItem.id))
+                              .toList();
+                          _model.addAll(newItems);
+                        }
+                        isLoadingMore = false;
+                        hasReachedMax = state.result.length <
+                            10; // Assuming 10 items per page
+                      });
                     } else if (state is GardeningSuccess<GardenTasksModel>) {
                       Navigator.push(
                         context,
@@ -378,196 +373,10 @@ class _GenralListGardenTasksPageChildState
                           },
                         ),
                       );
-                    } else if (state
-                        is GardeningWorkerHoursSuccess<List<WorkerHourModel>>) {
-                      // Open dialog with the result
-                      showDialog(
-                        context: context,
-                        builder: (context) {
-                          final isDark =
-                              Theme.of(context).brightness == Brightness.dark;
-                          final borderColor = isDark
-                              ? Colors.grey.shade700
-                              : Colors.grey.shade300;
-                          final headerColor = isDark
-                              ? Colors.grey.shade800
-                              : Colors.grey.shade200;
-                          final textColor =
-                              isDark ? Colors.white : Colors.black;
-                          final nullWorkerColor =
-                              isDark ? Colors.red.shade900 : Colors.red.shade50;
-                          final nullWorkerTextColor =
-                              isDark ? Colors.red.shade200 : Colors.red;
-
-                          return Directionality(
-                            textDirection: ui.TextDirection.rtl,
-                            child: AlertDialog(
-                              title: const Text('ساعات العمل',
-                                  textAlign: TextAlign.center),
-                              backgroundColor:
-                                  isDark ? Colors.grey.shade900 : Colors.white,
-                              content: SizedBox(
-                                width: double.maxFinite,
-                                child: SingleChildScrollView(
-                                  child: Table(
-                                    border: TableBorder.all(
-                                      color: borderColor,
-                                      width: 1,
-                                    ),
-                                    columnWidths: const {
-                                      0: FlexColumnWidth(2),
-                                      1: FlexColumnWidth(1.5),
-                                      2: FlexColumnWidth(1.5),
-                                    },
-                                    children: [
-                                      // Table header
-                                      TableRow(
-                                        decoration: BoxDecoration(
-                                          color: headerColor,
-                                        ),
-                                        children: [
-                                          Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: Text(
-                                              'اسم العامل',
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                color: textColor,
-                                              ),
-                                              textAlign: TextAlign.center,
-                                            ),
-                                          ),
-                                          Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: Text(
-                                              'المطلوب',
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                color: textColor,
-                                              ),
-                                              textAlign: TextAlign.center,
-                                            ),
-                                          ),
-                                          Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: Text(
-                                              'المكتمل',
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                color: textColor,
-                                              ),
-                                              textAlign: TextAlign.center,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      // Table rows
-                                      ...state.result
-                                          .map((worker) => TableRow(
-                                                decoration: BoxDecoration(
-                                                  color: worker.worker_name ==
-                                                          null
-                                                      ? nullWorkerColor
-                                                      : isDark
-                                                          ? Colors.grey.shade900
-                                                          : Colors.white,
-                                                ),
-                                                children: [
-                                                  Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                            8.0),
-                                                    child: Text(
-                                                      worker.worker_name ??
-                                                          'غير معروف',
-                                                      textAlign:
-                                                          TextAlign.center,
-                                                      style: TextStyle(
-                                                        fontWeight:
-                                                            worker.worker_name ==
-                                                                    null
-                                                                ? FontWeight
-                                                                    .bold
-                                                                : FontWeight
-                                                                    .normal,
-                                                        color: worker
-                                                                    .worker_name ==
-                                                                null
-                                                            ? nullWorkerTextColor
-                                                            : textColor,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                            8.0),
-                                                    child: Text(
-                                                      worker.total_hours ??
-                                                          '--:--',
-                                                      textAlign:
-                                                          TextAlign.center,
-                                                      style: TextStyle(
-                                                        color: textColor,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                            8.0),
-                                                    child: Text(
-                                                      worker.completed_hours ??
-                                                          '--:--',
-                                                      textAlign:
-                                                          TextAlign.center,
-                                                      style: TextStyle(
-                                                        color: worker
-                                                                    .completed_hours ==
-                                                                '0:00'
-                                                            ? isDark
-                                                                ? Colors.red
-                                                                    .shade300
-                                                                : Colors.red
-                                                            : isDark
-                                                                ? Colors.green
-                                                                    .shade300
-                                                                : Colors.green,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
-                                              ))
-                                          .toList(),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  child: Text(
-                                    'إغلاق',
-                                    style: TextStyle(
-                                      color: isDark
-                                          ? Colors.blue.shade200
-                                          : Colors.blue,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      );
                     } else if (state is GardeningSuccess<List>) {
                       final resultList = state.result;
 
-                      // Detect if the result is a list of activity names or details
                       if (resultList.isNotEmpty && resultList.first is String) {
-                        // List of activity names
                         setState(() {
                           activities = List<String>.from(
                               resultList.map((e) => e.toString()));
@@ -577,8 +386,6 @@ class _GenralListGardenTasksPageChildState
                         setState(() {
                           gardenActivityDetails =
                               List<GardenActivitiesModel>.from(resultList);
-                          print(
-                              '✅ Loaded gardenActivityDetails: ${gardenActivityDetails.length} items');
                           details = gardenActivityDetails
                               .map((e) => e.details!.trim())
                               .toList();
@@ -586,10 +393,7 @@ class _GenralListGardenTasksPageChildState
                       }
                     } else if (state is GetWorkerSuccess<List<dynamic>>) {
                       final resultList = state.result;
-                      print('reached state worker success');
-                      // Detect if the result is a list of activity names or details
                       if (resultList.isNotEmpty && resultList.first is String) {
-                        // List of activity names
                         setState(() {
                           workers = List<String>.from(
                               resultList.map((e) => e.toString()));
@@ -601,13 +405,10 @@ class _GenralListGardenTasksPageChildState
                     if (state is GardeningInitial) {
                       return const SizedBox();
                     } else if (state is GardeningLoading && currentPage == 1) {
-                      return const Center(
-                        child: Loader(),
-                      );
+                      return const Center(child: Loader());
                     } else if (state is GardeningError) {
                       return const Center(child: Text('حدث خطأ ما'));
                     } else if (_model.isEmpty) {
-                      // This is the new condition for empty list
                       return Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -629,28 +430,35 @@ class _GenralListGardenTasksPageChildState
                         ),
                       );
                     } else if (_model.isNotEmpty) {
-                      return Builder(builder: (context) {
-                        return ListView.builder(
-                          controller: _scrollController,
-                          itemCount: _model.length + 1,
-                          itemBuilder: (context, index) {
-                            if (index == _model.length) {
-                              return isLoadingMore
-                                  ? const Padding(
-                                      padding: EdgeInsets.all(16.0),
-                                      child: Center(child: Loader()),
-                                    )
-                                  : const SizedBox
-                                      .shrink(); // Empty space when not loading more data
-                            }
+                      return ListView.builder(
+                        controller: _scrollController,
+                        itemCount: _model.length + (hasReachedMax ? 0 : 1),
+                        itemBuilder: (context, index) {
+                          if (index == _model.length) {
+                            return isLoadingMore
+                                ? const Padding(
+                                    padding: EdgeInsets.all(16.0),
+                                    child: Center(child: Loader()),
+                                  )
+                                : const SizedBox.shrink();
+                          }
 
-                            final screenWidth =
-                                MediaQuery.of(context).size.width;
-                            return InkWell(
-                              onTap: () {
-                                context.read<GardeningBloc>().add(
-                                      GetOneGardenTask(id: _model[index].id!),
-                                    );
+                          final screenWidth = MediaQuery.of(context).size.width;
+                          return InkWell(
+                            onTap: () {
+                              context.read<GardeningBloc>().add(
+                                    GetOneGardenTask(id: _model[index].id!),
+                                  );
+                            },
+                            child: TweenAnimationBuilder<double>(
+                              tween: Tween(begin: width, end: 0),
+                              duration: const Duration(milliseconds: 600),
+                              curve: Curves.decelerate,
+                              builder: (context, value, child) {
+                                return Transform.translate(
+                                  offset: Offset(value, 0),
+                                  child: child,
+                                );
                               },
                               child: Card(
                                 margin: const EdgeInsets.symmetric(
@@ -670,17 +478,16 @@ class _GenralListGardenTasksPageChildState
                                         _model[index].activity!.name ?? "",
                                         style: const TextStyle(
                                           fontWeight: FontWeight.w500,
-                                          fontSize: 14, // Explicit font size
+                                          fontSize: 14,
                                         ),
-                                        maxLines: 1, // Prevent text overflow
+                                        maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
                                     subtitle: SizedBox(
                                       width: screenWidth * 0.6,
                                       child: Column(
-                                        mainAxisSize: MainAxisSize
-                                            .min, // Take minimum vertical space
+                                        mainAxisSize: MainAxisSize.min,
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
                                         children: [
@@ -697,8 +504,7 @@ class _GenralListGardenTasksPageChildState
                                                     .details!,
                                                 style: TextStyle(
                                                   color: Colors.grey.shade600,
-                                                  fontSize:
-                                                      12, // Smaller font size
+                                                  fontSize: 12,
                                                 ),
                                                 maxLines: 1,
                                                 overflow: TextOverflow.ellipsis,
@@ -710,8 +516,7 @@ class _GenralListGardenTasksPageChildState
                                               _model[index].notes!,
                                               style: TextStyle(
                                                 color: Colors.grey.shade600,
-                                                fontSize:
-                                                    12, // Smaller font size
+                                                fontSize: 12,
                                               ),
                                               maxLines: 1,
                                               overflow: TextOverflow.ellipsis,
@@ -724,31 +529,31 @@ class _GenralListGardenTasksPageChildState
                                       child: Column(
                                         mainAxisAlignment:
                                             MainAxisAlignment.center,
-                                        spacing: 2,
+                                        spacing: 1,
                                         children: [
                                           CircleAvatar(
                                             backgroundColor: Colors.teal,
-                                            radius: 10,
+                                            radius: 12,
                                             child: Text(
                                               _model[index].id.toString(),
                                               style: const TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 8),
+                                                  fontSize: 8,
+                                                  color: Colors.white),
                                             ),
                                           ),
-                                          Icon(
+                                          FaIcon(
                                             (_model[index].done == true)
-                                                ? Icons.check
-                                                : Icons.close,
+                                                ? FontAwesomeIcons.solidThumbsUp
+                                                : FontAwesomeIcons
+                                                    .solidThumbsDown,
                                             color: (_model[index].done == true)
                                                 ? Colors.green
                                                 : Colors.red,
-                                            size: 12,
+                                            size: 10,
                                           ),
                                           Text(
                                             _formatDate(_model[index].date),
                                             style: const TextStyle(
-                                              color: Colors.white,
                                               fontSize: 8,
                                             ),
                                             maxLines: 1,
@@ -759,12 +564,10 @@ class _GenralListGardenTasksPageChildState
                                     ),
                                     trailing: ConstrainedBox(
                                       constraints: BoxConstraints(
-                                        maxWidth: screenWidth *
-                                            0.25, // Limit trailing width
+                                        maxWidth: screenWidth * 0.25,
                                       ),
                                       child: Column(
-                                        mainAxisSize: MainAxisSize
-                                            .min, // Take minimum vertical space
+                                        mainAxisSize: MainAxisSize.min,
                                         mainAxisAlignment:
                                             MainAxisAlignment.center,
                                         children: [
@@ -775,7 +578,6 @@ class _GenralListGardenTasksPageChildState
                                             Text(
                                               _model[index].worker_name!,
                                               style: const TextStyle(
-                                                color: Colors.white,
                                                 fontSize: 10,
                                               ),
                                               maxLines: 1,
@@ -793,7 +595,6 @@ class _GenralListGardenTasksPageChildState
                                                     _formatTime(_model[index]
                                                         .time_from),
                                                     style: const TextStyle(
-                                                      color: Colors.white,
                                                       fontSize: 10,
                                                     ),
                                                   ),
@@ -801,7 +602,6 @@ class _GenralListGardenTasksPageChildState
                                                     _formatTime(
                                                         _model[index].time_to),
                                                     style: const TextStyle(
-                                                      color: Colors.white,
                                                       fontSize: 10,
                                                     ),
                                                   ),
@@ -814,7 +614,6 @@ class _GenralListGardenTasksPageChildState
                                                   _model[index].time_to,
                                                 ),
                                                 style: const TextStyle(
-                                                  color: Colors.white,
                                                   fontSize: 10,
                                                 ),
                                               ),
@@ -826,15 +625,13 @@ class _GenralListGardenTasksPageChildState
                                   ),
                                 ),
                               ),
-                            );
-                          },
-                        );
-                      });
+                            ),
+                          );
+                        },
+                      );
                     } else if (state is GardeningError) {
                       return const Center(
-                        child: Text(
-                          'حدث خطأ ما',
-                        ),
+                        child: Text('حدث خطأ ما'),
                       );
                     } else {
                       return const Center(

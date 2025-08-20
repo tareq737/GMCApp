@@ -522,27 +522,29 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
                                         maxLines: 10,
                                         controller: _supplierController,
                                         labelText: 'اسم المورد'),
-                                    if ((groups != null &&
-                                            groups!.contains('admins')) ||
-                                        (_applicantController.text == name &&
-                                            (purchasesModel?.last_price ==
-                                                    null ||
-                                                purchasesModel!.last_price
-                                                    .toString()
-                                                    .isEmpty)))
-                                      Mybutton(
-                                        text: 'تعديل طلب المشتريات',
-                                        onPressed: () {
-                                          _fillRequestModelfromForm();
-                                          context.read<PurchaseBloc>().add(
-                                                UpdatePurchases(
-                                                  id: widget.purchasesModel.id!,
-                                                  purchaseModel:
-                                                      purchasesModel!,
-                                                ),
-                                              );
-                                        },
-                                      ),
+                                    if (widget.status != 100)
+                                      if ((groups != null &&
+                                              groups!.contains('admins')) ||
+                                          (_applicantController.text == name &&
+                                              (purchasesModel?.last_price ==
+                                                      null ||
+                                                  purchasesModel!.last_price
+                                                      .toString()
+                                                      .isEmpty)))
+                                        Mybutton(
+                                          text: 'تعديل طلب المشتريات',
+                                          onPressed: () {
+                                            _fillRequestModelfromForm();
+                                            context.read<PurchaseBloc>().add(
+                                                  UpdatePurchases(
+                                                    id: widget
+                                                        .purchasesModel.id!,
+                                                    purchaseModel:
+                                                        purchasesModel!,
+                                                  ),
+                                                );
+                                          },
+                                        ),
                                   ],
                                 ),
                               ),
@@ -639,6 +641,7 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
                                     ),
                                     if (groups != null &&
                                         (groups!.contains('purchase_admins') ||
+                                            groups!.contains('managers') ||
                                             groups!.contains('admins')))
                                       Expanded(
                                         child: MyTextField(
@@ -666,6 +669,7 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
                                     //data sheet + offer image 1
                                     if (groups != null &&
                                         (groups!.contains('purchase_admins') ||
+                                            groups!.contains('managers') ||
                                             groups!.contains('admins')))
                                       Column(
                                         children: [
@@ -795,8 +799,6 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
                                       onChanged: (value) {
                                         setState(() {
                                           _applicantApprove = value;
-                                          purchasesModel?.applicant_approve =
-                                              value;
                                         });
                                       },
                                     ),
@@ -831,6 +833,7 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
                                     //data sheet + offer image 2
                                     if (groups != null &&
                                         (groups!.contains('purchase_admins') ||
+                                            groups!.contains('managers') ||
                                             groups!.contains('admins')))
                                       Column(
                                         children: [
@@ -959,8 +962,6 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
                                       onChanged: (value) {
                                         setState(() {
                                           _applicantApprove = value;
-                                          purchasesModel?.applicant_approve =
-                                              value;
                                         });
                                       },
                                     ),
@@ -995,6 +996,7 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
                                     //data sheet + offer image 3
                                     if (groups != null &&
                                         (groups!.contains('purchase_admins') ||
+                                            groups!.contains('managers') ||
                                             groups!.contains('admins')))
                                       Column(
                                         children: [
@@ -1124,8 +1126,6 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
                                       onChanged: (value) {
                                         setState(() {
                                           _applicantApprove = value;
-                                          purchasesModel?.applicant_approve =
-                                              value;
                                         });
                                       },
                                     ),
@@ -1199,6 +1199,7 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
                                     ),
                                     if (groups != null &&
                                         (groups!.contains('purchase_admins') ||
+                                            groups!.contains('managers') ||
                                             groups!.contains('admins')))
                                       Expanded(
                                         child: MyTextField(
@@ -1256,77 +1257,181 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceAround,
                                   children: [
-                                    BlocBuilder<AppUserCubit, AppUserState>(
-                                      builder: (context, state) {
-                                        if (state is AppUserLoggedIn) {
-                                          if ((state.userEntity.firstName ==
-                                                      purchasesModel
-                                                          ?.applicant ||
-                                                  (groups != null &&
-                                                      groups!.contains(
-                                                          'admins'))) &&
-                                              purchasesModel?.last_price !=
-                                                  null &&
-                                              purchasesModel!.last_price
-                                                  .toString()
-                                                  .isNotEmpty &&
-                                              purchasesModel!.manager_check !=
-                                                  true) {
-                                            return Mybutton(
-                                              onPressed: () {
-                                                _fillApplicantApprovefromForm();
-                                                context
-                                                    .read<PurchaseBloc>()
-                                                    .add(
-                                                      UpdatePurchases(
-                                                        id: widget
-                                                            .purchasesModel.id!,
-                                                        purchaseModel:
-                                                            purchasesModel!,
+                                    if (widget.status != 100)
+                                      BlocBuilder<AppUserCubit, AppUserState>(
+                                        builder: (context, state) {
+                                          if (state is AppUserLoggedIn) {
+                                            final isAdminOrApplicant = (state
+                                                        .userEntity.firstName ==
+                                                    purchasesModel?.applicant ||
+                                                (groups != null &&
+                                                    groups!
+                                                        .contains('admins')));
+
+                                            final hasLastPrice =
+                                                purchasesModel?.last_price !=
+                                                        null &&
+                                                    purchasesModel!.last_price
+                                                        .toString()
+                                                        .isNotEmpty;
+
+                                            final isNotManagerChecked =
+                                                purchasesModel?.manager_check !=
+                                                    true;
+
+                                            if (isAdminOrApplicant &&
+                                                hasLastPrice &&
+                                                isNotManagerChecked) {
+                                              if (widget.purchasesModel
+                                                      .applicant_approve ==
+                                                  null) {
+                                                // Show save approve button
+                                                return Mybutton(
+                                                  onPressed: () {
+                                                    _fillApplicantApprovefromForm();
+                                                    context
+                                                        .read<PurchaseBloc>()
+                                                        .add(
+                                                          UpdatePurchases(
+                                                            id: widget
+                                                                .purchasesModel
+                                                                .id!,
+                                                            purchaseModel:
+                                                                purchasesModel!,
+                                                          ),
+                                                        );
+                                                  },
+                                                  text:
+                                                      'حفظ الموافقة على عرض السعر',
+                                                );
+                                              } else {
+                                                // Show delete approve button
+                                                return Mybutton(
+                                                  onPressed: () {
+                                                    showModalBottomSheet(
+                                                      context: context,
+                                                      builder: (_) =>
+                                                          Directionality(
+                                                        textDirection: ui
+                                                            .TextDirection.rtl,
+                                                        child: Padding(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .all(16.0),
+                                                          child: Wrap(
+                                                            children: [
+                                                              const ListTile(
+                                                                title: Text(
+                                                                    'تأكيد الإزالة',
+                                                                    style: TextStyle(
+                                                                        fontWeight:
+                                                                            FontWeight.bold)),
+                                                                subtitle: Text(
+                                                                    'هل انت متأكد من أزالة الموافقة على عرض السعر؟'),
+                                                              ),
+                                                              Row(
+                                                                mainAxisAlignment:
+                                                                    MainAxisAlignment
+                                                                        .end,
+                                                                children: [
+                                                                  TextButton(
+                                                                    onPressed: () =>
+                                                                        Navigator.pop(
+                                                                            context),
+                                                                    child: const Text(
+                                                                        'إلغاء'),
+                                                                  ),
+                                                                  const SizedBox(
+                                                                      width: 8),
+                                                                  TextButton(
+                                                                    style: TextButton
+                                                                        .styleFrom(
+                                                                      backgroundColor: Colors
+                                                                          .red
+                                                                          .withOpacity(
+                                                                              0.1),
+                                                                      shape:
+                                                                          RoundedRectangleBorder(
+                                                                        borderRadius:
+                                                                            BorderRadius.circular(8),
+                                                                        side: BorderSide(
+                                                                            color:
+                                                                                Colors.red.withOpacity(0.3)),
+                                                                      ),
+                                                                    ),
+                                                                    onPressed:
+                                                                        () {
+                                                                      Navigator.pop(
+                                                                          context);
+                                                                      _fillDeleteApplicantApprove();
+                                                                      context
+                                                                          .read<
+                                                                              PurchaseBloc>()
+                                                                          .add(
+                                                                            UpdatePurchases(
+                                                                              id: widget.purchasesModel.id!,
+                                                                              purchaseModel: purchasesModel!,
+                                                                            ),
+                                                                          );
+                                                                    },
+                                                                    child: const Text(
+                                                                        'حذف',
+                                                                        style: TextStyle(
+                                                                            color:
+                                                                                Colors.red)),
+                                                                  ),
+                                                                ],
+                                                              )
+                                                            ],
+                                                          ),
+                                                        ),
                                                       ),
                                                     );
-                                              },
-                                              text:
-                                                  'حفظ الموافقة على عرض السعر ',
-                                            );
-                                          } else {
-                                            return const SizedBox(); // Empty space if conditions aren't met
-                                          }
-                                        } else {
-                                          return const SizedBox(); // Empty space if the user is not logged in
-                                        }
-                                      },
-                                    ),
-                                    if (groups != null &&
-                                        (groups!.contains('purchase_admins') ||
-                                            groups!.contains('admins')))
-                                      Mybutton(
-                                        onPressed: () {
-                                          if (purchasesModel!.manager_check ==
-                                                  null &&
-                                              purchasesModel!
-                                                      .applicant_approve !=
-                                                  null) {
-                                            showSnackBar(
-                                              context: context,
-                                              content:
-                                                  'لا يمكنك تعديل المعلومات في هذه النافذة قبل توقيع المدير بسبب اختيار مقدم الطلب للعرض المناسب',
-                                              failure: true,
-                                            );
-                                          } else {
-                                            _fillPurchacesModelfromForm();
-                                            context.read<PurchaseBloc>().add(
-                                                  UpdatePurchases(
-                                                    id: widget
-                                                        .purchasesModel.id!,
-                                                    purchaseModel:
-                                                        purchasesModel!,
-                                                  ),
+                                                  },
+                                                  text:
+                                                      'إزالة الموافقة على عرض السعر',
                                                 );
+                                              }
+                                            } else {
+                                              return const SizedBox();
+                                            }
+                                          } else {
+                                            return const SizedBox();
                                           }
                                         },
-                                        text: 'حفظ ملاحظات المشتريات',
                                       ),
+                                    if (widget.status != 100)
+                                      if (groups != null &&
+                                          (groups!.contains(
+                                                  'purchase_admins') ||
+                                              groups!.contains('admins')))
+                                        Mybutton(
+                                          onPressed: () {
+                                            if (purchasesModel!.manager_check ==
+                                                    null &&
+                                                purchasesModel!
+                                                        .applicant_approve !=
+                                                    null) {
+                                              showSnackBar(
+                                                context: context,
+                                                content:
+                                                    'لا يمكنك تعديل المعلومات في هذه النافذة قبل توقيع المدير بسبب اختيار مقدم الطلب للعرض المناسب',
+                                                failure: true,
+                                              );
+                                            } else {
+                                              _fillPurchacesModelfromForm();
+                                              context.read<PurchaseBloc>().add(
+                                                    UpdatePurchases(
+                                                      id: widget
+                                                          .purchasesModel.id!,
+                                                      purchaseModel:
+                                                          purchasesModel!,
+                                                    ),
+                                                  );
+                                            }
+                                          },
+                                          text: 'حفظ ملاحظات المشتريات',
+                                        ),
                                   ],
                                 ),
                               ],
@@ -1409,23 +1514,25 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
                                 const SizedBox(
                                   height: 10,
                                 ),
-                                if (groups != null &&
-                                        groups!.contains('managers') ||
-                                    groups!.contains('admins'))
-                                  Center(
-                                    child: Mybutton(
-                                      onPressed: () {
-                                        _fillManagerModelfromForm();
-                                        context.read<PurchaseBloc>().add(
-                                              UpdatePurchases(
-                                                  id: widget.purchasesModel.id!,
-                                                  purchaseModel:
-                                                      purchasesModel!),
-                                            );
-                                      },
-                                      text: 'حفظ توقيع المدير',
-                                    ),
-                                  )
+                                if (widget.status != 100)
+                                  if (groups != null &&
+                                          groups!.contains('managers') ||
+                                      groups!.contains('admins'))
+                                    Center(
+                                      child: Mybutton(
+                                        onPressed: () {
+                                          _fillManagerModelfromForm();
+                                          context.read<PurchaseBloc>().add(
+                                                UpdatePurchases(
+                                                    id: widget
+                                                        .purchasesModel.id!,
+                                                    purchaseModel:
+                                                        purchasesModel!),
+                                              );
+                                        },
+                                        text: 'حفظ توقيع المدير',
+                                      ),
+                                    )
                               ],
                             ),
                           ),
@@ -1483,23 +1590,24 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
                                     controller:
                                         _recreceivedCheckNotesController,
                                     labelText: 'ملاحظة الاستلام'),
-                                if (name == _applicantController.text ||
-                                    groups != null &&
-                                        groups!.contains('admins'))
-                                  Center(
-                                    child: Mybutton(
-                                        onPressed: () {
-                                          _fillRecieveModelfromForm();
-                                          context.read<PurchaseBloc>().add(
-                                                UpdatePurchases(
-                                                    id: widget
-                                                        .purchasesModel.id!,
-                                                    purchaseModel:
-                                                        purchasesModel!),
-                                              );
-                                        },
-                                        text: 'حفظ الاستلام'),
-                                  )
+                                if (widget.status != 100)
+                                  if (name == _applicantController.text ||
+                                      groups != null &&
+                                          groups!.contains('admins'))
+                                    Center(
+                                      child: Mybutton(
+                                          onPressed: () {
+                                            _fillRecieveModelfromForm();
+                                            context.read<PurchaseBloc>().add(
+                                                  UpdatePurchases(
+                                                      id: widget
+                                                          .purchasesModel.id!,
+                                                      purchaseModel:
+                                                          purchasesModel!),
+                                                );
+                                          },
+                                          text: 'حفظ الاستلام'),
+                                    )
                               ],
                             ),
                           ),
@@ -1563,76 +1671,81 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
                                           );
                                     },
                                   ),
-                                if (widget.purchasesModel.bill != null &&
-                                    widget.purchasesModel.bill!.isNotEmpty)
-                                  Mybutton(
-                                    text: 'حذف الفاتورة',
-                                    onPressed: () async {
-                                      // Show a confirmation dialog
-                                      bool confirmDelete = await showDialog(
-                                        context: context,
-                                        builder: (BuildContext context) {
-                                          return AlertDialog(
-                                            title: const Text('تأكيد الحذف'),
-                                            content: const Text(
-                                                'هل أنت متأكد أنك تريد حذف هذه الفاتورة؟'),
-                                            actions: [
-                                              TextButton(
-                                                child: const Text('إلغاء'),
-                                                onPressed: () {
-                                                  Navigator.of(context)
-                                                      .pop(false);
-                                                },
-                                              ),
-                                              TextButton(
-                                                child: const Text('حذف'),
-                                                onPressed: () {
-                                                  Navigator.of(context)
-                                                      .pop(true);
-                                                },
-                                              ),
-                                            ],
-                                          );
-                                        },
-                                      );
-                                      if (confirmDelete == true) {
-                                        context.read<PurchaseBloc>().add(
-                                              DeletePurchaceImage(
-                                                  id: widget
-                                                      .purchasesModel.id!),
+                                if (widget.status != 100)
+                                  if (widget.purchasesModel.bill != null &&
+                                      widget.purchasesModel.bill!.isNotEmpty)
+                                    Mybutton(
+                                      text: 'حذف الفاتورة',
+                                      onPressed: () async {
+                                        // Show a confirmation dialog
+                                        bool confirmDelete = await showDialog(
+                                          context: context,
+                                          builder: (BuildContext context) {
+                                            return AlertDialog(
+                                              title: const Text('تأكيد الحذف'),
+                                              content: const Text(
+                                                  'هل أنت متأكد أنك تريد حذف هذه الفاتورة؟'),
+                                              actions: [
+                                                TextButton(
+                                                  child: const Text('إلغاء'),
+                                                  onPressed: () {
+                                                    Navigator.of(context)
+                                                        .pop(false);
+                                                  },
+                                                ),
+                                                TextButton(
+                                                  child: const Text('حذف'),
+                                                  onPressed: () {
+                                                    Navigator.of(context)
+                                                        .pop(true);
+                                                  },
+                                                ),
+                                              ],
                                             );
-                                      }
-                                    },
-                                  ),
-                                if ((widget.purchasesModel.bill == null ||
-                                        widget.purchasesModel.bill == "") &&
-                                    Platform.isAndroid)
-                                  Mybutton(
-                                    text: 'تصوير الفاتورة',
-                                    onPressed: () async {
-                                      await _pickImage(ImageSource.camera);
-                                      if (_image != null) {
-                                        context.read<PurchaseBloc>().add(
-                                            AddPurchaseImage(
-                                                image: _image!,
-                                                id: widget.purchasesModel.id!));
-                                      }
-                                    },
-                                  ),
-                                if (widget.purchasesModel.bill == null &&
-                                    widget.purchasesModel.bill != "")
-                                  Mybutton(
-                                    text: 'اختيار الفاتورة',
-                                    onPressed: () async {
-                                      await _pickImage(ImageSource.gallery);
-                                      if (_image != null) {
-                                        context.read<PurchaseBloc>().add(
-                                            AddPurchaseImage(
-                                                image: _image!,
-                                                id: widget.purchasesModel.id!));
-                                      }
-                                    },
-                                  ),
+                                          },
+                                        );
+                                        if (confirmDelete == true) {
+                                          context.read<PurchaseBloc>().add(
+                                                DeletePurchaceImage(
+                                                    id: widget
+                                                        .purchasesModel.id!),
+                                              );
+                                        }
+                                      },
+                                    ),
+                                if (widget.status != 100)
+                                  if ((widget.purchasesModel.bill == null ||
+                                          widget.purchasesModel.bill == "") &&
+                                      Platform.isAndroid)
+                                    Mybutton(
+                                      text: 'تصوير الفاتورة',
+                                      onPressed: () async {
+                                        await _pickImage(ImageSource.camera);
+                                        if (_image != null) {
+                                          context.read<PurchaseBloc>().add(
+                                              AddPurchaseImage(
+                                                  image: _image!,
+                                                  id: widget
+                                                      .purchasesModel.id!));
+                                        }
+                                      },
+                                    ),
+                                if (widget.status != 100)
+                                  if (widget.purchasesModel.bill == null &&
+                                      widget.purchasesModel.bill != "")
+                                    Mybutton(
+                                      text: 'اختيار الفاتورة',
+                                      onPressed: () async {
+                                        await _pickImage(ImageSource.gallery);
+                                        if (_image != null) {
+                                          context.read<PurchaseBloc>().add(
+                                              AddPurchaseImage(
+                                                  image: _image!,
+                                                  id: widget
+                                                      .purchasesModel.id!));
+                                        }
+                                      },
+                                    ),
                               ],
                             ),
                             const SizedBox(
@@ -1678,6 +1791,7 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
                     ),
                     if (groups != null &&
                         (groups!.contains('purchase_admins') ||
+                            groups!.contains('managers') ||
                             groups!.contains('admins')))
                       const BottomNavigationBarItem(
                         icon: Icon(Icons.receipt),
@@ -1766,6 +1880,11 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
     } else {
       purchasesModel!.applicant_approve_date = '1900-01-01';
     }
+  }
+
+  void _fillDeleteApplicantApprove() {
+    purchasesModel!.applicant_approve = null;
+    purchasesModel!.applicant_approve_date = '1900-01-01';
   }
 
   void _fillRecieveModelfromForm() {

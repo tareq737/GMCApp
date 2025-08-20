@@ -12,7 +12,6 @@ import 'package:gmcappclean/features/production_management/production/bloc/produ
 import 'package:gmcappclean/features/production_management/production/models/full_production_model.dart';
 import 'package:gmcappclean/features/production_management/production/models/lab_model.dart';
 import 'package:gmcappclean/features/production_management/production/services/production_services.dart';
-import 'package:gmcappclean/features/production_management/production/ui/production_full_data_page.dart';
 import 'package:gmcappclean/features/production_management/production/ui/production_list.dart';
 import 'package:gmcappclean/init_dependencies.dart';
 import 'package:intl/intl.dart';
@@ -125,18 +124,6 @@ class _ProductionLabDataWidgetState extends State<ProductionLabDataWidget> {
     _completionDateController.text =
         widget.fullProductionModel.lab.completion_date ?? '';
 
-    // if (_startTimeController.text.isNotEmpty) {
-    //   DateTime parsedTime =
-    //       DateFormat('HH:mm').parse(_startTimeController.text);
-    //   String formattedTime = DateFormat('hh:mm').format(parsedTime);
-    //   _startTimeController.text = formattedTime;
-    // }
-    // if (_finishTimeController.text.isNotEmpty) {
-    //   DateTime parsedTime =
-    //       DateFormat('HH:mm').parse(_finishTimeController.text);
-    //   String formattedTime = DateFormat('hh:mm').format(parsedTime);
-    //   _finishTimeController.text = formattedTime;
-    // }
     _calculateDuration();
   }
 
@@ -279,6 +266,59 @@ class _ProductionLabDataWidgetState extends State<ProductionLabDataWidget> {
                         ),
                         value: labCheck_6,
                         onChanged: (bool? value) {
+                          if (value == true) {
+                            if (employeeController.text.trim().isEmpty) {
+                              showSnackBar(
+                                context: context,
+                                content: 'يرجى إدخال اسم الموظف قبل الأرشفة',
+                                failure: true,
+                              );
+                              return;
+                            }
+                            if (_startTimeController.text.trim().isEmpty) {
+                              showSnackBar(
+                                context: context,
+                                content: 'يرجى تحديد وقت البدء قبل الأرشفة',
+                                failure: true,
+                              );
+                              return;
+                            }
+                            if (_finishTimeController.text.trim().isEmpty) {
+                              showSnackBar(
+                                context: context,
+                                content: 'يرجى تحديد وقت الإنتهاء قبل الأرشفة',
+                                failure: true,
+                              );
+                              return;
+                            }
+                            if (_completionDateController.text.trim().isEmpty) {
+                              showSnackBar(
+                                context: context,
+                                content:
+                                    'يرجى تحديد تاريخ الانتهاء قبل الأرشفة',
+                                failure: true,
+                              );
+                              return;
+                            }
+                            if (batchTemperatureController.text
+                                .trim()
+                                .isEmpty) {
+                              showSnackBar(
+                                context: context,
+                                content: 'يرجى تحديد حرارة الطبخة قبل الأرشفة',
+                                failure: true,
+                              );
+                              return;
+                            }
+                            if (densityController.text.trim().isEmpty) {
+                              showSnackBar(
+                                context: context,
+                                content: 'يرجى تحديد كثافة الطبخة قبل الأرشفة',
+                                failure: true,
+                              );
+                              return;
+                            }
+                          }
                           setState(() {
                             labCheck_6 = value ?? false;
                           });
@@ -508,6 +548,14 @@ class _ProductionLabDataWidgetState extends State<ProductionLabDataWidget> {
                       Mybutton(
                         text: 'حفظ',
                         onPressed: () {
+                          if (!_isDurationValid()) {
+                            showSnackBar(
+                              context: context,
+                              content: 'الوقت غير صحيح ⏳',
+                              failure: true,
+                            );
+                            return;
+                          }
                           _fillLabModelFromFomr();
                           print('Lab Model befor save: $_labModel');
                           context
@@ -549,6 +597,29 @@ class _ProductionLabDataWidgetState extends State<ProductionLabDataWidget> {
         });
       }
     }
+  }
+
+  bool _isDurationValid() {
+    if (_startTimeController.text.isEmpty ||
+        _finishTimeController.text.isEmpty) {
+      return true; // Allow empty values
+    }
+
+    final format = DateFormat('HH:mm');
+    try {
+      final DateTime startTime = format.parse(_startTimeController.text);
+      final DateTime finishTime = format.parse(_finishTimeController.text);
+
+      final Duration duration = finishTime.difference(startTime);
+
+      // If finish time is before start time OR duration > 9 hours => invalid
+      if (duration.isNegative || duration > const Duration(hours: 9)) {
+        return false;
+      }
+    } catch (e) {
+      return false; // invalid parse means invalid duration
+    }
+    return true;
   }
 
   String _formatDuration(Duration duration) {

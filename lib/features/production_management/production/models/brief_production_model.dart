@@ -16,6 +16,7 @@ class BriefProductionModel {
   bool? empty_packaging_check_5;
   bool? packaging_check_6;
   bool? finished_goods_check_3;
+  int? duration;
   BriefProductionModel({
     this.id,
     this.batch_number,
@@ -31,6 +32,7 @@ class BriefProductionModel {
     this.empty_packaging_check_5,
     this.packaging_check_6,
     this.finished_goods_check_3,
+    this.duration,
   });
 
   BriefProductionModel copyWith({
@@ -48,6 +50,7 @@ class BriefProductionModel {
     bool? empty_packaging_check_5,
     bool? packaging_check_6,
     bool? finished_goods_check_3,
+    int? duration,
   }) {
     return BriefProductionModel(
       id: id ?? this.id,
@@ -67,6 +70,7 @@ class BriefProductionModel {
       packaging_check_6: packaging_check_6 ?? this.packaging_check_6,
       finished_goods_check_3:
           finished_goods_check_3 ?? this.finished_goods_check_3,
+      duration: duration ?? this.duration,
     );
   }
 
@@ -86,6 +90,7 @@ class BriefProductionModel {
       'empty_packaging_check_5': empty_packaging_check_5,
       'packaging_check_6': packaging_check_6,
       'finished_goods_check_3': finished_goods_check_3,
+      'duration': duration,
     };
   }
 
@@ -120,6 +125,7 @@ class BriefProductionModel {
       finished_goods_check_3: map['finished_goods_check_3'] != null
           ? map['finished_goods_check_3'] as bool
           : null,
+      duration: map['duration'] != null ? map['duration'] as int : null,
     );
   }
 
@@ -130,7 +136,7 @@ class BriefProductionModel {
 
   @override
   String toString() {
-    return 'BriefProductionModel(id: $id, batch_number: $batch_number, insert_date: $insert_date, type: $type, tier: $tier, color: $color, total_weight: $total_weight, total_volume: $total_volume, raw_material_check_4: $raw_material_check_4, manufacturing_check_6: $manufacturing_check_6, lab_check_6: $lab_check_6, empty_packaging_check_5: $empty_packaging_check_5, packaging_check_6: $packaging_check_6, finished_goods_check_3: $finished_goods_check_3)';
+    return 'BriefProductionModel(id: $id, batch_number: $batch_number, insert_date: $insert_date, type: $type, tier: $tier, color: $color, total_weight: $total_weight, total_volume: $total_volume, raw_material_check_4: $raw_material_check_4, manufacturing_check_6: $manufacturing_check_6, lab_check_6: $lab_check_6, empty_packaging_check_5: $empty_packaging_check_5, packaging_check_6: $packaging_check_6, finished_goods_check_3: $finished_goods_check_3, duration: $duration)';
   }
 
   @override
@@ -150,7 +156,8 @@ class BriefProductionModel {
         other.lab_check_6 == lab_check_6 &&
         other.empty_packaging_check_5 == empty_packaging_check_5 &&
         other.packaging_check_6 == packaging_check_6 &&
-        other.finished_goods_check_3 == finished_goods_check_3;
+        other.finished_goods_check_3 == finished_goods_check_3 &&
+        other.duration == duration;
   }
 
   @override
@@ -168,6 +175,7 @@ class BriefProductionModel {
         lab_check_6.hashCode ^
         empty_packaging_check_5.hashCode ^
         packaging_check_6.hashCode ^
-        finished_goods_check_3.hashCode;
+        finished_goods_check_3.hashCode ^
+        duration.hashCode;
   }
 }

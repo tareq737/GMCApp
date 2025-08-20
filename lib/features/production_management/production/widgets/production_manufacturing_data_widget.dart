@@ -12,7 +12,6 @@ import 'package:gmcappclean/features/production_management/production/bloc/produ
 import 'package:gmcappclean/features/production_management/production/models/full_production_model.dart';
 import 'package:gmcappclean/features/production_management/production/models/manufacturing_model.dart';
 import 'package:gmcappclean/features/production_management/production/services/production_services.dart';
-import 'package:gmcappclean/features/production_management/production/ui/production_full_data_page.dart';
 import 'package:gmcappclean/features/production_management/production/ui/production_list.dart';
 import 'package:gmcappclean/init_dependencies.dart';
 import 'package:intl/intl.dart';
@@ -109,18 +108,6 @@ class _ProductionManufacturingDataWidgetState
             : '';
     additionsController.text =
         widget.fullProductionModel.manufacturing.additions ?? '';
-
-    // if (startTimeController.text.isNotEmpty) {
-    //   DateTime parsedTime = DateFormat('HH:mm').parse(startTimeController.text);
-    //   String formattedTime = DateFormat('hh:mm').format(parsedTime);
-    //   startTimeController.text = formattedTime;
-    // }
-    // if (finishTimeController.text.isNotEmpty) {
-    //   DateTime parsedTime =
-    //       DateFormat('HH:mm').parse(finishTimeController.text);
-    //   String formattedTime = DateFormat('hh:mm').format(parsedTime);
-    //   finishTimeController.text = formattedTime;
-    // }
 
     _calculateDuration();
   }
@@ -264,6 +251,49 @@ class _ProductionManufacturingDataWidgetState
                         ),
                         value: manufacturingCheck_6,
                         onChanged: (bool? value) {
+                          if (value == true) {
+                            if (employeeController.text.trim().isEmpty) {
+                              showSnackBar(
+                                context: context,
+                                content: 'يرجى إدخال اسم الموظف قبل الأرشفة',
+                                failure: true,
+                              );
+                              return;
+                            }
+                            if (startTimeController.text.trim().isEmpty) {
+                              showSnackBar(
+                                context: context,
+                                content: 'يرجى تحديد وقت البدء قبل الأرشفة',
+                                failure: true,
+                              );
+                              return;
+                            }
+                            if (finishTimeController.text.trim().isEmpty) {
+                              showSnackBar(
+                                context: context,
+                                content: 'يرجى تحديد وقت الإنتهاء قبل الأرشفة',
+                                failure: true,
+                              );
+                              return;
+                            }
+                            if (batchWeightController.text.trim().isEmpty) {
+                              showSnackBar(
+                                context: context,
+                                content: 'يرجى تحديد وزن الطبخة قبل الأرشفة',
+                                failure: true,
+                              );
+                              return;
+                            }
+                            if (completionDateController.text.trim().isEmpty) {
+                              showSnackBar(
+                                context: context,
+                                content:
+                                    'يرجى تحديد تاريخ الانتهاء قبل الأرشفة',
+                                failure: true,
+                              );
+                              return;
+                            }
+                          }
                           setState(() {
                             manufacturingCheck_6 = value ?? false;
                           });
@@ -408,6 +438,14 @@ class _ProductionManufacturingDataWidgetState
                       Mybutton(
                         text: 'حفظ',
                         onPressed: () {
+                          if (!_isDurationValid()) {
+                            showSnackBar(
+                              context: context,
+                              content: 'الوقت غير صحيح ⏳',
+                              failure: true,
+                            );
+                            return;
+                          }
                           _fillManufacturingModelFromFomr();
                           print(_manufacturingModel);
                           context.read<ProductionBloc>().add(SaveManufacturing(
@@ -447,6 +485,28 @@ class _ProductionManufacturingDataWidgetState
         });
       }
     }
+  }
+
+  bool _isDurationValid() {
+    if (startTimeController.text.isEmpty || finishTimeController.text.isEmpty) {
+      return true; // Allow empty values
+    }
+
+    final format = DateFormat('HH:mm');
+    try {
+      final DateTime startTime = format.parse(startTimeController.text);
+      final DateTime finishTime = format.parse(finishTimeController.text);
+
+      final Duration duration = finishTime.difference(startTime);
+
+      // If finish time is before start time OR duration > 9 hours => invalid
+      if (duration.isNegative || duration > const Duration(hours: 9)) {
+        return false;
+      }
+    } catch (e) {
+      return false; // invalid parse means invalid duration
+    }
+    return true;
   }
 
   String _formatDuration(Duration duration) {

@@ -53,3 +53,16 @@ class GetMachineLog extends MaintenanceEvent {
     required this.page,
   });
 }
+
+class GetMaintenanceFilter extends MaintenanceEvent {
+  final int page;
+  final String status;
+  final String date_1;
+  final String date_2;
+
+  GetMaintenanceFilter(
+      {required this.page,
+      required this.status,
+      required this.date_1,
+      required this.date_2});
+}

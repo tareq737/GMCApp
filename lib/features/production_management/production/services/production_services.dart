@@ -10,7 +10,6 @@ import 'package:gmcappclean/features/production_management/production/models/ful
 import 'package:gmcappclean/features/production_management/production/models/lab_model.dart';
 import 'package:gmcappclean/features/production_management/production/models/manufacturing_model.dart';
 import 'package:gmcappclean/features/production_management/production/models/packaging_model.dart';
-import 'package:gmcappclean/features/production_management/production/models/production_model.dart';
 import 'package:gmcappclean/features/production_management/production/models/raw_materials_model.dart';
 
 class ProductionServices {
@@ -320,6 +319,43 @@ class ProductionServices {
             'page': page,
           },
         );
+        return List.generate(response.length, (index) {
+          return BriefProductionModel.fromMap(response[index]);
+        });
+      });
+    } catch (e) {
+      print('exception caught');
+      return null;
+    }
+  }
+
+  Future<List<BriefProductionModel>?> getProductionFilter({
+    required int page,
+    required String status,
+    required String type,
+    required String date_1,
+    required String date_2,
+    required String timeliness,
+  }) async {
+    try {
+      final userEntity = await getCredentials();
+      return userEntity.fold((failure) {
+        return null;
+      }, (success) async {
+        final response = await _apiClient.getPageinated(
+          user: success,
+          endPoint: 'production_filter',
+          queryParams: {
+            'page_size': 15,
+            'page': page,
+            'status': status,
+            'type': type,
+            'date_1': date_1,
+            'date_2': date_2,
+            'timeliness': timeliness,
+          },
+        );
+
         return List.generate(response.length, (index) {
           return BriefProductionModel.fromMap(response[index]);
         });

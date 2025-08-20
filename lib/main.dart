@@ -13,7 +13,6 @@ import 'package:gmcappclean/features/maintenance/UI/maintenance_list_page.dart';
 import 'package:gmcappclean/features/purchases/UI/general%20purchases/purchases_list.dart';
 import 'package:gmcappclean/features/purchases/UI/production%20purchases/production_purchases_list.dart';
 import 'package:gmcappclean/features/sales_management/customers/presentation/pages/full_coustomers_page.dart';
-import 'package:gmcappclean/features/sales_management/operations/ui/operations_date_page.dart';
 import 'package:gmcappclean/init_dependencies.dart';
 import 'package:gmcappclean/core/theme/theme_cubit.dart';
 

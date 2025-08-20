@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gmcappclean/core/common/api/api.dart';
 import 'package:gmcappclean/core/common/widgets/loader.dart';
 import 'package:gmcappclean/core/common/widgets/my_dropdown_button_widget.dart';
@@ -21,9 +22,11 @@ import 'package:intl/intl.dart';
 
 class GardenTaskPage extends StatelessWidget {
   final GardenTasksModel? gardenTasksModel;
+  final String? prevDate;
   const GardenTaskPage({
     super.key,
     this.gardenTasksModel,
+    this.prevDate,
   });
 
   @override
@@ -34,15 +37,23 @@ class GardenTaskPage extends StatelessWidget {
         authInteractor: getIt<AuthInteractor>(),
       ))
         ..add(GetAllGardenActivities()),
-      child: GardenTaskChild(gardenTasksModel: gardenTasksModel),
+      child: GardenTaskChild(
+        gardenTasksModel: gardenTasksModel,
+        prevDate: prevDate,
+      ),
     );
   }
 }
 
 class GardenTaskChild extends StatefulWidget {
+  final String? prevDate;
   final GardenTasksModel? gardenTasksModel;
 
-  const GardenTaskChild({super.key, this.gardenTasksModel});
+  const GardenTaskChild({
+    super.key,
+    this.gardenTasksModel,
+    this.prevDate,
+  });
 
   @override
   State<GardenTaskChild> createState() => _GardenTaskChildState();
@@ -86,7 +97,7 @@ class _GardenTaskChildState extends State<GardenTaskChild> {
         });
       } else {
         setState(() {
-          totalTime = 'الوقت غير صحيح';
+          totalTime = 'الوقت غير صحيح ⏳';
         });
       }
     } catch (e) {
@@ -245,7 +256,24 @@ class _GardenTaskChildState extends State<GardenTaskChild> {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const ListGardenTasksPage(),
+                  builder: (context) => ListGardenTasksPage(
+                    prevDate: widget.prevDate,
+                  ),
+                ),
+              );
+            } else if (state is GardeningSuccess<bool>) {
+              showSnackBar(
+                context: context,
+                content: 'تم الحذف بنجاح',
+                failure: false,
+              );
+              Navigator.pop(context);
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ListGardenTasksPage(
+                    prevDate: widget.prevDate,
+                  ),
                 ),
               );
             }
@@ -396,120 +424,217 @@ class _GardenTaskChildState extends State<GardenTaskChild> {
                     ),
                     isLoading
                         ? const Loader()
-                        : Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        : Column(
+                            spacing: 30,
                             children: [
-                              Mybutton(
-                                text: 'إضافة',
-                                onPressed: () {
-                                  // Log all available activity details for debugging
-                                  for (var e in gardenActivityDetails) {
-                                    print(
-                                        '🧪 Matching ${e.name?.trim()} / ${e.details?.trim()} '
-                                        'against ${selectedActivity?.trim()} / ${selectedDetail?.trim()}');
-                                  }
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceAround,
+                                children: [
+                                  Mybutton(
+                                    text: 'إضافة',
+                                    onPressed: () {
+                                      // Log all available activity details for debugging
+                                      for (var e in gardenActivityDetails) {
+                                        print(
+                                            '🧪 Matching ${e.name?.trim()} / ${e.details?.trim()} '
+                                            'against ${selectedActivity?.trim()} / ${selectedDetail?.trim()}');
+                                      }
 
-                                  final selectedActivityModel =
-                                      gardenActivityDetails.firstWhere(
-                                    (e) =>
-                                        (e.name?.trim() ==
-                                            selectedActivity?.trim()) &&
-                                        (e.details?.trim() ==
-                                            selectedDetail?.trim()),
-                                    orElse: () => GardenActivitiesModel(
-                                        id: null, name: null, details: null),
-                                  );
+                                      final selectedActivityModel =
+                                          gardenActivityDetails.firstWhere(
+                                        (e) =>
+                                            (e.name?.trim() ==
+                                                selectedActivity?.trim()) &&
+                                            (e.details?.trim() ==
+                                                selectedDetail?.trim()),
+                                        orElse: () => GardenActivitiesModel(
+                                            id: null,
+                                            name: null,
+                                            details: null),
+                                      );
 
-                                  if (selectedActivityModel.id == null) {
-                                    showSnackBar(
-                                      context: context,
-                                      content:
-                                          'لا يمكن العثور على النشاط المختار. الرجاء التحقق من الحقول.',
-                                      failure: true,
-                                    );
-                                    return;
-                                  }
+                                      if (selectedActivityModel.id == null) {
+                                        showSnackBar(
+                                          context: context,
+                                          content:
+                                              'لا يمكن العثور على النشاط المختار. الرجاء التحقق من الحقول.',
+                                          failure: true,
+                                        );
+                                        return;
+                                      }
 
-                                  final task = GardenTasksModel(
-                                    activity_id: selectedActivityModel.id,
-                                    activity: selectedActivityModel,
-                                    date: dateController.text,
-                                    time_from: fromTimeController.text,
-                                    time_to: toTimeController.text,
-                                    worker_name: selectedWorker,
-                                    notes: notesController.text,
-                                    done: _done,
-                                  );
+                                      final task = GardenTasksModel(
+                                        activity_id: selectedActivityModel.id,
+                                        activity: selectedActivityModel,
+                                        date: dateController.text,
+                                        time_from: fromTimeController.text,
+                                        time_to: toTimeController.text,
+                                        worker_name: selectedWorker,
+                                        notes: notesController.text,
+                                        done: false,
+                                      );
 
-                                  print('✅ Adding Task Model: $task');
+                                      print('✅ Adding Task Model: $task');
 
-                                  context.read<GardeningBloc>().add(
-                                      AddGardenTask(gardenTasksModel: task));
-                                },
+                                      context.read<GardeningBloc>().add(
+                                          AddGardenTask(
+                                              gardenTasksModel: task));
+                                    },
+                                  ),
+                                  if (widget.gardenTasksModel != null)
+                                    Mybutton(
+                                      text: 'تعديل',
+                                      onPressed: () {
+                                        if (widget.gardenTasksModel == null) {
+                                          showSnackBar(
+                                            context: context,
+                                            content: 'لا يوجد مهمة للتعديل',
+                                            failure: true,
+                                          );
+                                          return;
+                                        }
+
+                                        // Log available entries for debugging
+                                        for (var e in gardenActivityDetails) {
+                                          print(
+                                              '🧪 Matching ${e.name?.trim()} / ${e.details?.trim()} '
+                                              'against ${selectedActivity?.trim()} / ${selectedDetail?.trim()}');
+                                        }
+
+                                        final selectedActivityModel =
+                                            gardenActivityDetails.firstWhere(
+                                          (e) =>
+                                              (e.name?.trim() ==
+                                                  selectedActivity?.trim()) &&
+                                              (e.details?.trim() ==
+                                                  selectedDetail?.trim()),
+                                          orElse: () => GardenActivitiesModel(
+                                              id: null,
+                                              name: null,
+                                              details: null),
+                                        );
+
+                                        if (selectedActivityModel.id == null) {
+                                          showSnackBar(
+                                            context: context,
+                                            content:
+                                                'لا يمكن العثور على النشاط المختار. الرجاء التحقق من الحقول.',
+                                            failure: true,
+                                          );
+                                          return;
+                                        }
+
+                                        final task = GardenTasksModel(
+                                          activity_id: selectedActivityModel.id,
+                                          date: dateController.text,
+                                          time_from: fromTimeController.text,
+                                          time_to: toTimeController.text,
+                                          worker_name: selectedWorker,
+                                          notes: notesController.text,
+                                          done: _done,
+                                        );
+
+                                        print('✅ Updating Task Model: $task');
+                                        print(
+                                            '🔗 Using activity model: $selectedActivityModel');
+
+                                        context.read<GardeningBloc>().add(
+                                              UpdateGardenTask(
+                                                id: widget
+                                                    .gardenTasksModel!.id!,
+                                                gardenTasksModel: task,
+                                              ),
+                                            );
+                                      },
+                                    ),
+                                ],
                               ),
                               if (widget.gardenTasksModel != null)
-                                Mybutton(
-                                  text: 'تعديل',
+                                IconButton(
+                                  icon: Container(
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Colors.red.withOpacity(0.2),
+                                      border: Border.all(
+                                          color: Colors.red.withOpacity(0.5),
+                                          width: 1),
+                                    ),
+                                    padding: const EdgeInsets.all(8),
+                                    child: const FaIcon(
+                                      FontAwesomeIcons.trash,
+                                      color: Colors.red,
+                                      size: 20,
+                                    ),
+                                  ),
+                                  tooltip: 'حذف',
                                   onPressed: () {
-                                    if (widget.gardenTasksModel == null) {
-                                      showSnackBar(
-                                        context: context,
-                                        content: 'لا يوجد مهمة للتعديل',
-                                        failure: true,
-                                      );
-                                      return;
-                                    }
-
-                                    // Log available entries for debugging
-                                    for (var e in gardenActivityDetails) {
-                                      print(
-                                          '🧪 Matching ${e.name?.trim()} / ${e.details?.trim()} '
-                                          'against ${selectedActivity?.trim()} / ${selectedDetail?.trim()}');
-                                    }
-
-                                    final selectedActivityModel =
-                                        gardenActivityDetails.firstWhere(
-                                      (e) =>
-                                          (e.name?.trim() ==
-                                              selectedActivity?.trim()) &&
-                                          (e.details?.trim() ==
-                                              selectedDetail?.trim()),
-                                      orElse: () => GardenActivitiesModel(
-                                          id: null, name: null, details: null),
-                                    );
-
-                                    if (selectedActivityModel.id == null) {
-                                      showSnackBar(
-                                        context: context,
-                                        content:
-                                            'لا يمكن العثور على النشاط المختار. الرجاء التحقق من الحقول.',
-                                        failure: true,
-                                      );
-                                      return;
-                                    }
-
-                                    final task = GardenTasksModel(
-                                      activity_id: selectedActivityModel.id,
-                                      date: dateController.text,
-                                      time_from: fromTimeController.text,
-                                      time_to: toTimeController.text,
-                                      worker_name: selectedWorker,
-                                      notes: notesController.text,
-                                      done: _done,
-                                    );
-
-                                    print('✅ Updating Task Model: $task');
-                                    print(
-                                        '🔗 Using activity model: $selectedActivityModel');
-
-                                    context.read<GardeningBloc>().add(
-                                          UpdateGardenTask(
-                                            id: widget.gardenTasksModel!.id!,
-                                            gardenTasksModel: task,
+                                    showModalBottomSheet(
+                                      context: context,
+                                      builder: (_) => Directionality(
+                                        textDirection: ui.TextDirection.rtl,
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(16.0),
+                                          child: Wrap(
+                                            children: [
+                                              const ListTile(
+                                                title: Text('تأكيد الحذف',
+                                                    style: TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold)),
+                                                subtitle: Text('هل انت متأكد؟'),
+                                              ),
+                                              Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.end,
+                                                children: [
+                                                  TextButton(
+                                                    onPressed: () =>
+                                                        Navigator.pop(context),
+                                                    child: const Text('إلغاء'),
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  TextButton(
+                                                    style: TextButton.styleFrom(
+                                                      backgroundColor: Colors
+                                                          .red
+                                                          .withOpacity(0.1),
+                                                      shape:
+                                                          RoundedRectangleBorder(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(8),
+                                                        side: BorderSide(
+                                                            color: Colors.red
+                                                                .withOpacity(
+                                                                    0.3)),
+                                                      ),
+                                                    ),
+                                                    onPressed: () {
+                                                      Navigator.pop(context);
+                                                      context
+                                                          .read<GardeningBloc>()
+                                                          .add(
+                                                            DeleteOneGardenTask(
+                                                              id: widget
+                                                                  .gardenTasksModel!
+                                                                  .id!,
+                                                            ),
+                                                          );
+                                                    },
+                                                    child: const Text('حذف',
+                                                        style: TextStyle(
+                                                            color: Colors.red)),
+                                                  ),
+                                                ],
+                                              )
+                                            ],
                                           ),
-                                        );
+                                        ),
+                                      ),
+                                    );
                                   },
-                                ),
+                                )
                             ],
                           ),
                   ],

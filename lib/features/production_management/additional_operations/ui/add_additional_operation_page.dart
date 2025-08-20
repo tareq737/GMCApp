@@ -379,6 +379,14 @@ class _AddAdditionalOperationPageState
                               Mybutton(
                                 text: 'إضافة',
                                 onPressed: () {
+                                  if (!_isDurationValid()) {
+                                    showSnackBar(
+                                      context: context,
+                                      content: 'الوقت غير صحيح ⏳',
+                                      failure: true,
+                                    );
+                                    return;
+                                  }
                                   _fillModelfromFormAdd();
                                   context.read<AdditionalOperationsBloc>().add(
                                         AddAdditionalOperation(
@@ -396,6 +404,15 @@ class _AddAdditionalOperationPageState
                                 text: 'حفظ',
                                 onPressed: () {
                                   // Always enable onPressed if button is visible
+
+                                  if (!_isDurationValid()) {
+                                    showSnackBar(
+                                      context: context,
+                                      content: 'الوقت غير صحيح ⏳',
+                                      failure: true,
+                                    );
+                                    return;
+                                  }
                                   _fillModelfromFormSave();
                                   context.read<AdditionalOperationsBloc>().add(
                                         UpdateAdditionalOperation(
@@ -414,6 +431,14 @@ class _AddAdditionalOperationPageState
                               Mybutton(
                                 text: 'تعديل',
                                 onPressed: () {
+                                  if (!_isDurationValid()) {
+                                    showSnackBar(
+                                      context: context,
+                                      content: 'الوقت غير صحيح ⏳',
+                                      failure: true,
+                                    );
+                                    return;
+                                  }
                                   _fillModelfromFormEdit();
                                   context.read<AdditionalOperationsBloc>().add(
                                         UpdateAdditionalOperation(
@@ -478,5 +503,28 @@ class _AddAdditionalOperationPageState
     additionalOperationsModel!.done = false;
     // Assuming 'تعديل' (Modify/Edit) button updates only these specific fields
     // If it should update others, add them here.
+  }
+
+  bool _isDurationValid() {
+    if (_startTimeController.text.isEmpty ||
+        _finishTimeController.text.isEmpty) {
+      return true; // Allow empty values
+    }
+
+    final format = DateFormat('HH:mm');
+    try {
+      final DateTime startTime = format.parse(_startTimeController.text);
+      final DateTime finishTime = format.parse(_finishTimeController.text);
+
+      final Duration duration = finishTime.difference(startTime);
+
+      // If finish time is before start time OR duration > 9 hours => invalid
+      if (duration.isNegative || duration > const Duration(hours: 9)) {
+        return false;
+      }
+    } catch (e) {
+      return false; // invalid parse means invalid duration
+    }
+    return true;
   }
 }

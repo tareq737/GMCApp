@@ -30,6 +30,7 @@ import 'package:gmcappclean/features/gardening/ui/add_garden_activity_page.dart'
 import 'package:gmcappclean/features/gardening/ui/genral_list_garden_tasks_page.dart';
 import 'package:gmcappclean/features/gardening/ui/list_garden_tasks_page.dart';
 import 'package:gmcappclean/features/maintenance/UI/maintenance_list_page.dart';
+import 'package:gmcappclean/features/notification/ui/notify_page.dart';
 import 'package:gmcappclean/features/production_management/additional_operations/ui/list_additional_operations_page.dart';
 import 'package:gmcappclean/features/production_management/production/ui/production_list.dart';
 import 'package:gmcappclean/features/production_management/production_ready/presentation/pages/full_prod_plan_page.dart';
@@ -46,7 +47,6 @@ import 'package:gmcappclean/features/sales_management/operations/ui/operations_d
 import 'package:gmcappclean/features/sales_management/operations/ui/operations_page.dart';
 import 'package:gmcappclean/features/sales_management/product_efficiency/ui/product_efficiency_list_page.dart';
 import 'package:gmcappclean/features/statistics/bloc/statistics_bloc.dart';
-import 'package:gmcappclean/features/statistics/models/statistics_model.dart';
 import 'package:gmcappclean/features/statistics/services/statistics_services.dart';
 import 'package:gmcappclean/features/statistics/ui/statistics_widget.dart';
 import 'package:gmcappclean/init_dependencies.dart';
@@ -138,6 +138,12 @@ class _HomePageState extends State<HomePage>
                         );
                       }
                       break;
+                    case 'notify':
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const NotifyPage()),
+                      );
+                      break;
                     case 'toggle_theme':
                       context.read<ThemeCubit>().toggleTheme();
                       break;
@@ -157,6 +163,14 @@ class _HomePageState extends State<HomePage>
                       child: ListTile(
                         leading: Icon(Icons.lock_reset),
                         title: Text('إعادة ضبط كلمة المرور'),
+                      ),
+                    ),
+                  if (groups != null && groups.contains('admins'))
+                    const PopupMenuItem(
+                      value: 'notify',
+                      child: ListTile(
+                        leading: Icon(Icons.notification_add),
+                        title: Text('إشعارات'),
                       ),
                     ),
                   PopupMenuItem(
@@ -1094,6 +1108,24 @@ class _HomePageState extends State<HomePage>
                           );
                         },
                       ),
+                      if (groups != null &&
+                          (groups.contains('managers') ||
+                              groups.contains('admins')))
+                        ListTile(
+                          leading: SizedBox(
+                            height: 30,
+                            width: 30,
+                            child: Image.asset('assets/images/cash.png'),
+                          ),
+                          title: const Text('الصندوق'),
+                          onTap: () {
+                            Navigator.pop(context);
+                            showSnackBar(
+                                context: context,
+                                content: 'قيد التطوير',
+                                failure: false);
+                          },
+                        ),
                     ],
                   ),
                 ),
@@ -1177,6 +1209,7 @@ class _HomePageState extends State<HomePage>
                 const Divider(),
                 Column(
                   children: [
+                    const VersionCheckRow(),
                     Mybutton(
                       text: 'تسجيل خروج',
                       onPressed: () {

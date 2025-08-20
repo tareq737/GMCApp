@@ -158,5 +158,22 @@ class ProductionBloc extends Bloc<ProductionEvent, ProductionState> {
         }
       },
     );
+    on<GetProductionFilter>(
+      (event, emit) async {
+        var result = await _productionServices.getProductionFilter(
+          page: event.page,
+          status: event.status,
+          type: event.type,
+          date_1: event.date_1,
+          date_2: event.date_2,
+          timeliness: event.timeliness,
+        );
+        if (result == null) {
+          emit(ProductionError(errorMessage: 'Error'));
+        } else {
+          emit(ProductionSuccess(result: result));
+        }
+      },
+    );
   }
 }

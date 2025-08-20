@@ -83,3 +83,20 @@ class AllProduction extends ProductionEvent {
 
   AllProduction({required this.page, required this.search});
 }
+
+class GetProductionFilter extends ProductionEvent {
+  final int page;
+  final String status;
+  final String type;
+  final String date_1;
+  final String date_2;
+  final String timeliness;
+
+  GetProductionFilter(
+      {required this.page,
+      required this.status,
+      required this.type,
+      required this.date_1,
+      required this.date_2,
+      required this.timeliness});
+}

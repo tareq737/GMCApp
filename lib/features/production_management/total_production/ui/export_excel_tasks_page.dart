@@ -45,24 +45,27 @@ class _ExportExcelTasksPageState extends State<ExportExcelTasksPage> {
 
   Future<void> _saveFile(Uint8List bytes) async {
     try {
-      final directory = await getTemporaryDirectory();
-
-      // Use the Arabic display name as the file name
+      // Change path to network shared folder
+      const String folderPath = r'\\192.168.0.2\data sharing 2\temp';
+      // Make sure the folder exists
+      final dir = Directory(folderPath);
+      if (!(await dir.exists())) {
+        await dir.create(recursive: true);
+      }
+      // Use Arabic display name as filename
       final fileName = 'برنامج فردي ${widget.departmentDisplayName}.xlsx';
-
-      final path = '${directory.path}/$fileName';
-
-      final file = File(path);
+      final String filePath = '$folderPath\\$fileName';
+      final file = File(filePath);
+      // If file exists, it will be replaced
+      if (await file.exists()) {
+        await file.delete();
+      }
       await file.writeAsBytes(bytes);
-
       await _showDialog('نجاح', 'تم حفظ الملف وسيتم فتحه الآن');
-
-      final result = await OpenFilex.open(path);
-
+      final result = await OpenFilex.open(filePath);
       if (result.type != ResultType.done) {
         await _showDialog('Error', 'لم يتم فتح الملف: ${result.message}');
       }
-
       Navigator.of(context).pop(); // Close the page
     } catch (e) {
       await _showDialog('Error', 'Failed to save/open file:\n$e');
@@ -74,15 +77,18 @@ class _ExportExcelTasksPageState extends State<ExportExcelTasksPage> {
     return showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => AlertDialog(
-        title: Text(title),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(), // Close the dialog
-            child: const Text('OK'),
-          ),
-        ],
+      builder: (_) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: AlertDialog(
+          title: Text(title),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
       ),
     );
   }

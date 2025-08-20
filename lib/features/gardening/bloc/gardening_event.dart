@@ -78,3 +78,8 @@ class AddGardenActivity extends GardeningEvent {
 
   AddGardenActivity({required this.gardenActivitiesModel});
 }
+
+class DeleteOneGardenTask extends GardeningEvent {
+  final int id;
+  DeleteOneGardenTask({required this.id});
+}

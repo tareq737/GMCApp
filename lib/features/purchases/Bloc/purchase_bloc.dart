@@ -445,5 +445,21 @@ class PurchaseBloc extends Bloc<PurchaseEvent, PurchaseState> {
         },
       );
     });
+    on<GetPurchasesFilter>(
+      (event, emit) async {
+        emit(PurchaseLoading());
+        var result = await _purchaseService.getPurchasesFilter(
+          page: event.page,
+          status: event.status,
+          date_1: event.date_1,
+          date_2: event.date_2,
+        );
+        if (result == null) {
+          emit(PurchaseError(errorMessage: 'Error'));
+        } else {
+          emit(PurchaseSuccess(result: result));
+        }
+      },
+    );
   }
 }

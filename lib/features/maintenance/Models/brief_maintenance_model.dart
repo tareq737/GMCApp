@@ -10,6 +10,7 @@ class BriefMaintenanceModel {
   bool? archived;
   bool? received;
   String? machine_name;
+  int? duration;
   BriefMaintenanceModel({
     required this.id,
     this.department,
@@ -19,6 +20,7 @@ class BriefMaintenanceModel {
     this.archived,
     this.received,
     this.machine_name,
+    this.duration,
   });
 
   BriefMaintenanceModel copyWith({
@@ -30,6 +32,7 @@ class BriefMaintenanceModel {
     bool? archived,
     bool? received,
     String? machine_name,
+    int? duration,
   }) {
     return BriefMaintenanceModel(
       id: id ?? this.id,
@@ -40,6 +43,7 @@ class BriefMaintenanceModel {
       archived: archived ?? this.archived,
       received: received ?? this.received,
       machine_name: machine_name ?? this.machine_name,
+      duration: duration ?? this.duration,
     );
   }
 
@@ -53,6 +57,7 @@ class BriefMaintenanceModel {
       'archived': archived,
       'received': received,
       'machine_name': machine_name,
+      'duration': duration,
     };
   }
 
@@ -70,6 +75,7 @@ class BriefMaintenanceModel {
       received: map['received'] != null ? map['received'] as bool : null,
       machine_name:
           map['machine_name'] != null ? map['machine_name'] as String : null,
+      duration: map['duration'] != null ? map['duration'] as int : null,
     );
   }
 
@@ -81,7 +87,7 @@ class BriefMaintenanceModel {
 
   @override
   String toString() {
-    return 'BriefMaintenanceModel(id: $id, department: $department, problem: $problem, insert_date: $insert_date, manager_check: $manager_check, archived: $archived, received: $received, machine_name: $machine_name)';
+    return 'BriefMaintenanceModel(id: $id, department: $department, problem: $problem, insert_date: $insert_date, manager_check: $manager_check, archived: $archived, received: $received, machine_name: $machine_name, duration: $duration)';
   }
 
   @override
@@ -95,7 +101,8 @@ class BriefMaintenanceModel {
         other.manager_check == manager_check &&
         other.archived == archived &&
         other.received == received &&
-        other.machine_name == machine_name;
+        other.machine_name == machine_name &&
+        other.duration == duration;
   }
 
   @override
@@ -107,6 +114,7 @@ class BriefMaintenanceModel {
         manager_check.hashCode ^
         archived.hashCode ^
         received.hashCode ^
-        machine_name.hashCode;
+        machine_name.hashCode ^
+        duration.hashCode;
   }
 }

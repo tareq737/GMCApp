@@ -12,6 +12,7 @@ class BriefPurchaseModel {
   bool? received_check;
   bool? archived;
   String? bill;
+  int? duration;
   BriefPurchaseModel({
     required this.id,
     this.insert_date,
@@ -23,6 +24,7 @@ class BriefPurchaseModel {
     this.received_check,
     this.archived,
     this.bill,
+    this.duration,
   });
 
   BriefPurchaseModel copyWith({
@@ -36,6 +38,7 @@ class BriefPurchaseModel {
     bool? received_check,
     bool? archived,
     String? bill,
+    int? duration,
   }) {
     return BriefPurchaseModel(
       id: id ?? this.id,
@@ -48,6 +51,7 @@ class BriefPurchaseModel {
       received_check: received_check ?? this.received_check,
       archived: archived ?? this.archived,
       bill: bill ?? this.bill,
+      duration: duration ?? this.duration,
     );
   }
 
@@ -63,6 +67,7 @@ class BriefPurchaseModel {
       'received_check': received_check,
       'archived': archived,
       'bill': bill,
+      'duration': duration,
     };
   }
 
@@ -83,6 +88,7 @@ class BriefPurchaseModel {
           map['received_check'] != null ? map['received_check'] as bool : null,
       archived: map['archived'] != null ? map['archived'] as bool : null,
       bill: map['bill'] != null ? map['bill'] as String : null,
+      duration: map['duration'] != null ? map['duration'] as int : null,
     );
   }
 
@@ -93,7 +99,7 @@ class BriefPurchaseModel {
 
   @override
   String toString() {
-    return 'BriefPurchaseModel(id: $id, insert_date: $insert_date, department: $department, type: $type, details: $details, last_price: $last_price, manager_check: $manager_check, received_check: $received_check, archived: $archived, bill: $bill)';
+    return 'BriefPurchaseModel(id: $id, insert_date: $insert_date, department: $department, type: $type, details: $details, last_price: $last_price, manager_check: $manager_check, received_check: $received_check, archived: $archived, bill: $bill, duration: $duration)';
   }
 
   @override
@@ -109,7 +115,8 @@ class BriefPurchaseModel {
         other.manager_check == manager_check &&
         other.received_check == received_check &&
         other.archived == archived &&
-        other.bill == bill;
+        other.bill == bill &&
+        other.duration == duration;
   }
 
   @override
@@ -123,6 +130,7 @@ class BriefPurchaseModel {
         manager_check.hashCode ^
         received_check.hashCode ^
         archived.hashCode ^
-        bill.hashCode;
+        bill.hashCode ^
+        duration.hashCode;
   }
 }

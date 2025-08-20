@@ -23,13 +23,18 @@ import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 
 class ListGardenTasksPage extends StatelessWidget {
-  const ListGardenTasksPage({super.key});
+  final String? prevDate;
+  const ListGardenTasksPage({
+    super.key,
+    this.prevDate,
+  });
 
   @override
   Widget build(BuildContext context) {
     final today = DateTime.now();
     final formattedDate =
         "${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}";
+    final dateToUse = prevDate ?? formattedDate;
 
     return BlocProvider(
       create: (context) => GardeningBloc(GardeningServices(
@@ -39,19 +44,25 @@ class ListGardenTasksPage extends StatelessWidget {
         ..add(
           GetAllGardenTasks(
             page: 1,
-            date1: formattedDate,
-            date2: formattedDate,
+            date1: dateToUse,
+            date2: dateToUse,
           ),
         ),
       child: Builder(builder: (context) {
-        return const ListGardenTasksPageChild();
+        return ListGardenTasksPageChild(
+          prevDate: prevDate,
+        );
       }),
     );
   }
 }
 
 class ListGardenTasksPageChild extends StatefulWidget {
-  const ListGardenTasksPageChild({super.key});
+  final String? prevDate;
+  const ListGardenTasksPageChild({
+    super.key,
+    this.prevDate,
+  });
 
   @override
   State<ListGardenTasksPageChild> createState() =>
@@ -64,11 +75,13 @@ class _ListGardenTasksPageChildState extends State<ListGardenTasksPageChild> {
   bool isLoadingMore = false;
   List<GardenTasksModel> _model = [];
   final _dateController = TextEditingController();
+  double width = 0;
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
-    _dateController.text = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    _dateController.text =
+        widget.prevDate ?? DateFormat('yyyy-MM-dd').format(DateTime.now());
   }
 
   @override
@@ -224,6 +237,7 @@ class _ListGardenTasksPageChildState extends State<ListGardenTasksPageChild> {
   @override
   Widget build(BuildContext context) {
     bool isDark = Theme.of(context).brightness == Brightness.dark;
+    width = MediaQuery.of(context).size.width;
     AppUserState state = context.read<AppUserCubit>().state;
     if (state is AppUserLoggedIn) {
       groups = state.userEntity.groups;
@@ -239,7 +253,9 @@ class _ListGardenTasksPageChildState extends State<ListGardenTasksPageChild> {
                   builder: (
                     context,
                   ) {
-                    return const GardenTaskPage();
+                    return GardenTaskPage(
+                      prevDate: _dateController.text,
+                    );
                   },
                 ),
               );
@@ -378,6 +394,7 @@ class _ListGardenTasksPageChildState extends State<ListGardenTasksPageChild> {
                             builder: (context) {
                               return GardenTaskPage(
                                 gardenTasksModel: state.result,
+                                prevDate: _dateController.text,
                               );
                             },
                           ),
@@ -638,51 +655,81 @@ class _ListGardenTasksPageChildState extends State<ListGardenTasksPageChild> {
                                         GetOneGardenTask(id: _model[index].id!),
                                       );
                                 },
-                                child: Card(
-                                  margin: const EdgeInsets.symmetric(
-                                      vertical: 8, horizontal: 4),
-                                  elevation: 3,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(left: 8),
-                                    child: ListTile(
-                                      contentPadding:
-                                          const EdgeInsets.symmetric(
-                                              vertical: 4, horizontal: 8),
-                                      title: SizedBox(
-                                        width: screenWidth * 0.20,
-                                        child: Text(
-                                          _model[index].activity!.name ?? "",
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.w500,
-                                            fontSize: 14, // Explicit font size
+                                child: TweenAnimationBuilder<double>(
+                                  tween: Tween(begin: width, end: 0),
+                                  duration: const Duration(milliseconds: 600),
+                                  curve: Curves.decelerate,
+                                  builder: (context, value, child) {
+                                    return Transform.translate(
+                                      offset: Offset(value, 0),
+                                      child: child,
+                                    );
+                                  },
+                                  child: Card(
+                                    margin: const EdgeInsets.symmetric(
+                                        vertical: 8, horizontal: 4),
+                                    elevation: 3,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(left: 8),
+                                      child: ListTile(
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
+                                                vertical: 4, horizontal: 8),
+                                        title: SizedBox(
+                                          width: screenWidth * 0.20,
+                                          child: Text(
+                                            _model[index].activity!.name ?? "",
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w500,
+                                              fontSize:
+                                                  14, // Explicit font size
+                                            ),
+                                            maxLines:
+                                                1, // Prevent text overflow
+                                            overflow: TextOverflow.ellipsis,
                                           ),
-                                          maxLines: 1, // Prevent text overflow
-                                          overflow: TextOverflow.ellipsis,
                                         ),
-                                      ),
-                                      subtitle: SizedBox(
-                                        width: screenWidth * 0.6,
-                                        child: Column(
-                                          mainAxisSize: MainAxisSize
-                                              .min, // Take minimum vertical space
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            if (_model[index]
-                                                    .activity!
-                                                    .details
-                                                    ?.isNotEmpty ??
-                                                false)
-                                              Padding(
-                                                padding: const EdgeInsets.only(
-                                                    bottom: 2.0),
-                                                child: Text(
-                                                  _model[index]
+                                        subtitle: SizedBox(
+                                          width: screenWidth * 0.6,
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize
+                                                .min, // Take minimum vertical space
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              if (_model[index]
                                                       .activity!
-                                                      .details!,
+                                                      .details
+                                                      ?.isNotEmpty ??
+                                                  false)
+                                                Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                          bottom: 2.0),
+                                                  child: Text(
+                                                    _model[index]
+                                                        .activity!
+                                                        .details!,
+                                                    style: TextStyle(
+                                                      color:
+                                                          Colors.grey.shade600,
+                                                      fontSize:
+                                                          12, // Smaller font size
+                                                    ),
+                                                    maxLines: 1,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
+                                                ),
+                                              if (_model[index]
+                                                      .notes
+                                                      ?.isNotEmpty ??
+                                                  false)
+                                                Text(
+                                                  _model[index].notes!,
                                                   style: TextStyle(
                                                     color: Colors.grey.shade600,
                                                     fontSize:
@@ -692,119 +739,106 @@ class _ListGardenTasksPageChildState extends State<ListGardenTasksPageChild> {
                                                   overflow:
                                                       TextOverflow.ellipsis,
                                                 ),
-                                              ),
-                                            if (_model[index]
-                                                    .notes
-                                                    ?.isNotEmpty ??
-                                                false)
-                                              Text(
-                                                _model[index].notes!,
-                                                style: TextStyle(
-                                                  color: Colors.grey.shade600,
-                                                  fontSize:
-                                                      12, // Smaller font size
-                                                ),
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                          ],
+                                            ],
+                                          ),
                                         ),
-                                      ),
-                                      leading: SizedBox(
-                                        width: screenWidth * 0.08,
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          spacing: 10,
-                                          children: [
-                                            CircleAvatar(
-                                              backgroundColor: Colors.teal,
-                                              radius: 11,
-                                              child: Text(
-                                                _model[index].id.toString(),
-                                                style: const TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 8),
-                                              ),
-                                            ),
-                                            Icon(
-                                              (_model[index].done == true)
-                                                  ? Icons.check
-                                                  : Icons.close,
-                                              color:
-                                                  (_model[index].done == true)
-                                                      ? Colors.green
-                                                      : Colors.red,
-                                              size: 15,
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      trailing: ConstrainedBox(
-                                        constraints: BoxConstraints(
-                                          maxWidth: screenWidth *
-                                              0.25, // Limit trailing width
-                                        ),
-                                        child: Column(
-                                          mainAxisSize: MainAxisSize
-                                              .min, // Take minimum vertical space
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            if (_model[index]
-                                                    .worker_name
-                                                    ?.isNotEmpty ??
-                                                false)
-                                              Text(
-                                                _model[index].worker_name!,
-                                                style: const TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 10,
-                                                ),
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                            const SizedBox(height: 2),
-                                            Row(
-                                              spacing: 5,
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Column(
-                                                  mainAxisSize:
-                                                      MainAxisSize.min,
-                                                  children: [
-                                                    Text(
-                                                      _formatTime(_model[index]
-                                                          .time_from),
-                                                      style: const TextStyle(
-                                                        color: Colors.white,
-                                                        fontSize: 10,
-                                                      ),
-                                                    ),
-                                                    Text(
-                                                      _formatTime(_model[index]
-                                                          .time_to),
-                                                      style: const TextStyle(
-                                                        color: Colors.white,
-                                                        fontSize: 10,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                                const SizedBox(width: 4),
-                                                Text(
-                                                  _calculateTotalTime(
-                                                    _model[index].time_from,
-                                                    _model[index].time_to,
-                                                  ),
+                                        leading: SizedBox(
+                                          width: screenWidth * 0.08,
+                                          child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            spacing: 5,
+                                            children: [
+                                              CircleAvatar(
+                                                backgroundColor: Colors.teal,
+                                                radius: 12,
+                                                child: Text(
+                                                  _model[index].id.toString(),
                                                   style: const TextStyle(
-                                                    color: Colors.white,
+                                                      fontSize: 8,
+                                                      color: Colors.white),
+                                                ),
+                                              ),
+                                              FaIcon(
+                                                (_model[index].done == true)
+                                                    ? FontAwesomeIcons
+                                                        .solidThumbsUp
+                                                    : FontAwesomeIcons
+                                                        .solidThumbsDown,
+                                                color:
+                                                    (_model[index].done == true)
+                                                        ? Colors.green
+                                                        : Colors.red,
+                                                size: 15,
+                                              )
+                                            ],
+                                          ),
+                                        ),
+                                        trailing: ConstrainedBox(
+                                          constraints: BoxConstraints(
+                                            maxWidth: screenWidth *
+                                                0.25, // Limit trailing width
+                                          ),
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize
+                                                .min, // Take minimum vertical space
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              if (_model[index]
+                                                      .worker_name
+                                                      ?.isNotEmpty ??
+                                                  false)
+                                                Text(
+                                                  _model[index].worker_name!,
+                                                  style: const TextStyle(
                                                     fontSize: 10,
                                                   ),
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
                                                 ),
-                                              ],
-                                            ),
-                                          ],
+                                              const SizedBox(height: 2),
+                                              Row(
+                                                spacing: 5,
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Column(
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    children: [
+                                                      Text(
+                                                        _formatTime(
+                                                            _model[index]
+                                                                .time_from),
+                                                        style: const TextStyle(
+                                                          fontSize: 10,
+                                                        ),
+                                                      ),
+                                                      Text(
+                                                        _formatTime(
+                                                            _model[index]
+                                                                .time_to),
+                                                        style: const TextStyle(
+                                                          fontSize: 10,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  const SizedBox(width: 4),
+                                                  Text(
+                                                    _calculateTotalTime(
+                                                      _model[index].time_from,
+                                                      _model[index].time_to,
+                                                    ),
+                                                    style: const TextStyle(
+                                                      fontSize: 10,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ),
                                     ),

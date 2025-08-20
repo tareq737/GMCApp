@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gmcappclean/core/common/api/api.dart';
 import 'package:gmcappclean/core/common/cubits/app_user/app_user_cubit.dart';
 import 'package:gmcappclean/core/common/widgets/loader.dart';
@@ -45,8 +46,8 @@ class ProductionList extends StatelessWidget {
 }
 
 class FullProdPageChild extends StatefulWidget {
-  String type;
-  FullProdPageChild({super.key, required this.type});
+  final String type;
+  const FullProdPageChild({super.key, required this.type});
 
   @override
   State<FullProdPageChild> createState() => _FullProdPageChildState();
@@ -57,7 +58,7 @@ class _FullProdPageChildState extends State<FullProdPageChild> {
   final ScrollController _scrollController = ScrollController();
   final Color _darkThemeRed = Colors.red.shade700; // A richer, darker red
   final Color _darkThemeBlue = Colors.blue.shade700; // A deeper blue
-
+  double width = 0;
   // This map will store the last assigned color for each batch prefix
   final Map<String, Color> _prefixColors = {};
   Color _currentColorForPrefix =
@@ -132,19 +133,42 @@ class _FullProdPageChildState extends State<FullProdPageChild> {
     return _prefixColors[prefix]!;
   }
 
-  // Placeholder for _buildCheckIcon
-  Widget _buildCheckIcon(bool? checkValue) {
-    if (checkValue == true) {
-      return const Icon(Icons.check, color: Colors.green, size: 16);
-    } else if (checkValue == false) {
-      return const Icon(Icons.check, color: Colors.red, size: 16);
-    } else {
-      return const Icon(Icons.check, color: Colors.red, size: 16);
+  Widget _buildCheckIcon(String department, bool? checkValue) {
+    IconData icon;
+
+    switch (department) {
+      case 'raw_material':
+        icon = FontAwesomeIcons.boxesStacked; // مواد أولية
+        break;
+      case 'manufacturing':
+        icon = FontAwesomeIcons.industry; // تصنيع
+        break;
+      case 'lab':
+        icon = FontAwesomeIcons.flaskVial; // مخبر
+        break;
+      case 'empty_packaging':
+        icon = FontAwesomeIcons.boxOpen; // فوارغ
+        break;
+      case 'packaging':
+        icon = FontAwesomeIcons.boxesPacking; // تعبئة
+        break;
+      case 'finished_goods':
+        icon = FontAwesomeIcons.cubes; // مواد جاهزة
+        break;
+      default:
+        icon = FontAwesomeIcons.circleQuestion; // fallback
     }
+
+    return FaIcon(
+      icon,
+      color: checkValue == true ? Colors.green : Colors.grey,
+      size: 14,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    width = MediaQuery.of(context).size.width;
     AppUserState state = context.watch<AppUserCubit>().state;
     if (state is AppUserLoggedIn) {
       groups = state.userEntity.groups;
@@ -303,111 +327,129 @@ class _FullProdPageChildState extends State<FullProdPageChild> {
         final String currentBatchNumber =
             briefProductionModel[index].batch_number ?? '';
         final Color batchColor = _getBatchNumberColor(currentBatchNumber);
-        return Card(
-          margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-          child: ListTile(
-            onTap: () {
-              if (widget.type == 'Production') {
-                context.read<ProductionBloc>().add(
-                      GetOneProductionByID(id: briefProductionModel[index].id!),
-                    );
-              } else if (widget.type == 'Archive') {
-                context.read<ProductionBloc>().add(
-                      GetOneProductionArchiveByID(
-                          id: briefProductionModel[index].id!),
-                    );
-              }
-            },
-            title: Text(
-              "${briefProductionModel[index].type} - ${briefProductionModel[index].tier}",
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-            ),
-            subtitle: Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.center, // Center the content
-              children: [
-                const SizedBox(height: 5),
-                Text(
-                  briefProductionModel[index].color ?? 'No Color',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 12),
-                ),
-                const SizedBox(height: 5),
-                if (widget.type == 'Production')
-                  Wrap(
-                    // Use Wrap to allow icons to wrap if space is limited
-                    alignment: WrapAlignment.center,
-                    spacing: 2.0, // Space between icons
-                    runSpacing: 2.0, // Space between lines of icons
-                    children: [
-                      _buildCheckIcon(
-                          briefProductionModel[index].raw_material_check_4),
-                      _buildCheckIcon(
-                          briefProductionModel[index].manufacturing_check_6),
-                      _buildCheckIcon(briefProductionModel[index].lab_check_6),
-                      _buildCheckIcon(
-                          briefProductionModel[index].empty_packaging_check_5),
-                      _buildCheckIcon(
-                          briefProductionModel[index].packaging_check_6),
-                      _buildCheckIcon(
-                          briefProductionModel[index].finished_goods_check_3),
-                    ],
+        return TweenAnimationBuilder<double>(
+          tween: Tween(begin: width, end: 0),
+          duration: const Duration(milliseconds: 600),
+          curve: Curves.decelerate,
+          builder: (context, value, child) {
+            return Transform.translate(
+              offset: Offset(value, 0),
+              child: child,
+            );
+          },
+          child: Card(
+            margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+            child: ListTile(
+              onTap: () {
+                if (widget.type == 'Production') {
+                  context.read<ProductionBloc>().add(
+                        GetOneProductionByID(
+                            id: briefProductionModel[index].id!),
+                      );
+                } else if (widget.type == 'Archive') {
+                  context.read<ProductionBloc>().add(
+                        GetOneProductionArchiveByID(
+                            id: briefProductionModel[index].id!),
+                      );
+                }
+              },
+              title: Text(
+                "${briefProductionModel[index].type} - ${briefProductionModel[index].tier}",
+                textAlign: TextAlign.center,
+                style:
+                    const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              ),
+              subtitle: Column(
+                crossAxisAlignment:
+                    CrossAxisAlignment.center, // Center the content
+                children: [
+                  const SizedBox(height: 5),
+                  Text(
+                    briefProductionModel[index].color ?? 'No Color',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 12),
                   ),
-              ],
-            ),
-            trailing: SizedBox(
-              width: screenWidth * 0.20,
-              child: Column(
+                  const SizedBox(height: 5),
+                  if (widget.type == 'Production')
+                    Wrap(
+                      // Use Wrap to allow icons to wrap if space is limited
+                      alignment: WrapAlignment.center,
+                      spacing: 4.0, // Space between icons
+                      runSpacing: 4.0, // Space between lines of icons
+                      children: [
+                        _buildCheckIcon('raw_material',
+                            briefProductionModel[index].raw_material_check_4),
+                        _buildCheckIcon('manufacturing',
+                            briefProductionModel[index].manufacturing_check_6),
+                        _buildCheckIcon(
+                            'lab', briefProductionModel[index].lab_check_6),
+                        _buildCheckIcon(
+                            'empty_packaging',
+                            briefProductionModel[index]
+                                .empty_packaging_check_5),
+                        _buildCheckIcon('packaging',
+                            briefProductionModel[index].packaging_check_6),
+                        _buildCheckIcon('finished_goods',
+                            briefProductionModel[index].finished_goods_check_3),
+                      ],
+                    ),
+                ],
+              ),
+              trailing: SizedBox(
+                width: screenWidth * 0.20,
+                child: Column(
+                  mainAxisAlignment:
+                      MainAxisAlignment.center, // Center vertically
+                  crossAxisAlignment:
+                      CrossAxisAlignment.end, // Align to end for numbers
+                  children: [
+                    Text(
+                      briefProductionModel[index].total_weight != null
+                          ? '${briefProductionModel[index].total_weight!.toStringAsFixed(2)} KG'
+                          : '',
+                      style: const TextStyle(
+                          fontSize: 12, fontWeight: FontWeight.w500),
+                    ),
+                    Text(
+                      briefProductionModel[index].total_volume != null
+                          ? '${briefProductionModel[index].total_volume!.toStringAsFixed(2)} L'
+                          : '',
+                      style: const TextStyle(
+                          fontSize: 12, fontWeight: FontWeight.w500),
+                    ),
+                  ],
+                ),
+              ),
+              leading: Column(
                 mainAxisAlignment:
                     MainAxisAlignment.center, // Center vertically
-                crossAxisAlignment:
-                    CrossAxisAlignment.end, // Align to end for numbers
                 children: [
-                  Text(
-                    briefProductionModel[index].total_weight != null
-                        ? '${briefProductionModel[index].total_weight!.toStringAsFixed(2)} KG'
-                        : '',
-                    style: const TextStyle(
-                        fontSize: 12, fontWeight: FontWeight.w500),
+                  SizedBox(
+                    width: screenWidth * 0.10,
+                    child: CircleAvatar(
+                      radius: 12, // Slightly larger for better visibility
+                      backgroundColor: batchColor,
+                      child: Text(
+                        briefProductionModel[index].id.toString(),
+                        textAlign: TextAlign.center,
+                        style:
+                            const TextStyle(fontSize: 8, color: Colors.white),
+                      ),
+                    ),
                   ),
+                  const SizedBox(height: 4),
                   Text(
-                    briefProductionModel[index].total_volume != null
-                        ? '${briefProductionModel[index].total_volume!.toStringAsFixed(2)} L'
-                        : '',
-                    style: const TextStyle(
-                        fontSize: 12, fontWeight: FontWeight.w500),
+                    briefProductionModel[index].batch_number ?? '',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight:
+                          FontWeight.bold, // Make it bold for more emphasis
+                      color: _getBatchNumberColor(
+                          briefProductionModel[index].batch_number ?? ''),
+                    ),
                   ),
                 ],
               ),
-            ),
-            leading: Column(
-              mainAxisAlignment: MainAxisAlignment.center, // Center vertically
-              children: [
-                SizedBox(
-                  width: screenWidth * 0.10,
-                  child: CircleAvatar(
-                    radius: 12, // Slightly larger for better visibility
-                    backgroundColor: batchColor,
-                    child: Text(
-                      briefProductionModel[index].id.toString(),
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 8, color: Colors.white),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  briefProductionModel[index].batch_number ?? '',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight:
-                        FontWeight.bold, // Make it bold for more emphasis
-                    color: _getBatchNumberColor(
-                        briefProductionModel[index].batch_number ?? ''),
-                  ),
-                ),
-              ],
             ),
           ),
         );

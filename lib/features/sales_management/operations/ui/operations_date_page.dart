@@ -1,7 +1,5 @@
 import 'dart:io';
-import 'dart:typed_data';
 import 'dart:ui' as ui;
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -9,7 +7,6 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
-
 import 'package:gmcappclean/core/common/api/api.dart';
 import 'package:gmcappclean/core/common/widgets/loader.dart';
 import 'package:gmcappclean/core/common/widgets/mybutton.dart';
@@ -91,7 +88,7 @@ class _OperationsDatePageChildState extends State<OperationsDatePageChild> {
   bool isLoadingMore = false;
   List<OperationsModel> _model = [];
   bool isInitialDataLoaded = false;
-
+  double width = 0;
   @override
   void initState() {
     super.initState();
@@ -171,7 +168,15 @@ class _OperationsDatePageChildState extends State<OperationsDatePageChild> {
     runBloc();
   }
 
-  void runBloc() {
+  void runBloc({bool reset = false}) {
+    if (reset) {
+      setState(() {
+        currentPage = 1;
+        _model.clear();
+        isInitialDataLoaded = false;
+      });
+    }
+
     context.read<OperationsBloc>().add(
           GetAllOperationsForDate(
             page: currentPage,
@@ -186,6 +191,7 @@ class _OperationsDatePageChildState extends State<OperationsDatePageChild> {
 
   @override
   Widget build(BuildContext context) {
+    width = MediaQuery.of(context).size.width;
     return Directionality(
       textDirection: ui.TextDirection.rtl,
       child: Scaffold(
@@ -275,6 +281,7 @@ class _OperationsDatePageChildState extends State<OperationsDatePageChild> {
                                           .format(pickedDate);
                                 });
                               }
+                              runBloc(reset: true);
                             },
                           ),
                         ),
@@ -299,6 +306,7 @@ class _OperationsDatePageChildState extends State<OperationsDatePageChild> {
                                           .format(pickedDate);
                                 });
                               }
+                              runBloc(reset: true);
                             },
                           ),
                         ),
@@ -388,6 +396,7 @@ class _OperationsDatePageChildState extends State<OperationsDatePageChild> {
 
   Widget _buildOperationsList() {
     return ListView.builder(
+      physics: const BouncingScrollPhysics(),
       controller: _scrollController,
       itemCount: _model.length + (isLoadingMore ? 1 : 0),
       itemBuilder: (context, index) {
@@ -400,51 +409,68 @@ class _OperationsDatePageChildState extends State<OperationsDatePageChild> {
               : const SizedBox.shrink();
         }
 
-        return Card(
-          child: ListTile(
-            leading: Icon(
-              _model[index].type == 'visit'
-                  ? Icons.work_history_outlined
-                  : _model[index].type == 'call'
-                      ? Icons.call
-                      : Icons.error,
-            ),
-            subtitle: Column(
-              children: [
-                Text(_model[index].customer_name ?? ""),
-                Text(_model[index].shop_name ?? ""),
-              ],
-            ),
-            title: Center(
-              child: Text(_model[index].date!),
-            ),
-            trailing: Text("${_model[index].duration}"),
-            onTap: () {
-              if (_model[index].type == 'visit') {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) {
-                      return NewVisitPage(
-                        operationsModel: _model[index],
-                      );
-                    },
+        return TweenAnimationBuilder<double>(
+          tween: Tween(begin: width, end: 0),
+          duration: const Duration(milliseconds: 600),
+          curve: Curves.decelerate,
+          builder: (context, value, child) {
+            return Transform.translate(
+              offset: Offset(value, 0),
+              child: child,
+            );
+          },
+          child: Card(
+            child: ListTile(
+              leading: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    _model[index].type == 'visit'
+                        ? Icons.work_history_outlined
+                        : _model[index].type == 'call'
+                            ? Icons.call
+                            : Icons.error,
                   ),
-                );
-              }
-              if (_model[index].type == 'call') {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) {
-                      return NewCallPage(
-                        operationsModel: _model[index],
-                      );
-                    },
-                  ),
-                );
-              }
-            },
+                  Text(_model[index].id.toString()),
+                ],
+              ),
+              subtitle: Column(
+                children: [
+                  Text(_model[index].customer_name ?? ""),
+                  Text(_model[index].shop_name ?? ""),
+                ],
+              ),
+              title: Center(
+                child: Text(_model[index].date!),
+              ),
+              trailing: Text("${_model[index].duration}"),
+              onTap: () {
+                if (_model[index].type == 'visit') {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) {
+                        return NewVisitPage(
+                          operationsModel: _model[index],
+                        );
+                      },
+                    ),
+                  );
+                }
+                if (_model[index].type == 'call') {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) {
+                        return NewCallPage(
+                          operationsModel: _model[index],
+                        );
+                      },
+                    ),
+                  );
+                }
+              },
+            ),
           ),
         );
       },

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gmcappclean/core/common/api/api.dart';
@@ -8,10 +9,8 @@ import 'package:gmcappclean/core/utils/show_snackbar.dart';
 import 'package:gmcappclean/features/production_management/production/bloc/production_bloc.dart';
 import 'package:gmcappclean/features/production_management/production/models/full_production_model.dart';
 import 'package:gmcappclean/features/production_management/production/services/production_services.dart';
-import 'package:gmcappclean/features/production_management/production/ui/production_full_data_page.dart';
 import 'package:gmcappclean/features/production_management/production/ui/production_list.dart';
 import 'package:gmcappclean/init_dependencies.dart';
-import 'package:intl/intl.dart';
 
 class ProductionMainDataWidget extends StatefulWidget {
   final FullProductionModel fullProductionModel;
@@ -29,6 +28,44 @@ class ProductionMainDataWidget extends StatefulWidget {
 }
 
 class _ProductionMainDataWidgetState extends State<ProductionMainDataWidget> {
+  Widget _buildDetailsLayout(BuildContext context) {
+    final items = [
+      _buildDetailCard(
+          context, "النوع", widget.fullProductionModel.productions.type!),
+      _buildDetailCard(
+          context, "المستوى", widget.fullProductionModel.productions.tier!),
+      _buildDetailCard(
+          context, "اللون", widget.fullProductionModel.productions.color!),
+      _buildDetailCard(context, "الكثافة",
+          widget.fullProductionModel.productions.density!.toStringAsFixed(3)),
+      _buildDetailCard(context, "تاريخ الإدراج",
+          widget.fullProductionModel.productions.insert_date!),
+    ];
+
+    if (defaultTargetPlatform == TargetPlatform.windows ||
+        defaultTargetPlatform == TargetPlatform.macOS ||
+        defaultTargetPlatform == TargetPlatform.linux) {
+      // On desktop → Row with wrap to prevent overflow
+      return Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        alignment: WrapAlignment.center,
+        children: items,
+      );
+    } else {
+      // On mobile → Grid
+      return GridView.count(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        crossAxisCount: 3,
+        childAspectRatio: 1.5,
+        crossAxisSpacing: 6,
+        mainAxisSpacing: 6,
+        children: items,
+      );
+    }
+  }
+
   List<String>? groups;
 
   List<Map<String, String>> _generateRows() {
@@ -148,36 +185,7 @@ class _ProductionMainDataWidgetState extends State<ProductionMainDataWidget> {
                       padding: const EdgeInsets.all(10.0),
                       child: Column(
                         children: [
-                          GridView.count(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            crossAxisCount: 3,
-                            childAspectRatio: 1.5,
-                            crossAxisSpacing: 6,
-                            mainAxisSpacing: 6,
-                            children: [
-                              _buildDetailCard(context, "النوع",
-                                  widget.fullProductionModel.productions.type!),
-                              _buildDetailCard(context, "المستوى",
-                                  widget.fullProductionModel.productions.tier!),
-                              _buildDetailCard(
-                                  context,
-                                  "اللون",
-                                  widget
-                                      .fullProductionModel.productions.color!),
-                              _buildDetailCard(
-                                  context,
-                                  "الكثافة",
-                                  widget
-                                      .fullProductionModel.productions.density!
-                                      .toStringAsFixed(3)),
-                              _buildDetailCard(
-                                  context,
-                                  "تاريخ الإدراج",
-                                  widget.fullProductionModel.productions
-                                      .insert_date!),
-                            ],
-                          ),
+                          _buildDetailsLayout(context),
                           const SizedBox(height: 16),
                           _buildNoteItem(
                               "ملاحظة معد البرنامج",
@@ -533,7 +541,7 @@ Widget _buildDetailCard(BuildContext context, String title, String value) {
       borderRadius: BorderRadius.circular(6),
     ),
     child: Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 6),
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [

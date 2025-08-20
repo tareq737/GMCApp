@@ -809,4 +809,37 @@ class PurchaseService {
           Failure(message: 'Unexpected Error archive: ${e.toString()}'));
     }
   }
+
+  Future<List<BriefPurchaseModel>?> getPurchasesFilter({
+    required int page,
+    required String date_1,
+    required String date_2,
+    required String status,
+  }) async {
+    try {
+      final userEntity = await getCredentials();
+      return userEntity.fold((failure) {
+        return null;
+      }, (success) async {
+        final response = await _apiClient.getPageinated(
+          user: success,
+          endPoint: 'purchases_filter',
+          queryParams: {
+            'page_size': 20,
+            'page': page,
+            'status': status,
+            'date_1': date_1,
+            'date_2': date_2,
+          },
+        );
+
+        return List.generate(response.length, (index) {
+          return BriefPurchaseModel.fromMap(response[index]);
+        });
+      });
+    } catch (e) {
+      print('exception caught');
+      return null;
+    }
+  }
 }

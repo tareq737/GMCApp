@@ -11,7 +11,6 @@ class Production {
   int? productions_other;
   int? productions_done_in_3_days;
   int? late_productions;
-  int? finished_unclassified;
   int? average_duration_days;
   Production({
     this.total_productions,
@@ -23,7 +22,6 @@ class Production {
     this.productions_other,
     this.productions_done_in_3_days,
     this.late_productions,
-    this.finished_unclassified,
     this.average_duration_days,
   });
 
@@ -37,7 +35,6 @@ class Production {
     int? productions_other,
     int? productions_done_in_3_days,
     int? late_productions,
-    int? finished_unclassified,
     int? average_duration_days,
   }) {
     return Production(
@@ -53,8 +50,6 @@ class Production {
       productions_done_in_3_days:
           productions_done_in_3_days ?? this.productions_done_in_3_days,
       late_productions: late_productions ?? this.late_productions,
-      finished_unclassified:
-          finished_unclassified ?? this.finished_unclassified,
       average_duration_days:
           average_duration_days ?? this.average_duration_days,
     );
@@ -71,7 +66,6 @@ class Production {
       'productions_other': productions_other,
       'productions_done_in_3_days': productions_done_in_3_days,
       'late_productions': late_productions,
-      'finished_unclassified': finished_unclassified,
       'average_duration_days': average_duration_days,
     };
   }
@@ -105,9 +99,6 @@ class Production {
       late_productions: map['late_productions'] != null
           ? map['late_productions'] as int
           : null,
-      finished_unclassified: map['finished_unclassified'] != null
-          ? map['finished_unclassified'] as int
-          : null,
       average_duration_days: map['average_duration_days'] != null
           ? map['average_duration_days'] as int
           : null,
@@ -121,7 +112,7 @@ class Production {
 
   @override
   String toString() {
-    return 'Production(total_productions: $total_productions, finished_productions: $finished_productions, pending_productions: $pending_productions, productions_oil_based: $productions_oil_based, productions_acrylic: $productions_acrylic, productions_water_based: $productions_water_based, productions_other: $productions_other, productions_done_in_3_days: $productions_done_in_3_days, late_productions: $late_productions, finished_unclassified: $finished_unclassified, average_duration_days: $average_duration_days)';
+    return 'Production(total_productions: $total_productions, finished_productions: $finished_productions, pending_productions: $pending_productions, productions_oil_based: $productions_oil_based, productions_acrylic: $productions_acrylic, productions_water_based: $productions_water_based, productions_other: $productions_other, productions_done_in_3_days: $productions_done_in_3_days, late_productions: $late_productions, average_duration_days: $average_duration_days)';
   }
 
   @override
@@ -137,7 +128,6 @@ class Production {
         other.productions_other == productions_other &&
         other.productions_done_in_3_days == productions_done_in_3_days &&
         other.late_productions == late_productions &&
-        other.finished_unclassified == finished_unclassified &&
         other.average_duration_days == average_duration_days;
   }
 
@@ -152,7 +142,6 @@ class Production {
         productions_other.hashCode ^
         productions_done_in_3_days.hashCode ^
         late_productions.hashCode ^
-        finished_unclassified.hashCode ^
         average_duration_days.hashCode;
   }
 }

@@ -58,7 +58,7 @@ class _PurchasesListChildState extends State<PurchasesListChild> {
   final TextEditingController _searchController = TextEditingController();
   bool isLoadingMore = false;
   List<BriefPurchaseModel> _briefPurchases = [];
-
+  double width = 0;
   final Map<int, String> _itemStatus = {
     2: 'طلبات بدون ملاحظة المشتريات',
     9: 'طلبات بدون موافقة عرض السعر',
@@ -108,7 +108,7 @@ class _PurchasesListChildState extends State<PurchasesListChild> {
     if (state is AppUserLoggedIn) {
       groups = state.userEntity.groups;
     }
-
+    width = MediaQuery.of(context).size.width;
     return Builder(builder: (context) {
       return BlocListener<PurchaseBloc, PurchaseState>(
         listener: (context, state) {
@@ -443,156 +443,168 @@ class _PurchasesListChildState extends State<PurchasesListChild> {
                                             id: _briefPurchases[index].id),
                                       );
                                 },
-                                child: Card(
-                                  margin: const EdgeInsets.symmetric(
-                                      vertical: 8, horizontal: 4),
-                                  elevation: 3,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: ListTile(
-                                    title: SizedBox(
-                                      width: screenWidth * 0.20,
-                                      child: Text(
-                                        _briefPurchases[index].type ?? "",
-                                        style: const TextStyle(
-                                            fontWeight: FontWeight.w500),
-                                      ),
+                                child: TweenAnimationBuilder<double>(
+                                  tween: Tween(begin: width, end: 0),
+                                  duration: const Duration(milliseconds: 600),
+                                  curve: Curves.decelerate,
+                                  builder: (context, value, child) {
+                                    return Transform.translate(
+                                      offset: Offset(value, 0),
+                                      child: child,
+                                    );
+                                  },
+                                  child: Card(
+                                    margin: const EdgeInsets.symmetric(
+                                        vertical: 8, horizontal: 4),
+                                    elevation: 3,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
                                     ),
-                                    trailing: SizedBox(
-                                      width: screenWidth * 0.25,
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              Icon(
-                                                (_briefPurchases[index]
-                                                                .last_price ??
-                                                            "")
-                                                        .isNotEmpty
-                                                    ? Icons.check
-                                                    : Icons.close,
-                                                color: (_briefPurchases[index]
-                                                                .last_price ??
-                                                            "")
-                                                        .isNotEmpty
-                                                    ? Colors.green
-                                                    : Colors.red,
-                                                size: 15,
-                                              ),
-                                              Icon(
-                                                _briefPurchases[index]
-                                                            .manager_check ==
-                                                        true
-                                                    ? Icons
-                                                        .check // ✅ If true, show check mark
-                                                    : _briefPurchases[index]
-                                                                .manager_check ==
-                                                            false
-                                                        ? Icons.close
-                                                        : Icons
-                                                            .stop_circle_outlined,
-                                                color: _briefPurchases[index]
-                                                            .manager_check ==
-                                                        true
-                                                    ? Colors.green
-                                                    : _briefPurchases[index]
-                                                                .manager_check ==
-                                                            false
-                                                        ? Colors.red
-                                                        : Colors.grey,
-                                                size: 15,
-                                              ),
-                                              Icon(
-                                                (_briefPurchases[index]
-                                                            .received_check ==
-                                                        true)
-                                                    ? Icons.check
-                                                    : Icons.close,
-                                                color: (_briefPurchases[index]
-                                                            .received_check ==
-                                                        true)
-                                                    ? Colors.green
-                                                    : Colors.red,
-                                                size: 15,
-                                              ),
-                                              Icon(
-                                                (_briefPurchases[index]
-                                                            .archived ==
-                                                        true)
-                                                    ? Icons.check
-                                                    : Icons.close,
-                                                color: (_briefPurchases[index]
-                                                            .archived ==
-                                                        true)
-                                                    ? Colors.green
-                                                    : Colors.red,
-                                                size: 15,
-                                              ),
-                                              Icon(
-                                                (_briefPurchases[index]
-                                                            .bill
-                                                            ?.isNotEmpty ??
-                                                        false)
-                                                    ? Icons.check
-                                                    : Icons.close,
-                                                color: (_briefPurchases[index]
-                                                            .bill
-                                                            ?.isNotEmpty ??
-                                                        false)
-                                                    ? Colors.green
-                                                    : Colors.red,
-                                                size: 15,
-                                              ),
-                                            ],
-                                          ),
-                                          Text(_briefPurchases[index]
-                                                  .insert_date ??
-                                              '')
-                                        ],
-                                      ),
-                                    ),
-                                    subtitle: SizedBox(
-                                        width: screenWidth * 0.6,
+                                    child: ListTile(
+                                      title: SizedBox(
+                                        width: screenWidth * 0.20,
                                         child: Text(
-                                          _briefPurchases[index].details ?? "",
-                                          style: TextStyle(
-                                              color: Colors.grey.shade600),
-                                        )),
-                                    leading: SizedBox(
-                                      width: screenWidth * 0.10,
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          CircleAvatar(
-                                            backgroundColor: Colors.teal,
-                                            radius: 11,
-                                            child: Text(
-                                              _briefPurchases[index]
-                                                  .id
-                                                  .toString(),
-                                              style: const TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 8),
+                                          _briefPurchases[index].type ?? "",
+                                          style: const TextStyle(
+                                              fontWeight: FontWeight.w500),
+                                        ),
+                                      ),
+                                      trailing: SizedBox(
+                                        width: screenWidth * 0.25,
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                Icon(
+                                                  (_briefPurchases[index]
+                                                                  .last_price ??
+                                                              "")
+                                                          .isNotEmpty
+                                                      ? Icons.check
+                                                      : Icons.close,
+                                                  color: (_briefPurchases[index]
+                                                                  .last_price ??
+                                                              "")
+                                                          .isNotEmpty
+                                                      ? Colors.green
+                                                      : Colors.red,
+                                                  size: 15,
+                                                ),
+                                                Icon(
+                                                  _briefPurchases[index]
+                                                              .manager_check ==
+                                                          true
+                                                      ? Icons
+                                                          .check // ✅ If true, show check mark
+                                                      : _briefPurchases[index]
+                                                                  .manager_check ==
+                                                              false
+                                                          ? Icons.close
+                                                          : Icons
+                                                              .stop_circle_outlined,
+                                                  color: _briefPurchases[index]
+                                                              .manager_check ==
+                                                          true
+                                                      ? Colors.green
+                                                      : _briefPurchases[index]
+                                                                  .manager_check ==
+                                                              false
+                                                          ? Colors.red
+                                                          : Colors.grey,
+                                                  size: 15,
+                                                ),
+                                                Icon(
+                                                  (_briefPurchases[index]
+                                                              .received_check ==
+                                                          true)
+                                                      ? Icons.check
+                                                      : Icons.close,
+                                                  color: (_briefPurchases[index]
+                                                              .received_check ==
+                                                          true)
+                                                      ? Colors.green
+                                                      : Colors.red,
+                                                  size: 15,
+                                                ),
+                                                Icon(
+                                                  (_briefPurchases[index]
+                                                              .archived ==
+                                                          true)
+                                                      ? Icons.check
+                                                      : Icons.close,
+                                                  color: (_briefPurchases[index]
+                                                              .archived ==
+                                                          true)
+                                                      ? Colors.green
+                                                      : Colors.red,
+                                                  size: 15,
+                                                ),
+                                                Icon(
+                                                  (_briefPurchases[index]
+                                                              .bill
+                                                              ?.isNotEmpty ??
+                                                          false)
+                                                      ? Icons.check
+                                                      : Icons.close,
+                                                  color: (_briefPurchases[index]
+                                                              .bill
+                                                              ?.isNotEmpty ??
+                                                          false)
+                                                      ? Colors.green
+                                                      : Colors.red,
+                                                  size: 15,
+                                                ),
+                                              ],
                                             ),
-                                          ),
-                                          FittedBox(
-                                            fit: BoxFit.scaleDown,
-                                            child: Text(
-                                              _briefPurchases[index]
-                                                      .department ??
-                                                  "",
-                                              textAlign: TextAlign.center,
-                                              style:
-                                                  const TextStyle(fontSize: 8),
+                                            Text(_briefPurchases[index]
+                                                    .insert_date ??
+                                                '')
+                                          ],
+                                        ),
+                                      ),
+                                      subtitle: SizedBox(
+                                          width: screenWidth * 0.6,
+                                          child: Text(
+                                            _briefPurchases[index].details ??
+                                                "",
+                                            style: TextStyle(
+                                                color: Colors.grey.shade600),
+                                          )),
+                                      leading: SizedBox(
+                                        width: screenWidth * 0.10,
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            CircleAvatar(
+                                              backgroundColor: Colors.teal,
+                                              radius: 11,
+                                              child: Text(
+                                                _briefPurchases[index]
+                                                    .id
+                                                    .toString(),
+                                                style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 8),
+                                              ),
                                             ),
-                                          )
-                                        ],
+                                            FittedBox(
+                                              fit: BoxFit.scaleDown,
+                                              child: Text(
+                                                _briefPurchases[index]
+                                                        .department ??
+                                                    "",
+                                                textAlign: TextAlign.center,
+                                                style: const TextStyle(
+                                                    fontSize: 8),
+                                              ),
+                                            )
+                                          ],
+                                        ),
                                       ),
                                     ),
                                   ),

@@ -97,5 +97,21 @@ class MaintenanceBloc extends Bloc<MaintenanceEvent, MaintenanceState> {
         emit(MaintenanceError(errorMessage: e.toString()));
       }
     });
+    on<GetMaintenanceFilter>(
+      (event, emit) async {
+        emit(MaintenanceLoading());
+        var result = await _maintenanceServices.getMaintenanceFilter(
+          page: event.page,
+          status: event.status,
+          date_1: event.date_1,
+          date_2: event.date_2,
+        );
+        if (result == null) {
+          emit(MaintenanceError(errorMessage: 'Error'));
+        } else {
+          emit(MaintenanceSuccess(result: result));
+        }
+      },
+    );
   }
 }

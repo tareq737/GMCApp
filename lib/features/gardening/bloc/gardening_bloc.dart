@@ -156,5 +156,19 @@ class GardeningBloc extends Bloc<GardeningEvent, GardeningState> {
         }
       },
     );
+    on<DeleteOneGardenTask>(
+      (event, emit) async {
+        emit(GardeningLoading());
+        var result = await _gardeningServices.deleteOneGardenTask(
+          event.id,
+        );
+        if (result == null) {
+          emit(GardeningError(
+              errorMessage: 'Error fetching  with ID: ${event.id}'));
+        } else {
+          emit(GardeningSuccess(result: result));
+        }
+      },
+    );
   }
 }

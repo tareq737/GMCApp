@@ -1,6 +1,7 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gmcappclean/core/common/cubits/app_user/app_user_cubit.dart';
 import 'package:gmcappclean/core/common/widgets/loader.dart';
 import 'package:gmcappclean/core/utils/show_snackbar.dart';
@@ -154,72 +155,23 @@ class _FullProdPlanPageState extends State<FullProdPlanPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      prodPlanList[index].depChecks['rawMaterial'] == true
-                          ? const Icon(
-                              Icons.check,
-                              color: Colors.green,
-                              size: 12,
-                            )
-                          : const Icon(
-                              Icons.close,
-                              color: Colors.red,
-                              size: 12,
-                            ),
-                      prodPlanList[index].depChecks['manufacturing'] == true
-                          ? const Icon(
-                              Icons.check,
-                              color: Colors.green,
-                              size: 12,
-                            )
-                          : const Icon(
-                              Icons.close,
-                              color: Colors.red,
-                              size: 12,
-                            ),
-                      prodPlanList[index].depChecks['lab'] == true
-                          ? const Icon(
-                              Icons.check,
-                              color: Colors.green,
-                              size: 12,
-                            )
-                          : const Icon(
-                              Icons.close,
-                              color: Colors.red,
-                              size: 12,
-                            ),
-                      prodPlanList[index].depChecks['emptyPackaging'] == true
-                          ? const Icon(
-                              Icons.check,
-                              color: Colors.green,
-                              size: 12,
-                            )
-                          : const Icon(
-                              Icons.close,
-                              color: Colors.red,
-                              size: 12,
-                            ),
-                      prodPlanList[index].depChecks['packaging'] == true
-                          ? const Icon(
-                              Icons.check,
-                              color: Colors.green,
-                              size: 12,
-                            )
-                          : const Icon(
-                              Icons.close,
-                              color: Colors.red,
-                              size: 12,
-                            ),
-                      prodPlanList[index].depChecks['finishedGoods'] == true
-                          ? const Icon(
-                              Icons.check,
-                              color: Colors.green,
-                              size: 12,
-                            )
-                          : const Icon(
-                              Icons.close,
-                              color: Colors.red,
-                              size: 12,
-                            ),
+                      _buildDepIcon('rawMaterial',
+                          prodPlanList[index].depChecks['rawMaterial']),
+                      const SizedBox(width: 4),
+                      _buildDepIcon('manufacturing',
+                          prodPlanList[index].depChecks['manufacturing']),
+                      const SizedBox(width: 4),
+                      _buildDepIcon(
+                          'lab', prodPlanList[index].depChecks['lab']),
+                      const SizedBox(width: 4),
+                      _buildDepIcon('emptyPackaging',
+                          prodPlanList[index].depChecks['emptyPackaging']),
+                      const SizedBox(width: 4),
+                      _buildDepIcon('packaging',
+                          prodPlanList[index].depChecks['packaging']),
+                      const SizedBox(width: 4),
+                      _buildDepIcon('finishedGoods',
+                          prodPlanList[index].depChecks['finishedGoods']),
                     ],
                   )
                 ],
@@ -266,6 +218,39 @@ class _FullProdPlanPageState extends State<FullProdPlanPage> {
           );
         },
       ),
+    );
+  }
+
+  Widget _buildDepIcon(String department, bool? checkValue) {
+    IconData icon;
+
+    switch (department) {
+      case 'rawMaterial':
+        icon = FontAwesomeIcons.boxesStacked; // مواد أولية
+        break;
+      case 'manufacturing':
+        icon = FontAwesomeIcons.industry; // تصنيع
+        break;
+      case 'lab':
+        icon = FontAwesomeIcons.flaskVial; // مخبر
+        break;
+      case 'emptyPackaging':
+        icon = FontAwesomeIcons.boxOpen; // فوارغ
+        break;
+      case 'packaging':
+        icon = FontAwesomeIcons.boxesPacking; // تعبئة
+        break;
+      case 'finishedGoods':
+        icon = FontAwesomeIcons.cubes; // مواد جاهزة
+        break;
+      default:
+        icon = FontAwesomeIcons.circleQuestion;
+    }
+
+    return FaIcon(
+      icon,
+      size: 14, // uniform size for all
+      color: checkValue == true ? Colors.green : Colors.red,
     );
   }
 }

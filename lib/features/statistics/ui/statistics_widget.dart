@@ -1,8 +1,13 @@
+import 'package:avatar_glow/avatar_glow.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gmcappclean/core/common/widgets/loader.dart';
 import 'package:gmcappclean/core/common/widgets/mytextfield.dart';
 import 'package:gmcappclean/core/utils/show_snackbar.dart';
+import 'package:gmcappclean/features/maintenance/UI/list_maintenance_filtered.dart';
+import 'package:gmcappclean/features/production_management/production/ui/list_production_filtered.dart';
+import 'package:gmcappclean/features/purchases/UI/list_purchase_filtered.dart';
 import 'package:gmcappclean/features/sales_management/operations/ui/operations_date_page.dart';
 import 'package:gmcappclean/features/statistics/bloc/statistics_bloc.dart';
 import 'package:gmcappclean/features/statistics/models/statistics_model.dart';
@@ -164,15 +169,16 @@ class _StatisticsWidgetState extends State<StatisticsWidget> {
                         ],
                       ),
                       const SizedBox(
-                        height: 5,
+                        height: 10,
                       ),
-                      const SizedBox(
-                        height: 5,
-                      ),
+
                       // Sales Statistics
                       ExpansionTile(
                         initiallyExpanded: expanded,
-                        leading: Icon(Icons.bar_chart_outlined, color: color),
+                        leading: AvatarGlow(
+                            glowColor: color,
+                            child:
+                                Icon(Icons.bar_chart_outlined, color: color)),
                         title: Text(
                           'إحصائيات المبيعات',
                           style: TextStyle(
@@ -410,9 +416,12 @@ class _StatisticsWidgetState extends State<StatisticsWidget> {
                       // Production Statistics
                       ExpansionTile(
                         initiallyExpanded: expanded,
-                        leading: Icon(
-                          Icons.factory_outlined,
-                          color: color,
+                        leading: AvatarGlow(
+                          glowColor: color,
+                          child: Icon(
+                            Icons.factory_outlined,
+                            color: color,
+                          ),
                         ),
                         title: Text(
                           'إحصائيات الإنتاج',
@@ -424,11 +433,28 @@ class _StatisticsWidgetState extends State<StatisticsWidget> {
                         ),
                         children: [
                           _buildStatRow(
-                              context,
-                              'الطبخات المدرجة',
-                              state.result.production!.total_productions ?? 0,
-                              Icons.list_alt_outlined,
-                              _primaryColor),
+                            context,
+                            'الطبخات المدرجة',
+                            state.result.production!.total_productions ?? 0,
+                            Icons.list_alt_outlined,
+                            _primaryColor,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) {
+                                    return ListProductionFiltered(
+                                      date_1: _fromDateController.text,
+                                      date_2: _toDateController.text,
+                                      status: '',
+                                      type: '',
+                                      timeliness: '',
+                                    );
+                                  },
+                                ),
+                              );
+                            },
+                          ),
                           _buildStatRow(
                             context,
                             'الطبخات المنفذة',
@@ -437,6 +463,22 @@ class _StatisticsWidgetState extends State<StatisticsWidget> {
                             _successColor,
                             total:
                                 state.result.production!.total_productions ?? 0,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) {
+                                    return ListProductionFiltered(
+                                      date_1: _fromDateController.text,
+                                      date_2: _toDateController.text,
+                                      status: 'finished',
+                                      type: '',
+                                      timeliness: '',
+                                    );
+                                  },
+                                ),
+                              );
+                            },
                           ),
                           _buildStatRow(
                             context,
@@ -446,64 +488,178 @@ class _StatisticsWidgetState extends State<StatisticsWidget> {
                             _warningColor,
                             total:
                                 state.result.production!.total_productions ?? 0,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) {
+                                    return ListProductionFiltered(
+                                      date_1: _fromDateController.text,
+                                      date_2: _toDateController.text,
+                                      status: 'pending',
+                                      type: '',
+                                      timeliness: '',
+                                    );
+                                  },
+                                ),
+                              );
+                            },
                           ),
                           _buildStatRow(
                             context,
-                            'طبخات زياتي',
+                            'طبخات الزياتي المنفذة',
                             state.result.production!.productions_oil_based ?? 0,
                             Icons.oil_barrel_outlined,
                             Colors.amber,
                             total:
                                 state.result.production!.total_productions ?? 0,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) {
+                                    return ListProductionFiltered(
+                                      date_1: _fromDateController.text,
+                                      date_2: _toDateController.text,
+                                      status: 'finished',
+                                      type: 'oil_based',
+                                      timeliness: '',
+                                    );
+                                  },
+                                ),
+                              );
+                            },
                           ),
                           _buildStatRow(
                             context,
-                            'طبخات طرش',
+                            'طبخات الطرش المنفذة',
                             state.result.production!.productions_water_based ??
                                 0,
                             Icons.water_outlined,
                             Colors.blue,
                             total:
                                 state.result.production!.total_productions ?? 0,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) {
+                                    return ListProductionFiltered(
+                                      date_1: _fromDateController.text,
+                                      date_2: _toDateController.text,
+                                      status: 'finished',
+                                      type: 'water_based',
+                                      timeliness: '',
+                                    );
+                                  },
+                                ),
+                              );
+                            },
                           ),
                           _buildStatRow(
                             context,
-                            'طبخات أكرليك',
+                            'طبخات الأكرليك المنفذة',
                             state.result.production!.productions_acrylic ?? 0,
                             Icons.format_paint_outlined,
                             Colors.purple,
                             total:
                                 state.result.production!.total_productions ?? 0,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) {
+                                    return ListProductionFiltered(
+                                      date_1: _fromDateController.text,
+                                      date_2: _toDateController.text,
+                                      status: 'finished',
+                                      type: 'acrylic',
+                                      timeliness: '',
+                                    );
+                                  },
+                                ),
+                              );
+                            },
                           ),
                           _buildStatRow(
                             context,
-                            'طبخات أخرى',
+                            'طبخات أخرى منفذة',
                             state.result.production!.productions_other ?? 0,
                             Icons.scatter_plot_outlined,
                             _neutralColor,
                             total:
                                 state.result.production!.total_productions ?? 0,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) {
+                                    return ListProductionFiltered(
+                                      date_1: _fromDateController.text,
+                                      date_2: _toDateController.text,
+                                      status: 'finished',
+                                      type: 'other',
+                                      timeliness: '',
+                                    );
+                                  },
+                                ),
+                              );
+                            },
                           ),
                           _buildStatRow(
-                              context,
-                              'طبخات منفذة خلال 3 أيام',
-                              state.result.production!
-                                      .productions_done_in_3_days ??
-                                  0,
-                              Icons.check_circle_outline,
-                              total: state.result.production!
-                                      .finished_productions ??
-                                  0,
-                              _successColor),
+                            context,
+                            'طبخات منفذة خلال 3 أيام',
+                            state.result.production!
+                                    .productions_done_in_3_days ??
+                                0,
+                            Icons.check_circle_outline,
+                            total:
+                                state.result.production!.finished_productions ??
+                                    0,
+                            _successColor,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) {
+                                    return ListProductionFiltered(
+                                      date_1: _fromDateController.text,
+                                      date_2: _toDateController.text,
+                                      status: '',
+                                      type: '',
+                                      timeliness: 'on_time',
+                                    );
+                                  },
+                                ),
+                              );
+                            },
+                          ),
                           _buildStatRow(
-                              context,
-                              'طبخات متأخرة',
-                              state.result.production!.late_productions ?? 0,
-                              total: state.result.production!
-                                      .finished_productions ??
-                                  0,
-                              Icons.timer_off_outlined,
-                              _dangerColor),
+                            context,
+                            'طبخات متأخرة',
+                            state.result.production!.late_productions ?? 0,
+                            total:
+                                state.result.production!.finished_productions ??
+                                    0,
+                            Icons.timer_off_outlined,
+                            _dangerColor,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) {
+                                    return ListProductionFiltered(
+                                      date_1: _fromDateController.text,
+                                      date_2: _toDateController.text,
+                                      status: '',
+                                      type: '',
+                                      timeliness: 'late',
+                                    );
+                                  },
+                                ),
+                              );
+                            },
+                          ),
                           _buildStatRow(
                             context,
                             'متوسط زمن الطبخة',
@@ -519,9 +675,12 @@ class _StatisticsWidgetState extends State<StatisticsWidget> {
                       // Purchases Statistics
                       ExpansionTile(
                         initiallyExpanded: expanded,
-                        leading: Icon(
-                          Icons.shopping_cart_outlined,
-                          color: color,
+                        leading: AvatarGlow(
+                          glowColor: color,
+                          child: Icon(
+                            Icons.shopping_cart_outlined,
+                            color: color,
+                          ),
                         ),
                         title: Text(
                           'إحصائيات المشتريات',
@@ -532,48 +691,109 @@ class _StatisticsWidgetState extends State<StatisticsWidget> {
                           ),
                         ),
                         children: [
-                          _buildStatRow(
-                              context,
-                              'إجمالي طلبات المشتريات',
+                          _buildStatRow(context, 'إجمالي طلبات المشتريات',
                               state.result.purchases!.total_purchases ?? 0,
-                              Icons.shopping_bag_outlined,
-                              _primaryColor),
-                          _buildStatRow(
+                              onTap: () {
+                            Navigator.push(
                               context,
-                              'طلبات الشراء المنفذة',
+                              MaterialPageRoute(
+                                builder: (context) {
+                                  return ListPurchaseFiltered(
+                                    date_1: _fromDateController.text,
+                                    date_2: _toDateController.text,
+                                    status: '',
+                                  );
+                                },
+                              ),
+                            );
+                          }, Icons.shopping_bag_outlined, _primaryColor),
+                          _buildStatRow(context, 'طلبات الشراء المنفذة',
+                              onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) {
+                                  return ListPurchaseFiltered(
+                                    date_1: _fromDateController.text,
+                                    date_2: _toDateController.text,
+                                    status: 'finished',
+                                  );
+                                },
+                              ),
+                            );
+                          },
                               state.result.purchases!.purchases_received_true ??
                                   0,
                               total:
                                   state.result.purchases!.total_purchases ?? 0,
                               Icons.check_circle_outline,
                               Colors.green),
-                          _buildStatRow(
+                          _buildStatRow(context, 'طلبات شراء قيد التنفيذ',
+                              onTap: () {
+                            Navigator.push(
                               context,
-                              'طلبات الشراء المنتهية خلال 7 أيام',
-                              state.result.purchases!.purchases_within_7_days ??
-                                  0,
-                              total:
-                                  state.result.purchases!.total_purchases ?? 0,
-                              Icons.calendar_today_outlined,
-                              Colors.blue),
-                          _buildStatRow(
-                              context,
-                              'طلبات الشراء المتأخرة',
-                              state.result.purchases!
-                                      .purchases_received_after_7_days ??
-                                  0,
-                              total:
-                                  state.result.purchases!.total_purchases ?? 0,
-                              Icons.warning_amber_outlined,
-                              Colors.red),
-                          _buildStatRow(
-                              context,
-                              'طلبات شراء قيد التنفيذ',
+                              MaterialPageRoute(
+                                builder: (context) {
+                                  return ListPurchaseFiltered(
+                                    date_1: _fromDateController.text,
+                                    date_2: _toDateController.text,
+                                    status: 'pending',
+                                  );
+                                },
+                              ),
+                            );
+                          },
                               state.result.purchases!.purchases_pending ?? 0,
                               total:
                                   state.result.purchases!.total_purchases ?? 0,
                               Icons.hourglass_bottom_outlined,
                               _neutralColor),
+                          _buildStatRow(
+                              context, 'طلبات الشراء المنتهية خلال 7 أيام',
+                              onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) {
+                                  return ListPurchaseFiltered(
+                                    date_1: _fromDateController.text,
+                                    date_2: _toDateController.text,
+                                    status: 'on_time',
+                                  );
+                                },
+                              ),
+                            );
+                          },
+                              state.result.purchases!.purchases_within_7_days ??
+                                  0,
+                              total: state.result.purchases!
+                                      .purchases_received_true ??
+                                  0,
+                              Icons.calendar_today_outlined,
+                              Colors.blue),
+                          _buildStatRow(context, 'طلبات الشراء المتأخرة',
+                              onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) {
+                                  return ListPurchaseFiltered(
+                                    date_1: _fromDateController.text,
+                                    date_2: _toDateController.text,
+                                    status: 'late',
+                                  );
+                                },
+                              ),
+                            );
+                          },
+                              state.result.purchases!
+                                      .purchases_received_after_7_days ??
+                                  0,
+                              total: state.result.purchases!
+                                      .purchases_received_true ??
+                                  0,
+                              Icons.warning_amber_outlined,
+                              Colors.red),
                         ],
                       ),
 
@@ -582,9 +802,12 @@ class _StatisticsWidgetState extends State<StatisticsWidget> {
                       // Maintenance Statistics
                       ExpansionTile(
                         initiallyExpanded: expanded,
-                        leading: Icon(
-                          Icons.build_outlined,
-                          color: color,
+                        leading: AvatarGlow(
+                          glowColor: color,
+                          child: Icon(
+                            Icons.build_outlined,
+                            color: color,
+                          ),
                         ),
                         title: Text(
                           'إحصائيات الصيانة',
@@ -595,15 +818,39 @@ class _StatisticsWidgetState extends State<StatisticsWidget> {
                           ),
                         ),
                         children: [
-                          _buildStatRow(
+                          _buildStatRow(context, 'إجمالي طلبات الصيانة',
+                              onTap: () {
+                            Navigator.push(
                               context,
-                              'إجمالي طلبات الصيانة',
+                              MaterialPageRoute(
+                                builder: (context) {
+                                  return ListMaintenanceFiltered(
+                                    date_1: _fromDateController.text,
+                                    date_2: _toDateController.text,
+                                    status: '',
+                                  );
+                                },
+                              ),
+                            );
+                          },
                               state.result.maintenance!.total_maintenance ?? 0,
                               Icons.miscellaneous_services_outlined,
                               _primaryColor),
-                          _buildStatRow(
+                          _buildStatRow(context, 'طلبات الصيانة المنفذة',
+                              onTap: () {
+                            Navigator.push(
                               context,
-                              'طلبات الصيانة المنفذة',
+                              MaterialPageRoute(
+                                builder: (context) {
+                                  return ListMaintenanceFiltered(
+                                    date_1: _fromDateController.text,
+                                    date_2: _toDateController.text,
+                                    status: 'finished',
+                                  );
+                                },
+                              ),
+                            );
+                          },
                               state.result.maintenance!
                                       .maintenance_received_true ??
                                   0,
@@ -614,7 +861,7 @@ class _StatisticsWidgetState extends State<StatisticsWidget> {
                               Colors.green),
                         ],
                       ),
-                    ],
+                    ].animate(interval: 200.ms).fade(duration: 200.ms),
                   ),
                 ),
               ),

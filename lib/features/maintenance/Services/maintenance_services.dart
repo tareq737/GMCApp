@@ -182,4 +182,37 @@ class MaintenanceServices {
       return null;
     }
   }
+
+  Future<List<BriefMaintenanceModel>?> getMaintenanceFilter({
+    required int page,
+    required String status,
+    required String date_1,
+    required String date_2,
+  }) async {
+    try {
+      final userEntity = await getCredentials();
+      return userEntity.fold((failure) {
+        return null;
+      }, (success) async {
+        final response = await _apiClient.getPageinated(
+          user: success,
+          endPoint: 'maintenance_filter',
+          queryParams: {
+            'page_size': 20,
+            'page': page,
+            'status': status,
+            'date_1': date_1,
+            'date_2': date_2,
+          },
+        );
+
+        return List.generate(response.length, (index) {
+          return BriefMaintenanceModel.fromMap(response[index]);
+        });
+      });
+    } catch (e) {
+      print('exception caught');
+      return null;
+    }
+  }
 }

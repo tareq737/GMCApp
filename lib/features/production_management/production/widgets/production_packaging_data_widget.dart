@@ -12,7 +12,6 @@ import 'package:gmcappclean/features/production_management/production/bloc/produ
 import 'package:gmcappclean/features/production_management/production/models/full_production_model.dart';
 import 'package:gmcappclean/features/production_management/production/models/packaging_model.dart';
 import 'package:gmcappclean/features/production_management/production/services/production_services.dart';
-import 'package:gmcappclean/features/production_management/production/ui/production_full_data_page.dart';
 import 'package:gmcappclean/features/production_management/production/ui/production_list.dart';
 import 'package:gmcappclean/init_dependencies.dart';
 import 'package:intl/intl.dart';
@@ -172,18 +171,6 @@ class _ProductionPackagingDataWidgetState
         widget.fullProductionModel.packaging.finish_time ?? '';
     completionDateController.text =
         widget.fullProductionModel.packaging.completion_date ?? '';
-
-    // if (startTimeController.text.isNotEmpty) {
-    //   DateTime parsedTime = DateFormat('HH:mm').parse(startTimeController.text);
-    //   String formattedTime = DateFormat('hh:mm').format(parsedTime);
-    //   startTimeController.text = formattedTime;
-    // }
-    // if (finishTimeController.text.isNotEmpty) {
-    //   DateTime parsedTime =
-    //       DateFormat('HH:mm').parse(finishTimeController.text);
-    //   String formattedTime = DateFormat('hh:mm').format(parsedTime);
-    //   finishTimeController.text = formattedTime;
-    // }
 
     _calculateDuration();
     _calculateDensity();
@@ -353,6 +340,67 @@ class _ProductionPackagingDataWidgetState
                         ),
                         value: packagingCheck_6,
                         onChanged: (bool? value) {
+                          if (value == true) {
+                            if (employeeController.text.trim().isEmpty) {
+                              showSnackBar(
+                                context: context,
+                                content: 'يرجى إدخال اسم الموظف قبل الأرشفة',
+                                failure: true,
+                              );
+                              return;
+                            }
+                            if (startTimeController.text.trim().isEmpty) {
+                              showSnackBar(
+                                context: context,
+                                content: 'يرجى تحديد وقت البدء قبل الأرشفة',
+                                failure: true,
+                              );
+                              return;
+                            }
+                            if (finishTimeController.text.trim().isEmpty) {
+                              showSnackBar(
+                                context: context,
+                                content: 'يرجى تحديد وقت الإنتهاء قبل الأرشفة',
+                                failure: true,
+                              );
+                              return;
+                            }
+                            if (packagingDensityController.text
+                                .trim()
+                                .isEmpty) {
+                              showSnackBar(
+                                context: context,
+                                content: 'يرجى تحديد كثافة الطبخة قبل الأرشفة',
+                                failure: true,
+                              );
+                              return;
+                            }
+                            if (receiptNumberController.text.trim().isEmpty) {
+                              showSnackBar(
+                                context: context,
+                                content: 'يرجى تحديد رقم الوصل قبل الأرشفة',
+                                failure: true,
+                              );
+                              return;
+                            }
+                            if (packagingWeightController.text.trim().isEmpty) {
+                              showSnackBar(
+                                context: context,
+                                content: 'يرجى تحديد وزن الطبخة قبل الأرشفة',
+                                failure: true,
+                              );
+                              return;
+                            }
+                            if (completionDateController.text.trim().isEmpty) {
+                              showSnackBar(
+                                context: context,
+                                content:
+                                    'يرجى تحديد تاريخ الانتهاء قبل الأرشفة',
+                                failure: true,
+                              );
+                              return;
+                            }
+                          }
                           setState(() {
                             packagingCheck_6 = value ?? false;
                           });
@@ -617,6 +665,14 @@ class _ProductionPackagingDataWidgetState
                       Mybutton(
                         text: 'حفظ',
                         onPressed: () {
+                          if (!_isDurationValid()) {
+                            showSnackBar(
+                              context: context,
+                              content: 'الوقت غير صحيح ⏳',
+                              failure: true,
+                            );
+                            return;
+                          }
                           _fillPackagingModelFromFomr();
                           print(_packagingModel);
                           context.read<ProductionBloc>().add(
@@ -656,6 +712,28 @@ class _ProductionPackagingDataWidgetState
         });
       }
     }
+  }
+
+  bool _isDurationValid() {
+    if (startTimeController.text.isEmpty || finishTimeController.text.isEmpty) {
+      return true; // Allow empty values
+    }
+
+    final format = DateFormat('HH:mm');
+    try {
+      final DateTime startTime = format.parse(startTimeController.text);
+      final DateTime finishTime = format.parse(finishTimeController.text);
+
+      final Duration duration = finishTime.difference(startTime);
+
+      // If finish time is before start time OR duration > 9 hours => invalid
+      if (duration.isNegative || duration > const Duration(hours: 9)) {
+        return false;
+      }
+    } catch (e) {
+      return false; // invalid parse means invalid duration
+    }
+    return true;
   }
 
   String _formatDuration(Duration duration) {

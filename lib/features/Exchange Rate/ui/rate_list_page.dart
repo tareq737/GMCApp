@@ -60,6 +60,7 @@ class _RateListPageChildState extends State<RateListPageChild> {
   bool? details = false;
   bool isLoadingMore = false;
   List<RateModel> resultList = [];
+  double width = 0;
   @override
   void initState() {
     super.initState();
@@ -81,6 +82,7 @@ class _RateListPageChildState extends State<RateListPageChild> {
 
   @override
   Widget build(BuildContext context) {
+    width = MediaQuery.of(context).size.width;
     AppUserState state = context.read<AppUserCubit>().state;
     List<String>? groups;
     if (state is AppUserLoggedIn) {
@@ -356,76 +358,87 @@ class _RateListPageChildState extends State<RateListPageChild> {
                   : const SizedBox.shrink();
             }
 
-            return Card(
-              margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              elevation: 3,
-              child: ListTile(
-                contentPadding:
-                    const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                title: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '€: ${formatValue(resultList[index].euro_buy)}',
-                          style:
-                              const TextStyle(color: Colors.blue, fontSize: 14),
-                        ),
-                        Text(
-                          '€: ${formatValue(resultList[index].euro_sell)}',
-                          style:
-                              const TextStyle(color: Colors.blue, fontSize: 14),
-                        ),
-                      ],
-                    ),
-                    Column(
-                      children: [
-                        Text(
-                          resultList[index].date,
-                          style: const TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.w600),
-                        ),
-                        Text(
-                          resultList[index].time,
-                          style:
-                              TextStyle(color: Colors.grey[600], fontSize: 14),
-                        ),
-                      ],
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          '\$: ${formatValue(resultList[index].usd_buy)}',
-                          style: const TextStyle(
-                              color: Colors.green, fontSize: 14),
-                        ),
-                        Text(
-                          '\$: ${formatValue(resultList[index].usd_sell)}',
-                          style: const TextStyle(
-                              color: Colors.green, fontSize: 14),
-                        ),
-                      ],
-                    ),
-                  ],
+            return TweenAnimationBuilder<double>(
+              tween: Tween(begin: width, end: 0),
+              duration: const Duration(milliseconds: 600),
+              curve: Curves.decelerate,
+              builder: (context, value, child) {
+                return Transform.translate(
+                  offset: Offset(value, 0),
+                  child: child,
+                );
+              },
+              child: Card(
+                margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                onTap: () {
-                  setState(() {
-                    selectedIndex = index;
-                  });
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          RateDetailsPage(rateModel: resultList[index]),
-                    ),
-                  );
-                },
+                elevation: 3,
+                child: ListTile(
+                  contentPadding:
+                      const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                  title: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '€: ${formatValue(resultList[index].euro_buy)}',
+                            style: const TextStyle(
+                                color: Colors.blue, fontSize: 14),
+                          ),
+                          Text(
+                            '€: ${formatValue(resultList[index].euro_sell)}',
+                            style: const TextStyle(
+                                color: Colors.blue, fontSize: 14),
+                          ),
+                        ],
+                      ),
+                      Column(
+                        children: [
+                          Text(
+                            resultList[index].date,
+                            style: const TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.w600),
+                          ),
+                          Text(
+                            resultList[index].time,
+                            style: TextStyle(
+                                color: Colors.grey[600], fontSize: 14),
+                          ),
+                        ],
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            '\$: ${formatValue(resultList[index].usd_buy)}',
+                            style: const TextStyle(
+                                color: Colors.green, fontSize: 14),
+                          ),
+                          Text(
+                            '\$: ${formatValue(resultList[index].usd_sell)}',
+                            style: const TextStyle(
+                                color: Colors.green, fontSize: 14),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  onTap: () {
+                    setState(() {
+                      selectedIndex = index;
+                    });
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            RateDetailsPage(rateModel: resultList[index]),
+                      ),
+                    );
+                  },
+                ),
               ),
             );
           },

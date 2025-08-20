@@ -284,22 +284,23 @@ class _FullMaintanceDetailsPageState extends State<FullMaintanceDetailsPage> {
                                         maxLines: 10,
                                         controller: _problemController,
                                         labelText: 'العطل'),
-                                    if (widget.log != true &&
-                                        groups != null &&
-                                        groups!.contains('admins'))
-                                      Mybutton(
-                                        text: 'تعديل طلب الصيانة',
-                                        onPressed: () {
-                                          _fillRequestModelfromForm();
-                                          context.read<MaintenanceBloc>().add(
-                                                UpdateMaintenance(
-                                                    id: widget
-                                                        .maintenanceModel.id,
-                                                    maintenanceModel:
-                                                        maintenanceModel!),
-                                              );
-                                        },
-                                      )
+                                    if (widget.status != 100)
+                                      if (widget.log != true &&
+                                          groups != null &&
+                                          groups!.contains('admins'))
+                                        Mybutton(
+                                          text: 'تعديل طلب الصيانة',
+                                          onPressed: () {
+                                            _fillRequestModelfromForm();
+                                            context.read<MaintenanceBloc>().add(
+                                                  UpdateMaintenance(
+                                                      id: widget
+                                                          .maintenanceModel.id,
+                                                      maintenanceModel:
+                                                          maintenanceModel!),
+                                                );
+                                          },
+                                        )
                                   ],
                                 ),
                               ),
@@ -382,24 +383,25 @@ class _FullMaintanceDetailsPageState extends State<FullMaintanceDetailsPage> {
                                 const SizedBox(
                                   height: 10,
                                 ),
-                                if (widget.log != true &&
-                                    groups != null &&
-                                    groups!.contains('admins'))
-                                  Center(
-                                    child: Mybutton(
-                                      onPressed: () {
-                                        _fillManagerModelfromForm();
-                                        context.read<MaintenanceBloc>().add(
-                                              UpdateMaintenance(
-                                                  id: widget
-                                                      .maintenanceModel.id,
-                                                  maintenanceModel:
-                                                      maintenanceModel!),
-                                            );
-                                      },
-                                      text: 'حفظ توقيع المدير',
-                                    ),
-                                  )
+                                if (widget.status != 100)
+                                  if (widget.log != true &&
+                                      groups != null &&
+                                      groups!.contains('admins'))
+                                    Center(
+                                      child: Mybutton(
+                                        onPressed: () {
+                                          _fillManagerModelfromForm();
+                                          context.read<MaintenanceBloc>().add(
+                                                UpdateMaintenance(
+                                                    id: widget
+                                                        .maintenanceModel.id,
+                                                    maintenanceModel:
+                                                        maintenanceModel!),
+                                              );
+                                        },
+                                        text: 'حفظ توقيع المدير',
+                                      ),
+                                    )
                               ],
                             ),
                           ),
@@ -511,24 +513,26 @@ class _FullMaintanceDetailsPageState extends State<FullMaintanceDetailsPage> {
                                     )
                                   ],
                                 ),
-                                if (widget.log != true &&
-                                    groups != null &&
-                                    (groups!.contains('maintenance_managers') ||
-                                        groups!.contains('admins')))
-                                  Center(
-                                    child: Mybutton(
-                                        onPressed: () {
-                                          _fillMaintenanceModelfromForm();
-                                          context.read<MaintenanceBloc>().add(
-                                                UpdateMaintenance(
-                                                    id: widget
-                                                        .maintenanceModel.id,
-                                                    maintenanceModel:
-                                                        maintenanceModel!),
-                                              );
-                                        },
-                                        text: 'حفظ ملاحظات الصيانة'),
-                                  )
+                                if (widget.status != 100)
+                                  if (widget.log != true &&
+                                      groups != null &&
+                                      (groups!.contains(
+                                              'maintenance_managers') ||
+                                          groups!.contains('admins')))
+                                    Center(
+                                      child: Mybutton(
+                                          onPressed: () {
+                                            _fillMaintenanceModelfromForm();
+                                            context.read<MaintenanceBloc>().add(
+                                                  UpdateMaintenance(
+                                                      id: widget
+                                                          .maintenanceModel.id,
+                                                      maintenanceModel:
+                                                          maintenanceModel!),
+                                                );
+                                          },
+                                          text: 'حفظ ملاحظات الصيانة'),
+                                    )
                               ],
                             ),
                           ),
@@ -585,26 +589,29 @@ class _FullMaintanceDetailsPageState extends State<FullMaintanceDetailsPage> {
                                     maxLines: 10,
                                     controller: _recievedNotesController,
                                     labelText: 'ملاحظة الاستلام'),
-                                if (widget.log != true &&
-                                    (name == _applicantController.text ||
-                                        (groups != null &&
-                                            groups!.contains('admins'))) &&
-                                    (widget.log == null || widget.log == false))
-                                  Center(
-                                    child: Mybutton(
-                                      onPressed: () {
-                                        _fillRecieveModelfromForm();
-                                        context.read<MaintenanceBloc>().add(
-                                              UpdateMaintenance(
-                                                id: widget.maintenanceModel.id,
-                                                maintenanceModel:
-                                                    maintenanceModel!,
-                                              ),
-                                            );
-                                      },
-                                      text: 'حفظ الاستلام',
-                                    ),
-                                  )
+                                if (widget.status != 100)
+                                  if (widget.log != true &&
+                                      (name == _applicantController.text ||
+                                          (groups != null &&
+                                              groups!.contains('admins'))) &&
+                                      (widget.log == null ||
+                                          widget.log == false))
+                                    Center(
+                                      child: Mybutton(
+                                        onPressed: () {
+                                          _fillRecieveModelfromForm();
+                                          context.read<MaintenanceBloc>().add(
+                                                UpdateMaintenance(
+                                                  id: widget
+                                                      .maintenanceModel.id,
+                                                  maintenanceModel:
+                                                      maintenanceModel!,
+                                                ),
+                                              );
+                                        },
+                                        text: 'حفظ الاستلام',
+                                      ),
+                                    )
                               ],
                             ),
                           ),

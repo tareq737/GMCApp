@@ -280,4 +280,24 @@ class GardeningServices {
       return null;
     }
   }
+
+  Future<bool?> deleteOneGardenTask(
+    int id,
+  ) async {
+    try {
+      final userEntity = await getCredentials();
+      return userEntity.fold((failure) {
+        return null;
+      }, (success) async {
+        final response = await _apiClient.delete(
+          user: success,
+          endPoint: 'garden_tasks',
+          id: id,
+        );
+        return response;
+      });
+    } catch (e) {
+      return null;
+    }
+  }
 }
