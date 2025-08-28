@@ -13,6 +13,7 @@ import 'package:gmcappclean/core/services/version_checker.dart';
 import 'package:gmcappclean/core/theme/app_colors.dart';
 import 'package:gmcappclean/core/theme/theme_cubit.dart';
 import 'package:gmcappclean/core/utils/show_snackbar.dart';
+import 'package:gmcappclean/features/Cash%20Flow/ui/cashflow_page.dart';
 import 'package:gmcappclean/features/Exchange%20Rate/ui/rate_list_page.dart';
 import 'package:gmcappclean/features/Inventory/ui/balance%20and%20movement/item_movement_list_page.dart';
 import 'package:gmcappclean/features/Inventory/ui/balance%20and%20movement/warehouse_balance_list_page.dart';
@@ -1109,22 +1110,51 @@ class _HomePageState extends State<HomePage>
                         },
                       ),
                       if (groups != null &&
-                          (groups.contains('managers') ||
+                          (groups.contains('cash') ||
                               groups.contains('admins')))
-                        ListTile(
+                        ExpansionTile(
+                          title: const Text('الصندوق'),
                           leading: SizedBox(
                             height: 30,
                             width: 30,
                             child: Image.asset('assets/images/cash.png'),
                           ),
-                          title: const Text('الصندوق'),
-                          onTap: () {
-                            Navigator.pop(context);
-                            showSnackBar(
-                                context: context,
-                                content: 'قيد التطوير',
-                                failure: false);
-                          },
+                          children: [
+                            ListTile(
+                              leading: const FaIcon(FontAwesomeIcons.moneyBill,
+                                  color: Colors.green),
+                              title: const Text('Syrian Pound'),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) {
+                                      return CashflowPage(
+                                        currency: 'SP',
+                                      );
+                                    },
+                                  ),
+                                );
+                              },
+                            ),
+                            ListTile(
+                              leading: const FaIcon(FontAwesomeIcons.dollarSign,
+                                  color: Colors.green),
+                              title: const Text('United States dollar'),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) {
+                                      return CashflowPage(
+                                        currency: 'USA',
+                                      );
+                                    },
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
                         ),
                     ],
                   ),

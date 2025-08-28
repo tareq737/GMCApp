@@ -168,7 +168,6 @@ class GetWarehouseBalance extends InventoryEvent {
 
 class GetItemActivity extends InventoryEvent {
   final int page;
-
   final String date_1;
   final String date_2;
   final int? warehouse_id;

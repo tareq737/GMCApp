@@ -106,7 +106,11 @@ class OperationsBloc extends Bloc<OperationsEvent, OperationsState> {
       (event, emit) async {
         // Call the service function
         var result = await _operationsServices.exportExcelOperations(
-          queryParamss: {'from_date': event.fromDate, 'to_date': event.toDate},
+          queryParamss: {
+            'from_date': event.fromDate,
+            'to_date': event.toDate,
+            'type': event.type
+          },
         );
 
         // Use .fold to handle either success (left) or failure (right)

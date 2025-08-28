@@ -509,7 +509,7 @@ class _FullProPlanDetailsPageState extends State<FullProPlanDetailsPage> {
                               Text(
                                 'تاريخ الإدراج: ${widget.prodPlanViewModel.insertDate ?? ''}',
                               ),
-                              const SizedBox(height: 10),
+
                               Wrap(
                                 spacing: 10,
                                 runSpacing: 20,
@@ -525,7 +525,6 @@ class _FullProPlanDetailsPageState extends State<FullProPlanDetailsPage> {
                                     value: _selectedType,
                                     labelText: 'نوع الدهان',
                                   ),
-                                  const SizedBox(height: 16),
                                   MyDropdownButton(
                                     items: _buildDropdownItems(
                                       _selectedType != null
@@ -540,7 +539,6 @@ class _FullProPlanDetailsPageState extends State<FullProPlanDetailsPage> {
                                     value: _selectedTier,
                                     labelText: 'المستوى',
                                   ),
-                                  const SizedBox(height: 16),
                                   Row(
                                     children: [
                                       Expanded(

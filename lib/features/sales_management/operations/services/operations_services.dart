@@ -7,7 +7,6 @@ import 'package:gmcappclean/core/error/exceptions.dart';
 import 'package:gmcappclean/core/error/failures.dart';
 import 'package:gmcappclean/core/usecase/usecase.dart';
 import 'package:gmcappclean/features/auth/domain/usecases/check_user_session_status.dart';
-import 'package:gmcappclean/features/sales_management/operations/bloc/operations_bloc.dart';
 import 'package:gmcappclean/features/sales_management/operations/models/call_model.dart';
 import 'package:gmcappclean/features/sales_management/operations/models/operations_model.dart';
 import 'package:gmcappclean/features/sales_management/operations/models/visit_mode.dart';

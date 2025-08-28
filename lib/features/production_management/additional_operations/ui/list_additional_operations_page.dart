@@ -132,7 +132,7 @@ class _ListAdditionalOperationsChildState
   String _getExpectedGroupForDepartment(String englishDepartmentCode) {
     switch (englishDepartmentCode) {
       case 'RawMaterials':
-        return 'rawMaterials_dep'; // camelCase to match user group
+        return 'raw_material_dep'; // camelCase to match user group
       case 'Manufacturing':
         return 'manufacturing_dep';
       case 'Lab':

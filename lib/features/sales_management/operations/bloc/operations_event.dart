@@ -65,6 +65,8 @@ class EditVisit extends OperationsEvent {
 class ExportExcelOperations extends OperationsEvent {
   final String fromDate;
   final String toDate;
+  final String type;
 
-  ExportExcelOperations({required this.fromDate, required this.toDate});
+  ExportExcelOperations(
+      {required this.fromDate, required this.toDate, required this.type});
 }

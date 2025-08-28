@@ -63,7 +63,7 @@ class InventoryServices {
           user: success,
           endPoint: 'items',
           queryParams: {
-            'page_size': 20,
+            'page_size': 10,
             'page': page,
           },
         );
@@ -340,7 +340,7 @@ class InventoryServices {
             'search': search,
             'page': page,
             'transfer_type': transfer_type,
-            'page_size': 50,
+            'page_size': 10,
           },
         );
         return List.generate(response.length, (index) {

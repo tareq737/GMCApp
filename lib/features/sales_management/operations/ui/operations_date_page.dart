@@ -136,15 +136,18 @@ class _OperationsDatePageChildState extends State<OperationsDatePageChild> {
     return showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => AlertDialog(
-        title: Text(title),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(), // Close the dialog
-            child: const Text('OK'),
-          ),
-        ],
+      builder: (_) => Directionality(
+        textDirection: ui.TextDirection.rtl,
+        child: AlertDialog(
+          title: Text(title),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(), // Close the dialog
+              child: const Text('OK'),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -223,12 +226,75 @@ class _OperationsDatePageChildState extends State<OperationsDatePageChild> {
                     onPressed: () {
                       if (_fromDateController.text.isNotEmpty &&
                           _toDateController.text.isNotEmpty) {
-                        context.read<OperationsBloc>().add(
-                              ExportExcelOperations(
-                                fromDate: _fromDateController.text,
-                                toDate: _toDateController.text,
+                        showModalBottomSheet(
+                          context: context,
+                          builder: (_) => Directionality(
+                            textDirection: ui.TextDirection.rtl,
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Text(
+                                    "اختر نوع التصدير",
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  ListTile(
+                                    leading:
+                                        const Icon(Icons.people_alt_outlined),
+                                    title: const Text("الزيارات"),
+                                    onTap: () {
+                                      Navigator.pop(context);
+                                      context.read<OperationsBloc>().add(
+                                            ExportExcelOperations(
+                                              fromDate:
+                                                  _fromDateController.text,
+                                              toDate: _toDateController.text,
+                                              type: 'visits',
+                                            ),
+                                          );
+                                    },
+                                  ),
+                                  ListTile(
+                                    leading: const Icon(
+                                        Icons.phone_in_talk_outlined),
+                                    title: const Text("المكالمات"),
+                                    onTap: () {
+                                      Navigator.pop(context);
+                                      context.read<OperationsBloc>().add(
+                                            ExportExcelOperations(
+                                              fromDate:
+                                                  _fromDateController.text,
+                                              toDate: _toDateController.text,
+                                              type: 'calls',
+                                            ),
+                                          );
+                                    },
+                                  ),
+                                  ListTile(
+                                    leading: const Icon(Icons.all_inclusive),
+                                    title: const Text("الكل"),
+                                    onTap: () {
+                                      Navigator.pop(context);
+                                      context.read<OperationsBloc>().add(
+                                            ExportExcelOperations(
+                                              fromDate:
+                                                  _fromDateController.text,
+                                              toDate: _toDateController.text,
+                                              type: 'both',
+                                            ),
+                                          );
+                                    },
+                                  ),
+                                ],
                               ),
-                            );
+                            ),
+                          ),
+                        );
                       } else {
                         showSnackBar(
                           context: context,

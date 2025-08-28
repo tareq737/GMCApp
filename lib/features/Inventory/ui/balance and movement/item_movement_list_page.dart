@@ -59,6 +59,11 @@ class _ItemMovementListPageChildState extends State<ItemMovementListPageChild> {
   bool _isSearchingWarehouse = false;
   bool _isSearchingItem = false;
   List<MovementModel> _movementList = [];
+
+  // Flags to prevent main page listener from firing when dialog is active
+  bool _isWarehouseDialogShowing = false;
+  bool _isItemDialogShowing = false;
+
   @override
   void initState() {
     super.initState();
@@ -73,8 +78,11 @@ class _ItemMovementListPageChildState extends State<ItemMovementListPageChild> {
     _fromDateController.dispose();
     _toDateController.dispose();
     _warehouseController.dispose();
+    _itemController.dispose();
     _warehouseFocusNode.removeListener(_onWarehouseFocusChange);
     _warehouseFocusNode.dispose();
+    _itemFocusNode.removeListener(_onItemFocusChange);
+    _itemFocusNode.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -108,14 +116,17 @@ class _ItemMovementListPageChildState extends State<ItemMovementListPageChild> {
         _warehouseController.text =
             '${selectedWarehouse.code ?? ''}-${selectedWarehouse.name ?? ''}';
         _selectedWarehouseId = selectedWarehouse.id;
+        _isSearchingWarehouse = false;
       });
       FocusScope.of(context).unfocus();
     } else if (results.length > 1) {
-      _showWarehouseSelectionDialog(context, results);
+      _showWarehouseSelectionDialog(
+          context, results, _warehouseController.text);
     } else {
       _warehouseController.clear();
       setState(() {
         _selectedWarehouseId = null;
+        _isSearchingWarehouse = false;
       });
       showSnackBar(
         context: context,
@@ -128,35 +139,30 @@ class _ItemMovementListPageChildState extends State<ItemMovementListPageChild> {
   void _showWarehouseSelectionDialog(
     BuildContext context,
     List<WarehousesModel> warehouses,
+    String currentSearch,
   ) async {
+    final inventoryBloc = context.read<InventoryBloc>();
+    setState(() {
+      _isWarehouseDialogShowing = true;
+      _isSearchingWarehouse = false;
+    });
+
     final selectedFromWarehouse = await showDialog<WarehousesModel>(
       context: context,
-      builder: (BuildContext context) {
-        return Directionality(
-          textDirection: ui.TextDirection.rtl,
-          child: AlertDialog(
-            title: const Text('اختر المستودع'),
-            content: SizedBox(
-              width: double.maxFinite,
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: warehouses.length,
-                itemBuilder: (BuildContext context, int index) {
-                  final Warehouse = warehouses[index];
-                  return ListTile(
-                    title: Text(Warehouse.name ?? ''),
-                    subtitle: Text(Warehouse.code ?? ''),
-                    onTap: () {
-                      Navigator.pop(context, Warehouse);
-                    },
-                  );
-                },
-              ),
-            ),
+      builder: (BuildContext dialogContext) {
+        return BlocProvider.value(
+          value: inventoryBloc,
+          child: _WarehouseSelectionDialog(
+            initialWarehouses: warehouses,
+            initialSearch: currentSearch,
           ),
         );
       },
     );
+
+    setState(() {
+      _isWarehouseDialogShowing = false;
+    });
 
     if (selectedFromWarehouse != null) {
       setState(() {
@@ -166,10 +172,7 @@ class _ItemMovementListPageChildState extends State<ItemMovementListPageChild> {
       });
       FocusScope.of(context).unfocus();
     } else {
-      setState(() {
-        _warehouseController.clear();
-        _selectedWarehouseId = null;
-      });
+      // Keep text field as is if user cancels
     }
   }
 
@@ -201,28 +204,24 @@ class _ItemMovementListPageChildState extends State<ItemMovementListPageChild> {
           GetItemActivity(
             date_1: _fromDateController.text,
             date_2: _toDateController.text,
-            warehouse_id: _selectedWarehouseId!,
+            warehouse_id: _selectedWarehouseId,
+            item_id: _selectedItemId,
             page: _currentPage,
           ),
         );
   }
 
-  bool _isItemSearchInProgress = false;
-
   void _onItemFocusChange() {
     if (!_itemFocusNode.hasFocus && _itemController.text.isNotEmpty) {
-      if (!_isItemSearchInProgress) {
-        setState(() {
-          _isSearchingItem = true;
-          _isItemSearchInProgress = true;
-        });
-        context.read<InventoryBloc>().add(
-              SearchItems(
-                search: _itemController.text,
-                page: 1,
-              ),
-            );
-      }
+      setState(() {
+        _isSearchingItem = true;
+      });
+      context.read<InventoryBloc>().add(
+            SearchItems(
+              search: _itemController.text,
+              page: 1,
+            ),
+          );
     } else if (!_itemFocusNode.hasFocus && _itemController.text.isEmpty) {
       setState(() {
         _selectedItemId = null;
@@ -234,22 +233,22 @@ class _ItemMovementListPageChildState extends State<ItemMovementListPageChild> {
     BuildContext context,
     List<ItemsModel> results,
   ) {
-    _isItemSearchInProgress = false;
-
     if (results.length == 1) {
       final selectedItem = results.first;
       setState(() {
         _itemController.text =
             '${selectedItem.code ?? ''}-${selectedItem.name ?? ''}';
         _selectedItemId = selectedItem.id;
+        _isSearchingItem = false;
       });
       FocusScope.of(context).unfocus();
     } else if (results.length > 1) {
-      _showItemsSelectionDialog(context, results);
+      _showItemsSelectionDialog(context, results, _itemController.text);
     } else {
       _itemController.clear();
       setState(() {
         _selectedItemId = null;
+        _isSearchingItem = false;
       });
       showSnackBar(
         context: context,
@@ -262,35 +261,30 @@ class _ItemMovementListPageChildState extends State<ItemMovementListPageChild> {
   void _showItemsSelectionDialog(
     BuildContext context,
     List<ItemsModel> items,
+    String currentSearch,
   ) async {
+    final inventoryBloc = context.read<InventoryBloc>();
+    setState(() {
+      _isItemDialogShowing = true;
+      _isSearchingItem = false; // This is already correct
+    });
     final selectedItems = await showDialog<ItemsModel>(
       context: context,
-      builder: (BuildContext context) {
-        return Directionality(
-          textDirection: ui.TextDirection.rtl,
-          child: AlertDialog(
-            title: const Text('اختر المادة'),
-            content: SizedBox(
-              width: double.maxFinite,
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: items.length,
-                itemBuilder: (BuildContext context, int index) {
-                  final selectedItems = items[index];
-                  return ListTile(
-                    title: Text(selectedItems.name ?? ''),
-                    subtitle: Text(selectedItems.code ?? ''),
-                    onTap: () {
-                      Navigator.pop(context, selectedItems);
-                    },
-                  );
-                },
-              ),
-            ),
+      builder: (BuildContext dialogContext) {
+        return BlocProvider.value(
+          value: inventoryBloc,
+          child: _ItemSelectionDialog(
+            initialItems: items,
+            initialSearch: currentSearch,
           ),
         );
       },
     );
+
+    setState(() {
+      _isItemDialogShowing = false;
+      _isSearchingItem = false; // Add this line here
+    });
 
     if (selectedItems != null) {
       setState(() {
@@ -300,10 +294,7 @@ class _ItemMovementListPageChildState extends State<ItemMovementListPageChild> {
       });
       FocusScope.of(context).unfocus();
     } else {
-      setState(() {
-        _itemController.clear();
-        _selectedItemId = null;
-      });
+      // Keep text field as is if user cancels
     }
   }
 
@@ -402,7 +393,7 @@ class _ItemMovementListPageChildState extends State<ItemMovementListPageChild> {
                       focusNode: _itemFocusNode,
                     ),
                     const SizedBox(height: 5),
-                    _isSearchingWarehouse && _isSearchingItem
+                    _isSearchingWarehouse || _isSearchingItem
                         ? const Loader()
                         : Mybutton(
                             text: 'بحث',
@@ -416,32 +407,34 @@ class _ItemMovementListPageChildState extends State<ItemMovementListPageChild> {
               const SizedBox(height: 10),
               BlocListener<InventoryBloc, InventoryState>(
                 listener: (context, state) {
-                  if (state is InventoryLoading) {
-                    //_isSearchingWarehouse = true;
-                  }
-
-                  if (state is InventorySuccess<List<WarehousesModel>>) {
-                    _isSearchingWarehouse = false;
+                  // Handle Warehouse Search Results
+                  if (state is InventorySuccess<List<WarehousesModel>> &&
+                      !_isWarehouseDialogShowing) {
                     _handleWarehouseSearchResults(context, state.result);
-                  } else if (state is InventorySuccess<List<ItemsModel>>) {
-                    _isSearchingItem = false;
-                    _isItemSearchInProgress = false; // Add this
+                  }
+                  // Handle Item Search Results
+                  else if (state is InventorySuccess<List<ItemsModel>> &&
+                      !_isItemDialogShowing) {
                     _handleItemSearchResults(context, state.result);
-                  } else if (state is InventorySuccess<List<MovementModel>>) {
-                    if (_currentPage == 1) {
-                      _movementList = state.result;
-                    } else {
-                      _movementList.addAll(state.result);
+                  }
+                  // Handle Movement List Results
+                  else if (state is InventorySuccess<List<MovementModel>>) {
+                    if (mounted) {
+                      setState(() {
+                        if (_currentPage == 1) {
+                          _movementList = state.result;
+                        } else {
+                          _movementList.addAll(state.result);
+                        }
+                        if (state.result.length < 10) {
+                          _hasMore = false;
+                        }
+                        _isFetchingMore = false;
+                      });
                     }
-
-                    if (state.result.length < 20) {
-                      _hasMore = false;
-                    }
-
-                    _isFetchingMore = false;
-                    _isSearchingWarehouse = false;
-                    setState(() {});
-                  } else if (state is InventorySuccess<TransferModel>) {
+                  }
+                  // Handle Transfer Result (for onTap)
+                  else if (state is InventorySuccess<TransferModel>) {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -453,27 +446,32 @@ class _ItemMovementListPageChildState extends State<ItemMovementListPageChild> {
                         },
                       ),
                     );
-                  } else if (state is InventoryError) {
+                  }
+                  // Handle Errors
+                  else if (state is InventoryError) {
                     showSnackBar(
                       context: context,
                       content: 'فشل تحميل البيانات',
                       failure: true,
                     );
-                    _isFetchingMore = false;
-                    _isSearchingWarehouse = false;
-                    _isSearchingItem = false;
-                    _isItemSearchInProgress = false; // Add this
+                    if (mounted) {
+                      setState(() {
+                        _isFetchingMore = false;
+                        _isSearchingWarehouse = false;
+                        _isSearchingItem = false;
+                      });
+                    }
                   }
-                  setState(() {});
                 },
                 child: Expanded(
                   child: _movementList.isEmpty
-                      ? const SizedBox()
+                      ? const Center(child: Text(''))
                       : NotificationListener<ScrollNotification>(
-                          onNotification: (scrollInfo) {
+                          onNotification: (ScrollNotification scrollInfo) {
                             if (scrollInfo.metrics.pixels >=
-                                    scrollInfo.metrics.maxScrollExtent &&
-                                !_isFetchingMore) {
+                                    scrollInfo.metrics.maxScrollExtent - 100 &&
+                                !_isFetchingMore &&
+                                _hasMore) {
                               _fetchMore(context);
                             }
                             return false;
@@ -504,15 +502,18 @@ class _ItemMovementListPageChildState extends State<ItemMovementListPageChild> {
                                         children: [
                                           Text(
                                             movement.date ?? '',
-                                            style: TextStyle(fontSize: 10),
+                                            style:
+                                                const TextStyle(fontSize: 10),
                                           ),
                                           Text(
                                             'الرصيد: ${movement.balance}',
-                                            style: TextStyle(fontSize: 10),
+                                            style:
+                                                const TextStyle(fontSize: 10),
                                           ),
                                           Text(
                                             'الكمية: ${movement.quantity}',
-                                            style: TextStyle(fontSize: 10),
+                                            style:
+                                                const TextStyle(fontSize: 10),
                                           ),
                                         ],
                                       ),
@@ -529,7 +530,7 @@ class _ItemMovementListPageChildState extends State<ItemMovementListPageChild> {
                                                         'إخراجات')
                                                     ? Colors.red
                                                     : Colors
-                                                        .grey, // default color if neither
+                                                        .grey, // default color
                                             radius: 11,
                                             child: Text(
                                               movement.transfer_serial
@@ -579,6 +580,289 @@ class _ItemMovementListPageChildState extends State<ItemMovementListPageChild> {
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// Stateful Widget for Warehouse Selection Dialog
+class _WarehouseSelectionDialog extends StatefulWidget {
+  final List<WarehousesModel> initialWarehouses;
+  final String initialSearch;
+
+  const _WarehouseSelectionDialog({
+    required this.initialWarehouses,
+    required this.initialSearch,
+  });
+
+  @override
+  State<_WarehouseSelectionDialog> createState() =>
+      _WarehouseSelectionDialogState();
+}
+
+class _WarehouseSelectionDialogState extends State<_WarehouseSelectionDialog> {
+  late List<WarehousesModel> _warehouses;
+  final _scrollController = ScrollController();
+  final _searchController = TextEditingController();
+  int _currentPage = 1;
+  bool _isFetchingMore = false;
+  bool _hasMore = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _warehouses = List.from(widget.initialWarehouses);
+    _searchController.text = widget.initialSearch;
+    _scrollController.addListener(_onScroll);
+    if (widget.initialWarehouses.length < 10) {
+      _hasMore = false;
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent - 100 &&
+        !_isFetchingMore &&
+        _hasMore) {
+      _fetchMoreWarehouses();
+    }
+  }
+
+  void _fetchMoreWarehouses() {
+    setState(() => _isFetchingMore = true);
+    _currentPage++;
+    context.read<InventoryBloc>().add(
+          SearchWarehouse(search: _searchController.text, page: _currentPage),
+        );
+  }
+
+  void _performSearch() {
+    setState(() {
+      _warehouses.clear();
+      _currentPage = 1;
+      _hasMore = true;
+      _isFetchingMore = true;
+    });
+    context
+        .read<InventoryBloc>()
+        .add(SearchWarehouse(search: _searchController.text, page: 1));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Directionality(
+      textDirection: ui.TextDirection.rtl,
+      child: BlocListener<InventoryBloc, InventoryState>(
+        listener: (context, state) {
+          if (state is InventorySuccess<List<WarehousesModel>>) {
+            if (mounted) {
+              setState(() {
+                if (_currentPage == 1) {
+                  _warehouses = state.result;
+                } else {
+                  _warehouses.addAll(state.result);
+                }
+                if (state.result.length < 10) {
+                  _hasMore = false;
+                }
+                _isFetchingMore = false;
+              });
+            }
+          } else if (state is InventoryError) {
+            if (mounted) setState(() => _isFetchingMore = false);
+          }
+        },
+        child: AlertDialog(
+          title: const Text('اختر المستودع'),
+          content: SizedBox(
+            width: double.maxFinite,
+            height: 400,
+            child: Column(
+              children: [
+                TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    labelText: 'بحث',
+                    suffixIcon: IconButton(
+                        icon: const Icon(Icons.search),
+                        onPressed: _performSearch),
+                  ),
+                  onSubmitted: (_) => _performSearch(),
+                ),
+                Expanded(
+                  child: _isFetchingMore && _warehouses.isEmpty
+                      ? const Center(child: Loader())
+                      : ListView.builder(
+                          controller: _scrollController,
+                          shrinkWrap: true,
+                          itemCount: _warehouses.length + (_hasMore ? 1 : 0),
+                          itemBuilder: (BuildContext context, int index) {
+                            if (index < _warehouses.length) {
+                              final warehouse = _warehouses[index];
+                              return ListTile(
+                                title: Text(warehouse.name ?? ''),
+                                subtitle: Text(warehouse.code ?? ''),
+                                onTap: () => Navigator.pop(context, warehouse),
+                              );
+                            } else {
+                              return const Center(child: Loader());
+                            }
+                          },
+                        ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// Stateful Widget for Item Selection Dialog
+class _ItemSelectionDialog extends StatefulWidget {
+  final List<ItemsModel> initialItems;
+  final String initialSearch;
+
+  const _ItemSelectionDialog({
+    required this.initialItems,
+    required this.initialSearch,
+  });
+
+  @override
+  State<_ItemSelectionDialog> createState() => __ItemSelectionDialogState();
+}
+
+class __ItemSelectionDialogState extends State<_ItemSelectionDialog> {
+  late List<ItemsModel> _items;
+  final _scrollController = ScrollController();
+  final _searchController = TextEditingController();
+  int _currentPage = 1;
+  bool _isFetchingMore = false;
+  bool _hasMore = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _items = List.from(widget.initialItems);
+    _searchController.text = widget.initialSearch;
+    _scrollController.addListener(_onScroll);
+    if (widget.initialItems.length < 10) {
+      _hasMore = false;
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent - 100 &&
+        !_isFetchingMore &&
+        _hasMore) {
+      _fetchMoreItems();
+    }
+  }
+
+  void _fetchMoreItems() {
+    setState(() => _isFetchingMore = true);
+    _currentPage++;
+    context.read<InventoryBloc>().add(
+          SearchItems(search: _searchController.text, page: _currentPage),
+        );
+  }
+
+  void _performSearch() {
+    setState(() {
+      _items.clear();
+      _currentPage = 1;
+      _hasMore = true;
+      _isFetchingMore = true;
+    });
+    context
+        .read<InventoryBloc>()
+        .add(SearchItems(search: _searchController.text, page: 1));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Directionality(
+      textDirection: ui.TextDirection.rtl,
+      child: BlocListener<InventoryBloc, InventoryState>(
+        listener: (context, state) {
+          if (state is InventorySuccess<List<ItemsModel>>) {
+            if (mounted) {
+              setState(() {
+                if (_currentPage == 1) {
+                  _items = state.result;
+                } else {
+                  _items.addAll(state.result);
+                }
+                if (state.result.length < 10) {
+                  _hasMore = false;
+                }
+                _isFetchingMore = false;
+              });
+            }
+          } else if (state is InventoryError) {
+            if (mounted) setState(() => _isFetchingMore = false);
+          }
+        },
+        child: AlertDialog(
+          title: const Text('اختر المادة'),
+          content: SizedBox(
+            width: double.maxFinite,
+            height: 400,
+            child: Column(
+              children: [
+                TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    labelText: 'بحث',
+                    suffixIcon: IconButton(
+                        icon: const Icon(Icons.search),
+                        onPressed: _performSearch),
+                  ),
+                  onSubmitted: (_) => _performSearch(),
+                ),
+                Expanded(
+                  child: _isFetchingMore && _items.isEmpty
+                      ? const Center(child: Loader())
+                      : ListView.builder(
+                          controller: _scrollController,
+                          shrinkWrap: true,
+                          itemCount: _items.length + (_hasMore ? 1 : 0),
+                          itemBuilder: (BuildContext context, int index) {
+                            if (index < _items.length) {
+                              final item = _items[index];
+                              return ListTile(
+                                title: Text(item.name ?? ''),
+                                subtitle: Text(item.code ?? ''),
+                                onTap: () => Navigator.pop(context, item),
+                              );
+                            } else {
+                              return const Center(child: Loader());
+                            }
+                          },
+                        ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

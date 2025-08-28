@@ -511,7 +511,7 @@ class _AddAdditionalOperationPageState
       return true; // Allow empty values
     }
 
-    final format = DateFormat('HH:mm');
+    final format = DateFormat('hh:mm a');
     try {
       final DateTime startTime = format.parse(_startTimeController.text);
       final DateTime finishTime = format.parse(_finishTimeController.text);
