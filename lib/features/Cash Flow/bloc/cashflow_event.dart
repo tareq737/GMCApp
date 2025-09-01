@@ -20,3 +20,5 @@ class GetCashflowBalance extends CashflowEvent {
 
   GetCashflowBalance({required this.currency});
 }
+
+class CashSync extends CashflowEvent {}

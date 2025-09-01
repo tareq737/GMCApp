@@ -485,14 +485,18 @@ class _ItemMovementListPageChildState extends State<ItemMovementListPageChild> {
                                 final movement = _movementList[index];
                                 return InkWell(
                                   onTap: () {
-                                    context.read<InventoryBloc>().add(
-                                          GetOneTransferBySerial(
-                                            serial: _movementList[index]
-                                                .transfer_serial!,
-                                            transfer_type: _movementList[index]
-                                                .transfer_type_id!,
-                                          ),
-                                        );
+                                    if (_movementList[index].transfer_serial !=
+                                        null) {
+                                      context.read<InventoryBloc>().add(
+                                            GetOneTransferBySerial(
+                                              serial: _movementList[index]
+                                                  .transfer_serial!,
+                                              transfer_type:
+                                                  _movementList[index]
+                                                      .transfer_type_id!,
+                                            ),
+                                          );
+                                    }
                                   },
                                   child: Card(
                                     child: ListTile(
@@ -518,6 +522,7 @@ class _ItemMovementListPageChildState extends State<ItemMovementListPageChild> {
                                         ],
                                       ),
                                       leading: Column(
+                                        spacing: 2,
                                         mainAxisAlignment:
                                             MainAxisAlignment.center,
                                         children: [
@@ -534,7 +539,8 @@ class _ItemMovementListPageChildState extends State<ItemMovementListPageChild> {
                                             radius: 11,
                                             child: Text(
                                               movement.transfer_serial
-                                                  .toString(),
+                                                      ?.toString() ??
+                                                  "",
                                               style: const TextStyle(
                                                 color: Colors.white,
                                                 fontSize: 8,

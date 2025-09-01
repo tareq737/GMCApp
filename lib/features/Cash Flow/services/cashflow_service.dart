@@ -78,4 +78,22 @@ class CashflowService {
       return null;
     }
   }
+
+  Future cashSync() async {
+    try {
+      final userEntity = await getCredentials();
+      return userEntity.fold((failure) {
+        return null;
+      }, (success) async {
+        final response = await _apiClient.add(
+          userTokens: success,
+          endPoint: 'cash_sync',
+          data: '',
+        );
+        return response;
+      });
+    } catch (e) {
+      return null;
+    }
+  }
 }

@@ -13,7 +13,6 @@ import 'package:gmcappclean/core/utils/show_snackbar.dart';
 import 'package:gmcappclean/features/purchases/Bloc/purchase_bloc.dart';
 import 'package:gmcappclean/features/purchases/Models/purchases_model.dart';
 import 'package:gmcappclean/features/purchases/Services/purchase_service.dart';
-import 'package:gmcappclean/features/purchases/UI/general%20purchases/purchases_list.dart';
 import 'package:gmcappclean/features/purchases/UI/general%20purchases/view_image_page.dart';
 import 'package:gmcappclean/features/purchases/UI/production%20purchases/production_purchases_list.dart';
 import 'package:gmcappclean/init_dependencies.dart';
@@ -65,6 +64,7 @@ class _FullProductionPurchaseDetailsState
   final _recreceivedCheckNotesController = TextEditingController();
   bool? _selectedApproved;
   bool _isReceived = false;
+  int? _purchaseHandler;
 
   int _currentPageIndex = 0;
   final PageController _pageController = PageController();
@@ -108,6 +108,7 @@ class _FullProductionPurchaseDetailsState
     } else {
       _isReceived = false;
     }
+    _purchaseHandler = purchasesModel?.purchase_handler;
 
     super.initState();
   }
@@ -674,8 +675,43 @@ class _FullProductionPurchaseDetailsState
                                     controller: _managerNotesController,
                                     labelText: 'ملاحظة المدير'),
                                 const SizedBox(
-                                  height: 10,
+                                  height: 20,
                                 ),
+                                const Text(
+                                  'المسؤول عن الشراء',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                RadioListTile<int?>(
+                                  value: null,
+                                  groupValue: _purchaseHandler,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _purchaseHandler = value;
+                                    });
+                                  },
+                                  title: const Text('غير محدد'),
+                                ),
+                                RadioListTile<int?>(
+                                  value: 1,
+                                  groupValue: _purchaseHandler,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _purchaseHandler = value;
+                                    });
+                                  },
+                                  title: const Text('المدير'),
+                                ),
+                                RadioListTile<int?>(
+                                  value: 2,
+                                  groupValue: _purchaseHandler,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _purchaseHandler = value;
+                                    });
+                                  },
+                                  title: const Text('مسؤول المشتريات'),
+                                ),
+                                const SizedBox(height: 10),
                                 if (name == 'محمد حسام عبيد' ||
                                     groups != null &&
                                         groups!.contains('admins'))
@@ -839,6 +875,7 @@ class _FullProductionPurchaseDetailsState
             : _managerCheckDateController.text;
 
     purchasesModel!.manager_notes = _managerNotesController.text;
+    purchasesModel!.purchase_handler = _purchaseHandler;
   }
 
   void _fillRecieveModelfromForm() {

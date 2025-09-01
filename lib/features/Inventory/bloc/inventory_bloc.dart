@@ -249,6 +249,18 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
         }
       },
     );
+    on<DeleteOneTransfer>(
+      (event, emit) async {
+        emit(InventoryLoading());
+        var result = await _inventoryServices.deleteOneTransferID(event.id);
+        if (result == null) {
+          emit(InventoryError(
+              errorMessage: 'Error delete with ID: ${event.id}'));
+        } else {
+          emit(InventorySuccess(result: result));
+        }
+      },
+    );
     on<AddTransfer>(
       (event, emit) async {
         emit(InventoryLoading());

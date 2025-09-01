@@ -438,9 +438,6 @@ class _TotalProductionChildState extends State<TotalProductionChild> {
 
         return Card(
           child: ListTile(
-            onLongPress: () {
-              _removeItem(index);
-            },
             onTap: () {
               if (resultList[index].batch_number == null) {
                 context.read<AdditionalOperationsBloc>().add(
@@ -489,12 +486,6 @@ class _TotalProductionChildState extends State<TotalProductionChild> {
         );
       },
     );
-  }
-
-  void _removeItem(int index) {
-    setState(() {
-      resultList.removeAt(index);
-    });
   }
 
   void _onScroll() {

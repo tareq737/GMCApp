@@ -47,7 +47,7 @@ class PurchasesModel {
   String? datasheet_3;
   String? insert_offer_date;
   String? applicant_approve_date;
-
+  int? purchase_handler;
   PurchasesModel({
     this.id,
     this.applicant,
@@ -94,6 +94,7 @@ class PurchasesModel {
     this.datasheet_3,
     this.applicant_approve_date,
     this.insert_offer_date,
+    this.purchase_handler,
   });
 
   PurchasesModel copyWith({
@@ -141,6 +142,7 @@ class PurchasesModel {
     String? datasheet_3,
     String? insert_offer_date,
     String? applicant_approve_date,
+    int? purchase_handler,
   }) {
     return PurchasesModel(
       id: id ?? this.id,
@@ -188,6 +190,7 @@ class PurchasesModel {
       insert_offer_date: insert_offer_date ?? this.insert_offer_date,
       applicant_approve_date:
           applicant_approve_date ?? this.applicant_approve_date,
+      purchase_handler: purchase_handler ?? this.purchase_handler,
     );
   }
 
@@ -231,6 +234,7 @@ class PurchasesModel {
       'applicant_approve': applicant_approve,
       'insert_offer_date': insert_offer_date,
       'applicant_approve_date': applicant_approve_date,
+      'purchase_handler': purchase_handler
     };
   }
 
@@ -314,6 +318,9 @@ class PurchasesModel {
           : null,
       applicant_approve_date: map['applicant_approve_date'] != null
           ? map['applicant_approve_date'] as String
+          : null,
+      purchase_handler: map['purchase_handler'] != null
+          ? map['purchase_handler'] as int
           : null,
     );
   }

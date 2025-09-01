@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gmcappclean/core/common/api/api.dart';
 import 'package:gmcappclean/core/common/cubits/app_user/app_user_cubit.dart';
 import 'package:gmcappclean/core/common/widgets/loader.dart';
@@ -1088,6 +1089,22 @@ class _TransferPageChildState extends State<TransferPageChild> {
                   ),
                 );
               }
+            } else if (state is InventorySuccess<bool>) {
+              showSnackBar(
+                context: context,
+                content: 'تم الحذف بنجاح',
+                failure: false,
+              );
+              Navigator.pop(context);
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => TransfersListPage(
+                    transfer_type: widget.transfer_type,
+                  ),
+                ),
+              );
+              return; // Important: return early to prevent other handlers
             } else if (state is InventoryError) {
               showSnackBar(
                 context: context,
@@ -1304,6 +1321,19 @@ class _TransferPageChildState extends State<TransferPageChild> {
                                                 },
                                               ))
                                         : null),
+                                    validator: (value) {
+                                      if ((widget.transfer_type < 100 ||
+                                              widget.transfer_type == 102) &&
+                                          (value == null || value.isEmpty)) {
+                                        return 'الرجاء اختيار المستودع المصدر';
+                                      }
+                                      if ((widget.transfer_type < 100 ||
+                                              widget.transfer_type == 102) &&
+                                          _selectedFromWarehouseId == null) {
+                                        return 'الرجاء اختيار مستودع صحيح';
+                                      }
+                                      return null;
+                                    },
                                   ),
                                 const SizedBox(height: 7),
                                 if (widget.transfer_type < 100 ||
@@ -1339,6 +1369,19 @@ class _TransferPageChildState extends State<TransferPageChild> {
                                                 },
                                               ))
                                         : null),
+                                    validator: (value) {
+                                      if ((widget.transfer_type < 100 ||
+                                              widget.transfer_type == 101) &&
+                                          (value == null || value.isEmpty)) {
+                                        return 'الرجاء اختيار المستودع الهدف';
+                                      }
+                                      if ((widget.transfer_type < 100 ||
+                                              widget.transfer_type == 101) &&
+                                          _selectedToWarehouseId == null) {
+                                        return 'الرجاء اختيار مستودع صحيح';
+                                      }
+                                      return null;
+                                    },
                                   ),
                                 const SizedBox(height: 7),
                                 MyTextField(
@@ -1517,19 +1560,6 @@ class _TransferPageChildState extends State<TransferPageChild> {
                                                     },
                                                   ),
                                                 ),
-                                                validator: (value) {
-                                                  if (value == null ||
-                                                      value.isEmpty) {
-                                                    return 'الرجاء إدخال السعر';
-                                                  }
-                                                  if (double.tryParse(
-                                                          value.replaceAll(
-                                                              ',', '')) ==
-                                                      null) {
-                                                    return 'الرجاء إدخال رقم صحيح';
-                                                  }
-                                                  return null;
-                                                },
                                               ),
                                             ),
                                         ],
@@ -1584,22 +1614,125 @@ class _TransferPageChildState extends State<TransferPageChild> {
                           const SizedBox(height: 30),
                           state is InventoryLoading
                               ? const Loader()
-                              : Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceAround,
+                              : Column(
                                   children: [
-                                    Mybutton(
-                                      text: 'إضافة',
-                                      onPressed: _submitFormAdd,
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceAround,
+                                      children: [
+                                        Mybutton(
+                                          text: 'إضافة',
+                                          onPressed: _submitFormAdd,
+                                        ),
+                                        if (widget.transferModel != null)
+                                          Mybutton(
+                                            text: 'تعديل',
+                                            onPressed: _submitFormUpdate,
+                                          ),
+                                      ],
                                     ),
                                     if (widget.transferModel != null)
-                                      Mybutton(
-                                        text: 'تعديل',
-                                        onPressed: _submitFormUpdate,
-                                      ),
+                                      IconButton(
+                                        icon: Container(
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: Colors.red.withOpacity(0.2),
+                                            border: Border.all(
+                                                color:
+                                                    Colors.red.withOpacity(0.5),
+                                                width: 1),
+                                          ),
+                                          padding: const EdgeInsets.all(8),
+                                          child: const FaIcon(
+                                            FontAwesomeIcons.trash,
+                                            color: Colors.red,
+                                            size: 20,
+                                          ),
+                                        ),
+                                        tooltip: 'حذف',
+                                        onPressed: () {
+                                          showModalBottomSheet(
+                                            context: context,
+                                            builder: (_) => Directionality(
+                                              textDirection:
+                                                  ui.TextDirection.rtl,
+                                              child: Padding(
+                                                padding:
+                                                    const EdgeInsets.all(16.0),
+                                                child: Wrap(
+                                                  children: [
+                                                    const ListTile(
+                                                      title: Text('تأكيد الحذف',
+                                                          style: TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold)),
+                                                      subtitle:
+                                                          Text('هل انت متأكد؟'),
+                                                    ),
+                                                    Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment.end,
+                                                      children: [
+                                                        TextButton(
+                                                          onPressed: () =>
+                                                              Navigator.pop(
+                                                                  context),
+                                                          child: const Text(
+                                                              'إلغاء'),
+                                                        ),
+                                                        const SizedBox(
+                                                            width: 8),
+                                                        TextButton(
+                                                          style: TextButton
+                                                              .styleFrom(
+                                                            backgroundColor:
+                                                                Colors.red
+                                                                    .withOpacity(
+                                                                        0.1),
+                                                            shape:
+                                                                RoundedRectangleBorder(
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                          8),
+                                                              side: BorderSide(
+                                                                  color: Colors
+                                                                      .red
+                                                                      .withOpacity(
+                                                                          0.3)),
+                                                            ),
+                                                          ),
+                                                          onPressed: () {
+                                                            Navigator.pop(
+                                                                context);
+                                                            context
+                                                                .read<
+                                                                    InventoryBloc>()
+                                                                .add(
+                                                                  DeleteOneTransfer(
+                                                                      id: widget
+                                                                          .transferModel!
+                                                                          .id),
+                                                                );
+                                                          },
+                                                          child: const Text(
+                                                              'حذف',
+                                                              style: TextStyle(
+                                                                  color: Colors
+                                                                      .red)),
+                                                        ),
+                                                      ],
+                                                    )
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      )
                                   ],
                                 )
-                          //const SizedBox(height: 30),
                         ],
                       ),
                     ),

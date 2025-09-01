@@ -19,6 +19,18 @@ class GardeningSuccess<T> extends GardeningState {
   GardeningSuccess({required this.result});
 }
 
+class GardeningSuccessDuplicate<T> extends GardeningState {
+  final T result;
+
+  GardeningSuccessDuplicate({required this.result});
+}
+
+class GardeningSuccessChecks<T> extends GardeningState {
+  final T result;
+
+  GardeningSuccessChecks({required this.result});
+}
+
 class GetWorkerSuccess<T> extends GardeningState {
   final T result;
 

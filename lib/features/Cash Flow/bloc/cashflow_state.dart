@@ -13,6 +13,12 @@ class CashflowSuccess<T> extends CashflowState {
   CashflowSuccess({required this.result});
 }
 
+class CashflowSuccessSync<T> extends CashflowState {
+  final T result;
+
+  CashflowSuccessSync({required this.result});
+}
+
 class CashflowError extends CashflowState {
   final String errorMessage;
 

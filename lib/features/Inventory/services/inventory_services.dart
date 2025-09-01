@@ -413,6 +413,23 @@ class InventoryServices {
     }
   }
 
+  Future<bool?> deleteOneTransferID(
+    int id,
+  ) async {
+    try {
+      final userEntity = await getCredentials();
+      return userEntity.fold((failure) {
+        return null;
+      }, (success) async {
+        final response = await _apiClient.delete(
+            user: success, endPoint: 'transfers', id: id);
+        return response;
+      });
+    } catch (e) {
+      return null;
+    }
+  }
+
   Future<TransferModel?> addTransfer(TransferModel transferModel) async {
     try {
       final userEntity = await getCredentials();

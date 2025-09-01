@@ -110,6 +110,7 @@ class _AddProdPlanPageState extends State<AddProdPlanPage> {
       'غراء',
       'أندركوت اقتصادي',
       'أندركوت لميع',
+      'ايكو لميع',
     ],
     'معجونة': [
       'كلاسيك ',

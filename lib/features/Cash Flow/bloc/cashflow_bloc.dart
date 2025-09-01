@@ -39,5 +39,16 @@ class CashflowBloc extends Bloc<CashflowEvent, CashflowState> {
         }
       },
     );
+    on<CashSync>(
+      (event, emit) async {
+        emit(CashflowLoading());
+        var result = await _cashflowService.cashSync();
+        if (result == null) {
+          emit(CashflowError(errorMessage: 'خطأ'));
+        } else {
+          emit(CashflowSuccessSync(result: result));
+        }
+      },
+    );
   }
 }

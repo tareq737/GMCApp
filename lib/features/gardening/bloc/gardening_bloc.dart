@@ -60,6 +60,18 @@ class GardeningBloc extends Bloc<GardeningEvent, GardeningState> {
         }
       },
     );
+    on<AddGardenTasksDuplicate>(
+      (event, emit) async {
+        emit(GardeningLoading());
+        var result =
+            await _gardeningServices.addGardenTasksDuplicate(event.data);
+        if (result == null) {
+          emit(GardeningError(errorMessage: 'Error'));
+        } else {
+          emit(GardeningSuccessDuplicate(result: result));
+        }
+      },
+    );
     on<UpdateGardenTask>(
       (event, emit) async {
         emit(GardeningLoading());
@@ -167,6 +179,17 @@ class GardeningBloc extends Bloc<GardeningEvent, GardeningState> {
               errorMessage: 'Error fetching  with ID: ${event.id}'));
         } else {
           emit(GardeningSuccess(result: result));
+        }
+      },
+    );
+    on<CheckListGardenTasks>(
+      (event, emit) async {
+        emit(GardeningLoading());
+        var result = await _gardeningServices.checkListGardenTasks(event.IDs);
+        if (result == null) {
+          emit(GardeningError(errorMessage: 'Error'));
+        } else {
+          emit(GardeningSuccessChecks(result: result));
         }
       },
     );

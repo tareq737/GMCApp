@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:fpdart/fpdart.dart';
@@ -81,6 +82,24 @@ class GardeningServices {
           data: gardenTasksModel.toJson(),
         );
         return GardenTasksModel.fromMap(response);
+      });
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> addGardenTasksDuplicate(Map data) async {
+    try {
+      final userEntity = await getCredentials();
+      return userEntity.fold((failure) {
+        return null;
+      }, (success) async {
+        final response = await _apiClient.add(
+          userTokens: success,
+          endPoint: 'gardening_tasks_duplicate',
+          data: json.encode(data),
+        );
+        return response;
       });
     } catch (e) {
       return null;
@@ -293,6 +312,26 @@ class GardeningServices {
           user: success,
           endPoint: 'garden_tasks',
           id: id,
+        );
+        return response;
+      });
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> checkListGardenTasks(
+    List IDs,
+  ) async {
+    try {
+      final userEntity = await getCredentials();
+      return userEntity.fold((failure) {
+        return null;
+      }, (success) async {
+        final response = await _apiClient.add(
+          userTokens: success,
+          endPoint: 'bulk_done_tasks',
+          data: json.encode({'ids': IDs}),
         );
         return response;
       });

@@ -341,9 +341,6 @@ class _ListAdditionalOperationsChildState
 
         return Card(
           child: ListTile(
-            onLongPress: () {
-              _removeItem(index);
-            },
             onTap: () {
               context.read<AdditionalOperationsBloc>().add(
                     GetOneAdditionalOperations(id: resultList[index].id!),
@@ -402,12 +399,6 @@ class _ListAdditionalOperationsChildState
         );
       },
     );
-  }
-
-  void _removeItem(int index) {
-    setState(() {
-      resultList.removeAt(index);
-    });
   }
 
   void _onScroll() {

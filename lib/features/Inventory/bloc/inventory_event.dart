@@ -131,6 +131,11 @@ class GetOneTransfer extends InventoryEvent {
   GetOneTransfer({required this.id});
 }
 
+class DeleteOneTransfer extends InventoryEvent {
+  final int id;
+  DeleteOneTransfer({required this.id});
+}
+
 class AddTransfer extends InventoryEvent {
   final TransferModel transferModel;
 

@@ -35,15 +35,7 @@ class CashflowPage extends StatelessWidget {
         apiClient: getIt<ApiClient>(),
         authInteractor: getIt<AuthInteractor>(),
       ))
-        ..add(
-          GetCashflow(
-            page: 1,
-            date_1: formattedDate,
-            date_2: formattedDate,
-            currency: currency,
-          ),
-        )
-        ..add(GetCashflowBalance(currency: currency)),
+        ..add(CashSync()), // Run sync first
       child: Builder(builder: (context) {
         return CashflowPageChild(
           currency: currency,
@@ -306,6 +298,23 @@ class _CashflowPageChildState extends State<CashflowPageChild> {
                       content: state.errorMessage,
                       failure: true,
                     );
+                  } else if (state is CashflowSuccessSync) {
+                    // Sync successful, now fetch cashflow data
+                    final today = DateTime.now();
+                    final formattedDate =
+                        "${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}";
+
+                    context.read<CashflowBloc>().add(
+                          GetCashflow(
+                            page: 1,
+                            date_1: formattedDate,
+                            date_2: formattedDate,
+                            currency: widget.currency,
+                          ),
+                        );
+                    context.read<CashflowBloc>().add(
+                          GetCashflowBalance(currency: widget.currency),
+                        );
                   } else if (state is CashflowSuccess<List<CashflowModel>>) {
                     setState(() {
                       if (currentPage == 1) {
@@ -322,14 +331,69 @@ class _CashflowPageChildState extends State<CashflowPageChild> {
                   }
                 },
                 builder: (context, state) {
+                  // Show loading state while syncing (before any data is loaded)
+                  if ((state is CashflowLoading ||
+                          state is CashflowSuccessSync) &&
+                      _model.isEmpty) {
+                    return const Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Loader(),
+                          SizedBox(height: 16),
+                          Text('جاري مزامنة البيانات...'),
+                        ],
+                      ),
+                    );
+                  }
+
+                  // Show sync error (if sync failed and no data exists)
+                  if (state is CashflowError && _model.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.error_outline,
+                            size: 64,
+                            color: Colors.red,
+                          ),
+                          const SizedBox(height: 16),
+                          const Text(
+                            'فشل في مزامنة البيانات',
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.red,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            state.errorMessage,
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton(
+                            onPressed: () {
+                              context.read<CashflowBloc>().add(CashSync());
+                            },
+                            child: const Text('إعادة المحاولة'),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  // Show loading state while fetching cashflow data after successful sync
                   if (state is CashflowLoading && _model.isEmpty) {
                     return const Center(child: Loader());
                   }
 
+                  // Show general error state
                   if (state is CashflowError && _model.isEmpty) {
                     return const Center(child: Text('حدث خطأ ما'));
                   }
 
+                  // Show empty state when no transactions exist
                   if (_model.isEmpty && state is! CashflowLoading) {
                     return Center(
                       child: Column(
@@ -353,6 +417,7 @@ class _CashflowPageChildState extends State<CashflowPageChild> {
                     );
                   }
 
+                  // Build the transaction list view
                   return LayoutBuilder(
                     builder: (context, constraints) {
                       if (constraints.maxWidth > wideScreenBreakpoint) {
@@ -360,15 +425,13 @@ class _CashflowPageChildState extends State<CashflowPageChild> {
                       } else {
                         return ListView.builder(
                           controller: _scrollController,
-                          itemCount: _model.length + 1,
+                          itemCount: _model.length + (isLoadingMore ? 1 : 0),
                           itemBuilder: (context, index) {
                             if (index == _model.length) {
-                              return isLoadingMore
-                                  ? const Padding(
-                                      padding: EdgeInsets.all(16.0),
-                                      child: Center(child: Loader()),
-                                    )
-                                  : const SizedBox.shrink();
+                              return const Padding(
+                                padding: EdgeInsets.all(16.0),
+                                child: Center(child: Loader()),
+                              );
                             }
                             final transaction = _model[index];
                             final hasInflow = transaction.inflow != null &&

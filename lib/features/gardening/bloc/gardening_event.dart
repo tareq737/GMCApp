@@ -33,6 +33,12 @@ class AddGardenTask extends GardeningEvent {
   AddGardenTask({required this.gardenTasksModel});
 }
 
+class AddGardenTasksDuplicate extends GardeningEvent {
+  final Map data;
+
+  AddGardenTasksDuplicate({required this.data});
+}
+
 class UpdateGardenTask extends GardeningEvent {
   final int id;
   final GardenTasksModel gardenTasksModel;
@@ -82,4 +88,10 @@ class AddGardenActivity extends GardeningEvent {
 class DeleteOneGardenTask extends GardeningEvent {
   final int id;
   DeleteOneGardenTask({required this.id});
+}
+
+class CheckListGardenTasks extends GardeningEvent {
+  final List IDs;
+
+  CheckListGardenTasks({required this.IDs});
 }
