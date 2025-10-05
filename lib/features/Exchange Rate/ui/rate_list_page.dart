@@ -279,9 +279,7 @@ class _RateListPageChildState extends State<RateListPageChild> {
                 const SizedBox(height: 10),
                 BlocConsumer<ExchangeRateBloc, ExchangeRateState>(
                   listener: (context, state) {
-                    print('State changed: $state'); // Add this
                     if (state is RatesError) {
-                      print('Showing error snackbar'); // Add this
                       showSnackBar(
                         context: context,
                         content: 'حدث خطأ ما',
@@ -337,6 +335,144 @@ class _RateListPageChildState extends State<RateListPageChild> {
     );
   }
 
+  // Helper widget for a single rate item to avoid code duplication
+  Widget _buildRateItem(int index) {
+    // Helper function to get trend icon for a field
+    Icon getTrendIcon(String? todayVal, String? yesterdayVal) {
+      final today = double.tryParse(todayVal ?? '0') ?? 0;
+      final yesterday = double.tryParse(yesterdayVal ?? '0') ?? 0;
+
+      if (today > yesterday) {
+        return const Icon(Icons.arrow_upward, color: Colors.green, size: 16);
+      } else if (today < yesterday) {
+        return const Icon(Icons.arrow_downward, color: Colors.red, size: 16);
+      } else {
+        return const Icon(Icons.remove, color: Colors.grey, size: 16);
+      }
+    }
+
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: width, end: 0),
+      duration: const Duration(milliseconds: 600),
+      curve: Curves.decelerate,
+      builder: (context, value, child) {
+        return Transform.translate(
+          offset: Offset(value, 0),
+          child: child,
+        );
+      },
+      child: Card(
+        margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        elevation: 3,
+        child: ListTile(
+          contentPadding:
+              const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Euro column
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        '€: ${formatValue(resultList[index].euro_buy)}',
+                        style:
+                            const TextStyle(color: Colors.blue, fontSize: 14),
+                      ),
+                      const SizedBox(width: 4),
+                      if (index < resultList.length - 1)
+                        getTrendIcon(resultList[index].euro_buy,
+                            resultList[index + 1].euro_buy),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Text(
+                        '€: ${formatValue(resultList[index].euro_sell)}',
+                        style:
+                            const TextStyle(color: Colors.blue, fontSize: 14),
+                      ),
+                      const SizedBox(width: 4),
+                      if (index < resultList.length - 1)
+                        getTrendIcon(resultList[index].euro_sell,
+                            resultList[index + 1].euro_sell),
+                    ],
+                  ),
+                ],
+              ),
+
+              // Date + time
+              Column(
+                children: [
+                  Text(
+                    resultList[index].date,
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
+                  Text(
+                    resultList[index].time,
+                    style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                  ),
+                ],
+              ),
+
+              // Dollar column
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        '\$: ${formatValue(resultList[index].usd_buy)}',
+                        style:
+                            const TextStyle(color: Colors.green, fontSize: 14),
+                      ),
+                      const SizedBox(width: 4),
+                      if (index < resultList.length - 1)
+                        getTrendIcon(resultList[index].usd_buy,
+                            resultList[index + 1].usd_buy),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Text(
+                        '\$: ${formatValue(resultList[index].usd_sell)}',
+                        style:
+                            const TextStyle(color: Colors.green, fontSize: 14),
+                      ),
+                      const SizedBox(width: 4),
+                      if (index < resultList.length - 1)
+                        getTrendIcon(resultList[index].usd_sell,
+                            resultList[index + 1].usd_sell),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+          onTap: () {
+            setState(() {
+              selectedIndex = index;
+            });
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) =>
+                    RateDetailsPage(rateModel: resultList[index]),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  // Main list/grid building widget
   Widget _buildRateList(BuildContext context, List<RateModel> rateModel) {
     return Expanded(
       child: RefreshIndicator(
@@ -344,103 +480,49 @@ class _RateListPageChildState extends State<RateListPageChild> {
         onRefresh: () async {
           await runBlocGetNewRates();
         },
-        child: ListView.builder(
-          controller: _scrollController,
-          physics: const AlwaysScrollableScrollPhysics(),
-          itemCount: resultList.length + 1,
-          itemBuilder: (context, index) {
-            if (index == resultList.length) {
-              return isLoadingMore
-                  ? const Padding(
-                      padding: EdgeInsets.all(16.0),
-                      child: Center(child: Loader()),
-                    )
-                  : const SizedBox.shrink();
+        child: OrientationBuilder(
+          builder: (context, orientation) {
+            // Display GridView in landscape mode
+            if (orientation == Orientation.landscape) {
+              return GridView.builder(
+                controller: _scrollController,
+                physics: const AlwaysScrollableScrollPhysics(),
+                itemCount: resultList.length + 1,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3, // Number of columns in landscape
+                  childAspectRatio: 4, // Adjust for better item appearance
+                  crossAxisSpacing: 4,
+                  mainAxisSpacing: 4,
+                ),
+                itemBuilder: (context, index) {
+                  if (index == resultList.length) {
+                    return isLoadingMore
+                        ? const Center(child: Loader())
+                        : const SizedBox.shrink();
+                  }
+                  return _buildRateItem(index);
+                },
+              );
             }
-
-            return TweenAnimationBuilder<double>(
-              tween: Tween(begin: width, end: 0),
-              duration: const Duration(milliseconds: 600),
-              curve: Curves.decelerate,
-              builder: (context, value, child) {
-                return Transform.translate(
-                  offset: Offset(value, 0),
-                  child: child,
-                );
-              },
-              child: Card(
-                margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                elevation: 3,
-                child: ListTile(
-                  contentPadding:
-                      const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                  title: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '€: ${formatValue(resultList[index].euro_buy)}',
-                            style: const TextStyle(
-                                color: Colors.blue, fontSize: 14),
-                          ),
-                          Text(
-                            '€: ${formatValue(resultList[index].euro_sell)}',
-                            style: const TextStyle(
-                                color: Colors.blue, fontSize: 14),
-                          ),
-                        ],
-                      ),
-                      Column(
-                        children: [
-                          Text(
-                            resultList[index].date,
-                            style: const TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.w600),
-                          ),
-                          Text(
-                            resultList[index].time,
-                            style: TextStyle(
-                                color: Colors.grey[600], fontSize: 14),
-                          ),
-                        ],
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            '\$: ${formatValue(resultList[index].usd_buy)}',
-                            style: const TextStyle(
-                                color: Colors.green, fontSize: 14),
-                          ),
-                          Text(
-                            '\$: ${formatValue(resultList[index].usd_sell)}',
-                            style: const TextStyle(
-                                color: Colors.green, fontSize: 14),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  onTap: () {
-                    setState(() {
-                      selectedIndex = index;
-                    });
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            RateDetailsPage(rateModel: resultList[index]),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            );
+            // Display ListView in portrait mode (default)
+            else {
+              return ListView.builder(
+                controller: _scrollController,
+                physics: const AlwaysScrollableScrollPhysics(),
+                itemCount: resultList.length + 1,
+                itemBuilder: (context, index) {
+                  if (index == resultList.length) {
+                    return isLoadingMore
+                        ? const Padding(
+                            padding: EdgeInsets.all(16.0),
+                            child: Center(child: Loader()),
+                          )
+                        : const SizedBox.shrink();
+                  }
+                  return _buildRateItem(index);
+                },
+              );
+            }
           },
         ),
       ),

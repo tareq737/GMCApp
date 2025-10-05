@@ -21,6 +21,7 @@ import 'package:gmcappclean/features/sales_management/operations/ui/new_call_pag
 import 'package:gmcappclean/features/sales_management/operations/ui/new_visit_page.dart';
 import 'package:gmcappclean/init_dependencies.dart';
 
+// No changes needed in this widget
 class OperationsDatePage extends StatelessWidget {
   final String fromDate;
   final String toDate;
@@ -60,6 +61,7 @@ class OperationsDatePage extends StatelessWidget {
   }
 }
 
+// No changes needed in this widget
 class OperationsDatePageChild extends StatefulWidget {
   final String fromDate;
   final String toDate;
@@ -80,6 +82,7 @@ class OperationsDatePageChild extends StatefulWidget {
       _OperationsDatePageChildState();
 }
 
+// --- All changes are within this State class ---
 class _OperationsDatePageChildState extends State<OperationsDatePageChild> {
   int currentPage = 1;
   final ScrollController _scrollController = ScrollController();
@@ -109,23 +112,16 @@ class _OperationsDatePageChildState extends State<OperationsDatePageChild> {
   Future<void> _saveFile(Uint8List bytes) async {
     try {
       final directory = await getTemporaryDirectory();
-
       const fileName = 'تقرير زيارات المبيعات.xlsx';
       final path = '${directory.path}\\$fileName';
-
       final file = File(path);
       await file.writeAsBytes(bytes);
-
       await _showDialog('نجاح', 'تم حفظ الملف وسيتم فتحه الآن');
-
-      // Open the file
       final result = await OpenFilex.open(path);
-
       if (result.type != ResultType.done) {
         await _showDialog('Error', 'لم يتم فتح الملف: ${result.message}');
       }
-
-      Navigator.of(context).pop(); // Close the page
+      Navigator.of(context).pop();
     } catch (e) {
       await _showDialog('Error', 'Failed to save/open file:\n$e');
       Navigator.of(context).pop();
@@ -143,7 +139,7 @@ class _OperationsDatePageChildState extends State<OperationsDatePageChild> {
           content: Text(message),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(), // Close the dialog
+              onPressed: () => Navigator.of(context).pop(),
               child: const Text('OK'),
             ),
           ],
@@ -153,11 +149,10 @@ class _OperationsDatePageChildState extends State<OperationsDatePageChild> {
   }
 
   void _onScroll() {
-    // Calculate the halfway point
-    double halfwayPoint = _scrollController.position.maxScrollExtent / 2;
-
-    // Check if the current scroll position is at or beyond the halfway point
-    if (_scrollController.position.pixels >= halfwayPoint && !isLoadingMore) {
+    if (_scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent *
+                0.8 && // Trigger when 80% scrolled
+        !isLoadingMore) {
       _nextPage(context);
     }
   }
@@ -167,7 +162,6 @@ class _OperationsDatePageChildState extends State<OperationsDatePageChild> {
       isLoadingMore = true;
     });
     currentPage++;
-
     runBloc();
   }
 
@@ -179,7 +173,6 @@ class _OperationsDatePageChildState extends State<OperationsDatePageChild> {
         isInitialDataLoaded = false;
       });
     }
-
     context.read<OperationsBloc>().add(
           GetAllOperationsForDate(
             page: currentPage,
@@ -192,6 +185,7 @@ class _OperationsDatePageChildState extends State<OperationsDatePageChild> {
         );
   }
 
+  // --- REFACTORED BUILD METHOD ---
   @override
   Widget build(BuildContext context) {
     width = MediaQuery.of(context).size.width;
@@ -207,6 +201,7 @@ class _OperationsDatePageChildState extends State<OperationsDatePageChild> {
             ],
           ),
           actions: [
+            // ... (Your AppBar actions remain the same)
             if (defaultTargetPlatform == TargetPlatform.windows)
               BlocConsumer<OperationsBloc, OperationsState>(
                 listener: (context, state) async {
@@ -308,159 +303,208 @@ class _OperationsDatePageChildState extends State<OperationsDatePageChild> {
               ),
           ],
         ),
-        body: Padding(
-          padding: const EdgeInsets.all(8),
-          child: Column(
-            children: [
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(8.0),
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Colors.grey.shade500,
-                    width: 2.0,
-                  ),
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: MyTextField(
-                            readOnly: true,
-                            controller: _fromDateController,
-                            labelText: 'من تاريخ',
-                            onTap: () async {
-                              DateTime? pickedDate = await showDatePicker(
-                                context: context,
-                                initialDate: DateTime.now(),
-                                firstDate: DateTime(2000),
-                                lastDate: DateTime(2100),
-                              );
-
-                              if (pickedDate != null) {
-                                setState(() {
-                                  _fromDateController.text =
-                                      DateFormat('yyyy-MM-dd')
-                                          .format(pickedDate);
-                                });
-                              }
-                              runBloc(reset: true);
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 5),
-                        Expanded(
-                          child: MyTextField(
-                            readOnly: true,
-                            controller: _toDateController,
-                            labelText: 'إلى تاريخ',
-                            onTap: () async {
-                              DateTime? pickedDate = await showDatePicker(
-                                context: context,
-                                initialDate: DateTime.now(),
-                                firstDate: DateTime(2000),
-                                lastDate: DateTime(2100),
-                              );
-
-                              if (pickedDate != null) {
-                                setState(() {
-                                  _toDateController.text =
-                                      DateFormat('yyyy-MM-dd')
-                                          .format(pickedDate);
-                                });
-                              }
-                              runBloc(reset: true);
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 5),
-                    Mybutton(
-                      text: 'بحث',
-                      onPressed: () {
-                        if (_fromDateController.text.isNotEmpty &&
-                            _toDateController.text.isNotEmpty) {
-                          runBloc();
-                        }
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 10),
-              Expanded(
-                child: BlocConsumer<OperationsBloc, OperationsState>(
-                  listener: (context, state) {
-                    if (state is OperationsSuccess<List<OperationsModel>>) {
-                      setState(() {
-                        if (currentPage == 1) {
-                          _model = state.result;
-                        } else {
-                          _model.addAll(state.result);
-                        }
-                        isLoadingMore = false;
-                        isInitialDataLoaded = true;
-                      });
-                    } else if (state is OperationsError) {
-                      setState(() {
-                        isLoadingMore = false;
-                      });
-                    }
-                  },
-                  builder: (context, state) {
-                    // Initial loading state
-                    if (!isInitialDataLoaded && state is OperationsLoading) {
-                      return const Center(child: Loader());
-                    }
-
-                    // Error state
-                    if (state is OperationsError) {
-                      return Center(
-                        child: Text(state.errorMessage),
-                      );
-                    }
-
-                    // Empty state
-                    if (isInitialDataLoaded && _model.isEmpty) {
-                      return Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.inbox_outlined,
-                              size: 64,
-                              color: Colors.grey[400],
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'لا توجد عمليات لعرضها',
-                              style: TextStyle(
-                                fontSize: 18,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }
-
-                    // Show the list with pagination
-                    return _buildOperationsList();
-                  },
-                ),
-              ),
-            ],
-          ),
+        body: OrientationBuilder(
+          builder: (context, orientation) {
+            if (orientation == Orientation.landscape) {
+              return _buildLandscapeLayout();
+            } else {
+              return _buildPortraitLayout();
+            }
+          },
         ),
       ),
     );
   }
 
-  Widget _buildOperationsList() {
+  /// Builds the layout for portrait mode (Filters on top of List).
+  Widget _buildPortraitLayout() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Column(
+        children: [
+          _buildFilterSectionColumn(),
+          const SizedBox(height: 10),
+          Expanded(child: _buildResultsList()),
+        ],
+      ),
+    );
+  }
+
+  /// Builds the layout for landscape mode (Filters in a row on top of a Grid).
+  Widget _buildLandscapeLayout() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Column(
+        children: [
+          _buildFilterSectionRow(), // Using the new Row layout for filters
+          const SizedBox(height: 10),
+          Expanded(child: _buildResultsGrid()), // Using GridView for results
+        ],
+      ),
+    );
+  }
+
+  /// Filter controls arranged in a Column (for Portrait).
+  Widget _buildFilterSectionColumn() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(8.0),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey.shade500, width: 2.0),
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(child: _buildFromDateField()),
+              const SizedBox(width: 5),
+              Expanded(child: _buildToDateField()),
+            ],
+          ),
+          const SizedBox(height: 5),
+          _buildSearchButton(),
+        ],
+      ),
+    );
+  }
+
+  /// Filter controls arranged in a single Row (for Landscape).
+  Widget _buildFilterSectionRow() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(8.0),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey.shade500, width: 2.0),
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      child: Row(
+        children: [
+          Expanded(flex: 3, child: _buildFromDateField()),
+          const SizedBox(width: 8),
+          Expanded(flex: 3, child: _buildToDateField()),
+          const SizedBox(width: 8),
+          Expanded(flex: 2, child: _buildSearchButton()),
+        ],
+      ),
+    );
+  }
+
+  // --- Reusable Filter Components ---
+  Widget _buildFromDateField() {
+    return MyTextField(
+      readOnly: true,
+      controller: _fromDateController,
+      labelText: 'من تاريخ',
+      onTap: () async {
+        DateTime? pickedDate = await showDatePicker(
+            context: context,
+            initialDate: DateTime.now(),
+            firstDate: DateTime(2000),
+            lastDate: DateTime(2100));
+        if (pickedDate != null) {
+          setState(() {
+            _fromDateController.text =
+                DateFormat('yyyy-MM-dd').format(pickedDate);
+          });
+          runBloc(reset: true);
+        }
+      },
+    );
+  }
+
+  Widget _buildToDateField() {
+    return MyTextField(
+      readOnly: true,
+      controller: _toDateController,
+      labelText: 'إلى تاريخ',
+      onTap: () async {
+        DateTime? pickedDate = await showDatePicker(
+            context: context,
+            initialDate: DateTime.now(),
+            firstDate: DateTime(2000),
+            lastDate: DateTime(2100));
+        if (pickedDate != null) {
+          setState(() {
+            _toDateController.text =
+                DateFormat('yyyy-MM-dd').format(pickedDate);
+          });
+          runBloc(reset: true);
+        }
+      },
+    );
+  }
+
+  Widget _buildSearchButton() {
+    return Mybutton(
+      text: 'بحث',
+      onPressed: () {
+        if (_fromDateController.text.isNotEmpty &&
+            _toDateController.text.isNotEmpty) {
+          runBloc(reset: true);
+        }
+      },
+    );
+  }
+
+  /// Common logic for handling Bloc states and building the UI.
+  Widget _buildResultsBloc(Widget Function() contentBuilder) {
+    return BlocConsumer<OperationsBloc, OperationsState>(
+      listener: (context, state) {
+        if (state is OperationsSuccess<List<OperationsModel>>) {
+          setState(() {
+            if (currentPage == 1) {
+              _model = state.result;
+            } else {
+              _model.addAll(state.result);
+            }
+            isLoadingMore = false;
+            isInitialDataLoaded = true;
+          });
+        } else if (state is OperationsError) {
+          setState(() {
+            isLoadingMore = false;
+          });
+        }
+      },
+      builder: (context, state) {
+        if (!isInitialDataLoaded && state is OperationsLoading) {
+          return const Center(child: Loader());
+        }
+        if (state is OperationsError && _model.isEmpty) {
+          return Center(child: Text(state.errorMessage));
+        }
+        if (isInitialDataLoaded && _model.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.inbox_outlined, size: 64, color: Colors.grey[400]),
+                const SizedBox(height: 16),
+                Text('لا توجد عمليات لعرضها',
+                    style: TextStyle(fontSize: 18, color: Colors.grey[600])),
+              ],
+            ),
+          );
+        }
+        return contentBuilder();
+      },
+    );
+  }
+
+  /// Builds the results as a ListView.
+  Widget _buildResultsList() {
+    return _buildResultsBloc(() => _buildOperationsListView());
+  }
+
+  /// Builds the results as a GridView.
+  Widget _buildResultsGrid() {
+    return _buildResultsBloc(() => _buildOperationsGridView());
+  }
+
+  /// The ListView builder for operations.
+  /// The ListView builder for operations.
+  Widget _buildOperationsListView() {
     return ListView.builder(
       physics: const BouncingScrollPhysics(),
       controller: _scrollController,
@@ -474,6 +518,8 @@ class _OperationsDatePageChildState extends State<OperationsDatePageChild> {
                 )
               : const SizedBox.shrink();
         }
+        // A variable to hold the type for cleaner code
+        final operationType = _model[index].type;
 
         return TweenAnimationBuilder<double>(
           tween: Tween(begin: width, end: 0),
@@ -491,16 +537,23 @@ class _OperationsDatePageChildState extends State<OperationsDatePageChild> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
-                    _model[index].type == 'visit'
+                    operationType == 'visit'
                         ? Icons.work_history_outlined
-                        : _model[index].type == 'call'
+                        : operationType == 'call'
                             ? Icons.call
                             : Icons.error,
+                    // --- This is the added line ---
+                    color: operationType == 'visit'
+                        ? Colors.blueAccent
+                        : operationType == 'call'
+                            ? Colors.green
+                            : Colors.grey,
                   ),
                   Text(_model[index].id.toString()),
                 ],
               ),
               subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text(_model[index].customer_name ?? ""),
                   Text(_model[index].shop_name ?? ""),
@@ -510,36 +563,125 @@ class _OperationsDatePageChildState extends State<OperationsDatePageChild> {
                 child: Text(_model[index].date!),
               ),
               trailing: Text("${_model[index].duration}"),
-              onTap: () {
-                if (_model[index].type == 'visit') {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) {
-                        return NewVisitPage(
-                          operationsModel: _model[index],
-                        );
-                      },
-                    ),
-                  );
-                }
-                if (_model[index].type == 'call') {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) {
-                        return NewCallPage(
-                          operationsModel: _model[index],
-                        );
-                      },
-                    ),
-                  );
-                }
-              },
+              onTap: () => _navigateToDetails(_model[index]),
             ),
           ),
         );
       },
+    );
+  }
+
+  /// NEW: The GridView builder for operations.
+  Widget _buildOperationsGridView() {
+    return GridView.builder(
+      physics: const BouncingScrollPhysics(),
+      controller: _scrollController,
+      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+        maxCrossAxisExtent: 250, // Each item will have a max width of 250
+        mainAxisSpacing: 8,
+        crossAxisSpacing: 8,
+        childAspectRatio: 4 / 3, // Adjust aspect ratio as needed
+      ),
+      itemCount: _model.length + (isLoadingMore ? 1 : 0),
+      itemBuilder: (context, index) {
+        if (index == _model.length) {
+          return isLoadingMore
+              ? const Center(child: Loader())
+              : const SizedBox.shrink();
+        }
+        return _OperationGridItem(
+          model: _model[index],
+          onTap: () => _navigateToDetails(_model[index]),
+        );
+      },
+    );
+  }
+
+  /// Common navigation logic for both list and grid items.
+  void _navigateToDetails(OperationsModel model) {
+    if (model.type == 'visit') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => NewVisitPage(operationsModel: model)),
+      );
+    } else if (model.type == 'call') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => NewCallPage(operationsModel: model)),
+      );
+    }
+  }
+}
+
+/// NEW: A dedicated widget for displaying an operation in the grid.
+class _OperationGridItem extends StatelessWidget {
+  final OperationsModel model;
+  final VoidCallback onTap;
+
+  const _OperationGridItem({required this.model, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final isVisit = model.type == 'visit';
+    return InkWell(
+      onTap: onTap,
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Icon(
+                    isVisit ? Icons.work_history_outlined : Icons.call,
+                    color: isVisit ? Colors.blueAccent : Colors.green,
+                    size: 20,
+                  ),
+                  Text(
+                    model.id.toString(),
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
+              Expanded(
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        model.customer_name ?? 'N/A',
+                        style: Theme.of(context).textTheme.titleSmall,
+                        textAlign: TextAlign.center,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 2,
+                      ),
+                      Text(
+                        model.shop_name ?? 'N/A',
+                        style: Theme.of(context).textTheme.titleSmall,
+                        textAlign: TextAlign.center,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 2,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Text(
+                model.date ?? '',
+                style: Theme.of(context)
+                    .textTheme
+                    .bodySmall
+                    ?.copyWith(color: Colors.grey[600]),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gmcappclean/core/common/api/api.dart';
@@ -260,12 +261,6 @@ class _TotalProductionChildState extends State<TotalProductionChild> {
                             }
                           },
                         ),
-                        // This Text widget should be inside a BlocConsumer or listen to changes
-                        // in resultList for accurate display.
-                        // For now, it will update when the whole widget rebuilds due to setState.
-                        // The issue is that the initial call to _calculateTotalDuration might be on an empty list.
-                        // It will update correctly after the first successful data fetch.
-                        // We will move this into the BlocConsumer for better reactivity.
                       ],
                     ),
                   ),
@@ -341,44 +336,23 @@ class _TotalProductionChildState extends State<TotalProductionChild> {
                                 if (state is TotalProductionLoading &&
                                     currentPage == 1) {
                                   return const Loader();
-                                } else if (state is TotalProductionSuccess<
-                                    List<TotalProductionModel>>) {
-                                  // Since resultList is updated in the listener,
-                                  // this builder will use the updated resultList.
-                                  return Column(
-                                    children: [
-                                      // Display the total duration here, after resultList is populated
-                                      Text(
-                                        'مجموع الأوقات المعروضة: ${_calculateTotalDuration()}',
-                                        textAlign: TextAlign.right,
-                                        style: const TextStyle(
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                      const SizedBox(height: 10),
-                                      Expanded(
-                                        child: _buildTotalProductionList(
-                                            context, resultList),
-                                      ),
-                                    ],
-                                  );
-                                } else {
-                                  // Handle other states or display existing data
-                                  return Column(
-                                    children: [
-                                      Text(
-                                        'مجموع الأوقات المعروضة: ${_calculateTotalDuration()}',
-                                        textAlign: TextAlign.right,
-                                        style: const TextStyle(
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                      const SizedBox(height: 10),
-                                      Expanded(
-                                        child: _buildTotalProductionList(
-                                            context, resultList),
-                                      ),
-                                    ],
-                                  );
                                 }
+
+                                // Handle other states or display existing data
+                                return Column(
+                                  children: [
+                                    Text(
+                                      'مجموع الأوقات المعروضة: ${_calculateTotalDuration()}',
+                                      textAlign: TextAlign.right,
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    const SizedBox(height: 10),
+                                    Expanded(
+                                      child: _buildTotalProductionList(),
+                                    ),
+                                  ],
+                                );
                               },
                             );
                           },
@@ -395,104 +369,227 @@ class _TotalProductionChildState extends State<TotalProductionChild> {
     );
   }
 
-  Widget _buildTotalProductionList(
-      BuildContext context, List<TotalProductionModel> totalProductionModel) {
-    if (resultList.isEmpty) {
-      if (resultList.isEmpty) {
-        return const Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                FontAwesomeIcons.solidClipboard, // Example icon for "no data"
-                size: 50,
-                color: Colors.grey,
-              ),
-              SizedBox(height: 10),
-              Text(
-                'لا توجد بيانات لعرضها.',
-                style: TextStyle(fontSize: 18, color: Colors.grey),
-              ),
-            ],
-          ),
-        );
-      }
+  Widget _buildTotalProductionList() {
+    if (resultList.isEmpty && !isLoadingMore) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              FontAwesomeIcons.solidClipboard,
+              size: 50,
+              color: Colors.grey,
+            ),
+            SizedBox(height: 10),
+            Text(
+              'لا توجد بيانات لعرضها.',
+              style: TextStyle(fontSize: 18, color: Colors.grey),
+            ),
+          ],
+        ),
+      );
     }
-    return ListView.builder(
-      controller: _scrollController,
-      itemCount: resultList.length +
-          (isLoadingMore ? 1 : 0), // Add 1 for loading indicator
-      itemBuilder: (context, index) {
-        if (index == resultList.length) {
-          // Show loading indicator at the bottom if more data is being loaded
-          return isLoadingMore
-              ? const Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Center(child: Loader()),
-                )
-              : const SizedBox
-                  .shrink(); // Empty space when not loading more data
-        }
+    // NEW: Use OrientationBuilder
+    return OrientationBuilder(
+      builder: (context, orientation) {
+        return ListView.builder(
+          controller: _scrollController,
+          itemCount: resultList.length + (isLoadingMore ? 1 : 0),
+          itemBuilder: (context, index) {
+            if (index == resultList.length) {
+              return isLoadingMore
+                  ? const Padding(
+                      padding: EdgeInsets.all(16.0),
+                      child: Center(child: Loader()),
+                    )
+                  : const SizedBox.shrink();
+            }
 
-        final screenWidth = MediaQuery.of(context).size.width;
-
-        return Card(
-          child: ListTile(
-            onTap: () {
-              if (resultList[index].batch_number == null) {
-                context.read<AdditionalOperationsBloc>().add(
-                      GetOneAdditionalOperations(id: resultList[index].id),
-                    );
-              }
-              if (resultList[index].batch_number != null) {
-                context.read<ProductionBloc>().add(
-                      GetOneProductionByID(id: resultList[index].id),
-                    );
-              }
-            },
-            title: Text(
-              reverseDepartmentMapping[resultList[index].department] ?? '',
-              textAlign: TextAlign.right,
-            ),
-            subtitle: Text(
-              resultList[index].operation ?? '',
-              textAlign: TextAlign.right,
-            ),
-            leading: SizedBox(
-              width: screenWidth * 0.10,
-              child: Text(
-                resultList[index].batch_number ?? '',
-                style: const TextStyle(fontSize: 8),
-                textAlign: TextAlign.center,
-              ),
-            ),
-            trailing: SizedBox(
-              width: screenWidth * 0.15,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    resultList[index].worker ?? '',
-                    style: const TextStyle(fontSize: 8),
-                    textAlign: TextAlign.center,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  Text(_calculateDuration(resultList[index].start_time,
-                      resultList[index].finish_time)),
-                ],
-              ),
-            ),
-          ),
+            // NEW: Switch between layouts based on orientation
+            if (orientation == Orientation.landscape) {
+              return _buildLandscapeItem(index);
+            } else {
+              return _buildPortraitItem(index);
+            }
+          },
         );
       },
     );
   }
 
+  // NEW: Refactored portrait item builder
+  Widget _buildPortraitItem(int index) {
+    final item = resultList[index];
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    return Card(
+      child: ListTile(
+        onTap: () {
+          if (item.batch_number == null) {
+            context.read<AdditionalOperationsBloc>().add(
+                  GetOneAdditionalOperations(id: item.id),
+                );
+          }
+          if (item.batch_number != null) {
+            context.read<ProductionBloc>().add(
+                  GetOneProductionByID(id: item.id),
+                );
+          }
+        },
+        title: Text(
+          reverseDepartmentMapping[item.department] ?? '',
+          textAlign: TextAlign.right,
+        ),
+        subtitle: Text(
+          item.operation ?? '',
+          textAlign: TextAlign.right,
+        ),
+        leading: SizedBox(
+          width: screenWidth * 0.10,
+          child: Text(
+            item.batch_number ?? '',
+            style: const TextStyle(fontSize: 8),
+            textAlign: TextAlign.center,
+          ),
+        ),
+        trailing: SizedBox(
+          width: screenWidth * 0.20, // Increased width for better fit
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                item.worker ?? '',
+                style: const TextStyle(fontSize: 10), // Increased font size
+                textAlign: TextAlign.center,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 2),
+              Text(
+                _calculateDuration(item.start_time, item.finish_time),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // NEW: Landscape item builder
+  Widget _buildLandscapeItem(int index) {
+    final item = resultList[index];
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final subtitleColor = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      child: InkWell(
+        onTap: () {
+          if (item.batch_number == null) {
+            context.read<AdditionalOperationsBloc>().add(
+                  GetOneAdditionalOperations(id: item.id),
+                );
+          }
+          if (item.batch_number != null) {
+            context.read<ProductionBloc>().add(
+                  GetOneProductionByID(id: item.id),
+                );
+          }
+        },
+        borderRadius:
+            BorderRadius.circular(12), // Match card's default border radius
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(
+                width: 120,
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .primaryContainer
+                        .withOpacity(0.3),
+                    borderRadius: const BorderRadius.only(
+                        topRight: Radius.circular(12),
+                        bottomRight: Radius.circular(12))),
+                child: Center(
+                  child: Text(
+                    reverseDepartmentMapping[item.department] ?? 'N/A',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.primary),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        item.operation ?? 'No Operation',
+                        style: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w500),
+                      ),
+                      if (item.batch_number != null &&
+                          item.batch_number!.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          'رقم الطبخة: ${item.batch_number!}',
+                          style: TextStyle(fontSize: 13, color: subtitleColor),
+                        ),
+                      ]
+                    ],
+                  ),
+                ),
+              ),
+              const VerticalDivider(width: 1, indent: 8, endIndent: 8),
+              Container(
+                width: 500,
+                padding: const EdgeInsets.all(8),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      item.worker ?? 'N/A',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _calculateDuration(item.start_time, item.finish_time),
+                      style: const TextStyle(
+                          fontSize: 16,
+                          color: Colors.green,
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ).animate().fade(duration: 400.ms).slideX(
+          begin: 0.5,
+          duration: 400.ms,
+          curve: Curves.easeOutCubic,
+        );
+  }
+
   void _onScroll() {
-    if (_scrollController.position.pixels ==
-            _scrollController.position.maxScrollExtent &&
-        !isLoadingMore) {
-      // Check if the current scroll position is at the very end
+    double halfwayPoint = _scrollController.position.maxScrollExtent / 2;
+    if (_scrollController.position.pixels >= halfwayPoint && !isLoadingMore) {
       _nextPage(context);
     }
   }

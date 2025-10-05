@@ -1,5 +1,4 @@
 // ignore_for_file: use_build_context_synchronously
-
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -63,7 +62,9 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
   final _lastPriceController = TextEditingController();
   final _purchaseNotesController = TextEditingController();
   final _managerCheckDateController = TextEditingController();
+  final _manager2CheckDateController = TextEditingController();
   final _managerNotesController = TextEditingController();
+  final _manager2NotesController = TextEditingController();
   final _realSupplierController = TextEditingController();
   final _buyerController = TextEditingController();
   final _expectedDateController = TextEditingController();
@@ -75,13 +76,14 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
   final _receivedCheckDateController = TextEditingController();
   final _recreceivedCheckNotesController = TextEditingController();
   bool? _selectedApproved;
+  bool? _selectedApproved2;
   bool _isReceived = false;
   bool _isArchived = false;
   int? _applicantApprove;
 
   final _insertOfferDateController = TextEditingController();
   final _applicantApproveDateController = TextEditingController();
-
+  int? _purchaseHandler;
   File? _image;
   final ImagePicker _picker = ImagePicker();
   Future<void> _pickImage(ImageSource source) async {
@@ -144,6 +146,9 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
     _purchaseNotesController.text = purchasesModel?.purchase_notes ?? '';
     _managerCheckDateController.text = purchasesModel?.manager_check_date ?? '';
     _managerNotesController.text = purchasesModel?.manager_notes ?? '';
+    _manager2CheckDateController.text =
+        purchasesModel?.manager2_check_date ?? '';
+    _manager2NotesController.text = purchasesModel?.manager2_notes ?? '';
     _realSupplierController.text = purchasesModel?.real_supplier ?? '';
     _buyerController.text = purchasesModel?.buyer ?? '';
     _expectedDateController.text = purchasesModel?.expected_date ?? '';
@@ -155,6 +160,7 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
     _receivedCheckDateController.text =
         purchasesModel?.received_check_date ?? '';
     _selectedApproved = purchasesModel?.manager_check;
+    _selectedApproved2 = purchasesModel?.manager2_check;
     _recreceivedCheckNotesController.text =
         purchasesModel?.received_check_notes ?? '';
     if (purchasesModel?.received_check == true) {
@@ -172,7 +178,7 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
     _insertOfferDateController.text = purchasesModel?.insert_offer_date ?? '';
     _applicantApproveDateController.text =
         purchasesModel?.applicant_approve_date ?? '';
-
+    _purchaseHandler = purchasesModel?.purchase_handler;
     super.initState();
   }
 
@@ -198,8 +204,10 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
     _lastPurchaseController.dispose();
     _lastPriceController.dispose();
     _purchaseNotesController.dispose();
-    _managerCheckDateController.dispose();
     _managerNotesController.dispose();
+    _managerCheckDateController.dispose();
+    _manager2NotesController.dispose();
+    _manager2CheckDateController.dispose();
     _realSupplierController.dispose();
     _buyerController.dispose();
     _expectedDateController.dispose();
@@ -654,522 +662,540 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
                                     maxLines: 10,
                                     controller: _purchaseNotesController,
                                     labelText: 'ملاحظات'),
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: MyTextField(
-                                        maxLines: 10,
-                                        controller: _offer1Controller,
-                                        labelText: 'عرض سعر 1',
+                                if (!["فوارغ", "مواد أولية"]
+                                    .contains(purchasesModel!.department)) ...[
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: MyTextField(
+                                          maxLines: 10,
+                                          controller: _offer1Controller,
+                                          labelText: 'عرض سعر 1',
+                                        ),
                                       ),
-                                    ),
-                                    const SizedBox(
-                                      width: 5,
-                                    ),
-                                    //data sheet + offer image 1
-                                    if (groups != null &&
-                                        (groups!.contains('purchase_admins') ||
-                                            groups!.contains('managers') ||
-                                            groups!.contains('admins')))
-                                      Column(
-                                        children: [
-                                          // Offer Image
-                                          (widget.purchasesModel
-                                                          .offer_1_image ==
-                                                      null ||
-                                                  widget.purchasesModel
-                                                          .offer_1_image ==
-                                                      "")
-                                              ? _buildAddButton(
-                                                  label: 'صورة',
-                                                  onAdd: (source) async {
-                                                    await _pickImage(source);
-                                                    if (_image != null) {
+                                      const SizedBox(
+                                        width: 5,
+                                      ),
+                                      //data sheet + offer image 1
+                                      if (groups != null &&
+                                          (groups!.contains(
+                                                  'purchase_admins') ||
+                                              groups!.contains('managers') ||
+                                              groups!.contains('admins')))
+                                        Column(
+                                          children: [
+                                            // Offer Image
+                                            (widget.purchasesModel
+                                                            .offer_1_image ==
+                                                        null ||
+                                                    widget.purchasesModel
+                                                            .offer_1_image ==
+                                                        "")
+                                                ? _buildAddButton(
+                                                    label: 'صورة',
+                                                    onAdd: (source) async {
+                                                      await _pickImage(source);
+                                                      if (_image != null) {
+                                                        context
+                                                            .read<
+                                                                PurchaseBloc>()
+                                                            .add(
+                                                              AddPurchaseOffer1Image(
+                                                                image: _image!,
+                                                                id: widget
+                                                                    .purchasesModel
+                                                                    .id!,
+                                                              ),
+                                                            );
+                                                      }
+                                                    },
+                                                  )
+                                                : _buildImageOptionsButton(
+                                                    label: 'صورة',
+                                                    onView: () {
                                                       context
                                                           .read<PurchaseBloc>()
                                                           .add(
-                                                            AddPurchaseOffer1Image(
-                                                              image: _image!,
-                                                              id: widget
-                                                                  .purchasesModel
-                                                                  .id!,
-                                                            ),
-                                                          );
-                                                    }
-                                                  },
-                                                )
-                                              : _buildImageOptionsButton(
-                                                  label: 'صورة',
-                                                  onView: () {
-                                                    context
-                                                        .read<PurchaseBloc>()
-                                                        .add(
-                                                          GetPurchaseOffer1Image(
-                                                              id: widget
-                                                                  .purchasesModel
-                                                                  .id!),
-                                                        );
-                                                  },
-                                                  onDelete: () async {
-                                                    bool confirmDelete =
-                                                        await _showDeleteConfirmation(
-                                                      context,
-                                                      message:
-                                                          'هل أنت متأكد أنك تريد حذف صورة عرض السعر الأول',
-                                                    );
-                                                    if (confirmDelete) {
-                                                      context
-                                                          .read<PurchaseBloc>()
-                                                          .add(
-                                                            DeletePurchaceOffer1Image(
+                                                            GetPurchaseOffer1Image(
                                                                 id: widget
                                                                     .purchasesModel
                                                                     .id!),
                                                           );
-                                                    }
-                                                  },
-                                                ),
+                                                    },
+                                                    onDelete: () async {
+                                                      bool confirmDelete =
+                                                          await _showDeleteConfirmation(
+                                                        context,
+                                                        message:
+                                                            'هل أنت متأكد أنك تريد حذف صورة عرض السعر الأول',
+                                                      );
+                                                      if (confirmDelete) {
+                                                        context
+                                                            .read<
+                                                                PurchaseBloc>()
+                                                            .add(
+                                                              DeletePurchaceOffer1Image(
+                                                                  id: widget
+                                                                      .purchasesModel
+                                                                      .id!),
+                                                            );
+                                                      }
+                                                    },
+                                                  ),
 
-                                          // Datasheet
-                                          (widget.purchasesModel.datasheet_1 ==
-                                                      null ||
-                                                  widget.purchasesModel
-                                                          .datasheet_1 ==
-                                                      "")
-                                              ? _buildAddButton(
-                                                  label: 'نشرة',
-                                                  onAdd: (source) async {
-                                                    await _pickImage(source);
-                                                    if (_image != null) {
+                                            // Datasheet
+                                            (widget.purchasesModel
+                                                            .datasheet_1 ==
+                                                        null ||
+                                                    widget.purchasesModel
+                                                            .datasheet_1 ==
+                                                        "")
+                                                ? _buildAddButton(
+                                                    label: 'نشرة',
+                                                    onAdd: (source) async {
+                                                      await _pickImage(source);
+                                                      if (_image != null) {
+                                                        context
+                                                            .read<
+                                                                PurchaseBloc>()
+                                                            .add(
+                                                              AddPurchaseDatasheet1Image(
+                                                                image: _image!,
+                                                                id: widget
+                                                                    .purchasesModel
+                                                                    .id!,
+                                                              ),
+                                                            );
+                                                      }
+                                                    },
+                                                  )
+                                                : _buildImageOptionsButton(
+                                                    label: 'نشرة',
+                                                    onView: () {
                                                       context
                                                           .read<PurchaseBloc>()
                                                           .add(
-                                                            AddPurchaseDatasheet1Image(
-                                                              image: _image!,
-                                                              id: widget
-                                                                  .purchasesModel
-                                                                  .id!,
-                                                            ),
-                                                          );
-                                                    }
-                                                  },
-                                                )
-                                              : _buildImageOptionsButton(
-                                                  label: 'نشرة',
-                                                  onView: () {
-                                                    context
-                                                        .read<PurchaseBloc>()
-                                                        .add(
-                                                          GetPurchaseDatasheet1Image(
-                                                              id: widget
-                                                                  .purchasesModel
-                                                                  .id!),
-                                                        );
-                                                  },
-                                                  onDelete: () async {
-                                                    bool confirmDelete =
-                                                        await _showDeleteConfirmation(
-                                                      context,
-                                                      message:
-                                                          'هل أنت متأكد أنك تريد حذف النشرة الفنية الأول',
-                                                    );
-                                                    if (confirmDelete) {
-                                                      context
-                                                          .read<PurchaseBloc>()
-                                                          .add(
-                                                            DeletePurchaceDatasheet1Image(
+                                                            GetPurchaseDatasheet1Image(
                                                                 id: widget
                                                                     .purchasesModel
                                                                     .id!),
                                                           );
-                                                    }
-                                                  },
-                                                ),
-                                        ],
-                                      ),
-                                  ],
-                                ),
-                                // Offer 1 Row
+                                                    },
+                                                    onDelete: () async {
+                                                      bool confirmDelete =
+                                                          await _showDeleteConfirmation(
+                                                        context,
+                                                        message:
+                                                            'هل أنت متأكد أنك تريد حذف النشرة الفنية الأول',
+                                                      );
+                                                      if (confirmDelete) {
+                                                        context
+                                                            .read<
+                                                                PurchaseBloc>()
+                                                            .add(
+                                                              DeletePurchaceDatasheet1Image(
+                                                                  id: widget
+                                                                      .purchasesModel
+                                                                      .id!),
+                                                            );
+                                                      }
+                                                    },
+                                                  ),
+                                          ],
+                                        ),
+                                    ],
+                                  ),
+                                  // Offer 1 Row
 
-                                Row(
-                                  children: [
-                                    Radio<int>(
-                                      value: 1,
-                                      groupValue: _applicantApprove,
-                                      onChanged: (value) {
-                                        setState(() {
-                                          _applicantApprove = value;
-                                        });
-                                      },
-                                    ),
-                                    Text(
-                                      'الموافقة على عرض السعر الأول',
-                                      style: TextStyle(
-                                        color: _applicantApprove == 1
-                                            ? Colors.green
-                                            : null,
-                                        fontWeight: _applicantApprove == 1
-                                            ? FontWeight.bold
-                                            : null,
+                                  Row(
+                                    children: [
+                                      Radio<int>(
+                                        value: 1,
+                                        groupValue: _applicantApprove,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            _applicantApprove = value;
+                                          });
+                                        },
                                       ),
-                                    ),
-                                  ],
-                                ),
-                                const Divider(
-                                  color: Colors.grey,
-                                ),
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: MyTextField(
-                                        maxLines: 10,
-                                        controller: _offer2Controller,
-                                        labelText: 'عرض سعر 2',
+                                      Text(
+                                        'الموافقة على عرض السعر الأول',
+                                        style: TextStyle(
+                                          color: _applicantApprove == 1
+                                              ? Colors.green
+                                              : null,
+                                          fontWeight: _applicantApprove == 1
+                                              ? FontWeight.bold
+                                              : null,
+                                        ),
                                       ),
-                                    ),
-                                    const SizedBox(
-                                      width: 5,
-                                    ),
-                                    //data sheet + offer image 2
-                                    if (groups != null &&
-                                        (groups!.contains('purchase_admins') ||
-                                            groups!.contains('managers') ||
-                                            groups!.contains('admins')))
-                                      Column(
-                                        children: [
-                                          // Offer 2 Image
-                                          (widget.purchasesModel
-                                                          .offer_2_image ==
-                                                      null ||
-                                                  widget.purchasesModel
-                                                          .offer_2_image ==
-                                                      "")
-                                              ? _buildAddButton(
-                                                  label: 'صورة',
-                                                  onAdd: (source) async {
-                                                    await _pickImage(source);
-                                                    if (_image != null) {
+                                    ],
+                                  ),
+                                  const Divider(
+                                    color: Colors.grey,
+                                  ),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: MyTextField(
+                                          maxLines: 10,
+                                          controller: _offer2Controller,
+                                          labelText: 'عرض سعر 2',
+                                        ),
+                                      ),
+                                      const SizedBox(
+                                        width: 5,
+                                      ),
+                                      //data sheet + offer image 2
+                                      if (groups != null &&
+                                          (groups!.contains(
+                                                  'purchase_admins') ||
+                                              groups!.contains('managers') ||
+                                              groups!.contains('admins')))
+                                        Column(
+                                          children: [
+                                            // Offer 2 Image
+                                            (widget.purchasesModel
+                                                            .offer_2_image ==
+                                                        null ||
+                                                    widget.purchasesModel
+                                                            .offer_2_image ==
+                                                        "")
+                                                ? _buildAddButton(
+                                                    label: 'صورة',
+                                                    onAdd: (source) async {
+                                                      await _pickImage(source);
+                                                      if (_image != null) {
+                                                        context
+                                                            .read<
+                                                                PurchaseBloc>()
+                                                            .add(
+                                                              AddPurchaseOffer2Image(
+                                                                image: _image!,
+                                                                id: widget
+                                                                    .purchasesModel
+                                                                    .id!,
+                                                              ),
+                                                            );
+                                                      }
+                                                    },
+                                                  )
+                                                : _buildImageOptionsButton(
+                                                    label: 'صورة',
+                                                    onView: () {
                                                       context
                                                           .read<PurchaseBloc>()
                                                           .add(
-                                                            AddPurchaseOffer2Image(
-                                                              image: _image!,
-                                                              id: widget
-                                                                  .purchasesModel
-                                                                  .id!,
-                                                            ),
-                                                          );
-                                                    }
-                                                  },
-                                                )
-                                              : _buildImageOptionsButton(
-                                                  label: 'صورة',
-                                                  onView: () {
-                                                    context
-                                                        .read<PurchaseBloc>()
-                                                        .add(
-                                                          GetPurchaseOffer2Image(
-                                                              id: widget
-                                                                  .purchasesModel
-                                                                  .id!),
-                                                        );
-                                                  },
-                                                  onDelete: () async {
-                                                    bool confirmDelete =
-                                                        await _showDeleteConfirmation(
-                                                      context,
-                                                      message:
-                                                          'هل أنت متأكد أنك تريد حذف صورة عرض السعر الثاني',
-                                                    );
-                                                    if (confirmDelete) {
-                                                      context
-                                                          .read<PurchaseBloc>()
-                                                          .add(
-                                                            DeletePurchaceOffer2Image(
+                                                            GetPurchaseOffer2Image(
                                                                 id: widget
                                                                     .purchasesModel
                                                                     .id!),
                                                           );
-                                                    }
-                                                  },
-                                                ),
+                                                    },
+                                                    onDelete: () async {
+                                                      bool confirmDelete =
+                                                          await _showDeleteConfirmation(
+                                                        context,
+                                                        message:
+                                                            'هل أنت متأكد أنك تريد حذف صورة عرض السعر الثاني',
+                                                      );
+                                                      if (confirmDelete) {
+                                                        context
+                                                            .read<
+                                                                PurchaseBloc>()
+                                                            .add(
+                                                              DeletePurchaceOffer2Image(
+                                                                  id: widget
+                                                                      .purchasesModel
+                                                                      .id!),
+                                                            );
+                                                      }
+                                                    },
+                                                  ),
 
-                                          // Datasheet 2
-                                          (widget.purchasesModel.datasheet_2 ==
-                                                      null ||
-                                                  widget.purchasesModel
-                                                          .datasheet_2 ==
-                                                      "")
-                                              ? _buildAddButton(
-                                                  label: 'نشرة',
-                                                  onAdd: (source) async {
-                                                    await _pickImage(source);
-                                                    if (_image != null) {
+                                            // Datasheet 2
+                                            (widget.purchasesModel
+                                                            .datasheet_2 ==
+                                                        null ||
+                                                    widget.purchasesModel
+                                                            .datasheet_2 ==
+                                                        "")
+                                                ? _buildAddButton(
+                                                    label: 'نشرة',
+                                                    onAdd: (source) async {
+                                                      await _pickImage(source);
+                                                      if (_image != null) {
+                                                        context
+                                                            .read<
+                                                                PurchaseBloc>()
+                                                            .add(
+                                                              AddPurchaseDatasheet2Image(
+                                                                image: _image!,
+                                                                id: widget
+                                                                    .purchasesModel
+                                                                    .id!,
+                                                              ),
+                                                            );
+                                                      }
+                                                    },
+                                                  )
+                                                : _buildImageOptionsButton(
+                                                    label: 'نشرة',
+                                                    onView: () {
                                                       context
                                                           .read<PurchaseBloc>()
                                                           .add(
-                                                            AddPurchaseDatasheet2Image(
-                                                              image: _image!,
-                                                              id: widget
-                                                                  .purchasesModel
-                                                                  .id!,
-                                                            ),
-                                                          );
-                                                    }
-                                                  },
-                                                )
-                                              : _buildImageOptionsButton(
-                                                  label: 'نشرة',
-                                                  onView: () {
-                                                    context
-                                                        .read<PurchaseBloc>()
-                                                        .add(
-                                                          GetPurchaseDatasheet2Image(
-                                                              id: widget
-                                                                  .purchasesModel
-                                                                  .id!),
-                                                        );
-                                                  },
-                                                  onDelete: () async {
-                                                    bool confirmDelete =
-                                                        await _showDeleteConfirmation(
-                                                      context,
-                                                      message:
-                                                          'هل أنت متأكد أنك تريد حذف النشرة الفنية الثانية',
-                                                    );
-                                                    if (confirmDelete) {
-                                                      context
-                                                          .read<PurchaseBloc>()
-                                                          .add(
-                                                            DeletePurchaceDatasheet2Image(
+                                                            GetPurchaseDatasheet2Image(
                                                                 id: widget
                                                                     .purchasesModel
                                                                     .id!),
                                                           );
-                                                    }
-                                                  },
-                                                ),
-                                        ],
+                                                    },
+                                                    onDelete: () async {
+                                                      bool confirmDelete =
+                                                          await _showDeleteConfirmation(
+                                                        context,
+                                                        message:
+                                                            'هل أنت متأكد أنك تريد حذف النشرة الفنية الثانية',
+                                                      );
+                                                      if (confirmDelete) {
+                                                        context
+                                                            .read<
+                                                                PurchaseBloc>()
+                                                            .add(
+                                                              DeletePurchaceDatasheet2Image(
+                                                                  id: widget
+                                                                      .purchasesModel
+                                                                      .id!),
+                                                            );
+                                                      }
+                                                    },
+                                                  ),
+                                          ],
+                                        ),
+                                    ],
+                                  ),
+                                  // Offer 2 Row
+                                  Row(
+                                    children: [
+                                      Radio<int>(
+                                        value: 2,
+                                        groupValue: _applicantApprove,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            _applicantApprove = value;
+                                          });
+                                        },
                                       ),
-                                  ],
-                                ),
-                                // Offer 2 Row
-                                Row(
-                                  children: [
-                                    Radio<int>(
-                                      value: 2,
-                                      groupValue: _applicantApprove,
-                                      onChanged: (value) {
-                                        setState(() {
-                                          _applicantApprove = value;
-                                        });
-                                      },
-                                    ),
-                                    Text(
-                                      'الموافقة على عرض السعر الثاني',
-                                      style: TextStyle(
-                                        color: _applicantApprove == 2
-                                            ? Colors.green
-                                            : null,
-                                        fontWeight: _applicantApprove == 2
-                                            ? FontWeight.bold
-                                            : null,
+                                      Text(
+                                        'الموافقة على عرض السعر الثاني',
+                                        style: TextStyle(
+                                          color: _applicantApprove == 2
+                                              ? Colors.green
+                                              : null,
+                                          fontWeight: _applicantApprove == 2
+                                              ? FontWeight.bold
+                                              : null,
+                                        ),
                                       ),
-                                    ),
-                                  ],
-                                ),
-                                const Divider(
-                                  color: Colors.grey,
-                                ),
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: MyTextField(
-                                        maxLines: 10,
-                                        controller: _offer3Controller,
-                                        labelText: 'عرض سعر 3',
+                                    ],
+                                  ),
+                                  const Divider(
+                                    color: Colors.grey,
+                                  ),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: MyTextField(
+                                          maxLines: 10,
+                                          controller: _offer3Controller,
+                                          labelText: 'عرض سعر 3',
+                                        ),
                                       ),
-                                    ),
-                                    const SizedBox(
-                                      width: 5,
-                                    ),
-                                    //data sheet + offer image 3
-                                    if (groups != null &&
-                                        (groups!.contains('purchase_admins') ||
-                                            groups!.contains('managers') ||
-                                            groups!.contains('admins')))
-                                      Column(
-                                        children: [
-                                          // Offer 3 Image
-                                          (widget.purchasesModel
-                                                          .offer_3_image ==
-                                                      null ||
-                                                  widget.purchasesModel
-                                                          .offer_3_image ==
-                                                      "")
-                                              ? _buildAddButton(
-                                                  label: 'صورة',
-                                                  onAdd: (source) async {
-                                                    await _pickImage(source);
-                                                    if (_image != null) {
+                                      const SizedBox(
+                                        width: 5,
+                                      ),
+                                      //data sheet + offer image 3
+                                      if (groups != null &&
+                                          (groups!.contains(
+                                                  'purchase_admins') ||
+                                              groups!.contains('managers') ||
+                                              groups!.contains('admins')))
+                                        Column(
+                                          children: [
+                                            // Offer 3 Image
+                                            (widget.purchasesModel
+                                                            .offer_3_image ==
+                                                        null ||
+                                                    widget.purchasesModel
+                                                            .offer_3_image ==
+                                                        "")
+                                                ? _buildAddButton(
+                                                    label: 'صورة',
+                                                    onAdd: (source) async {
+                                                      await _pickImage(source);
+                                                      if (_image != null) {
+                                                        context
+                                                            .read<
+                                                                PurchaseBloc>()
+                                                            .add(
+                                                              AddPurchaseOffer3Image(
+                                                                image: _image!,
+                                                                id: widget
+                                                                    .purchasesModel
+                                                                    .id!,
+                                                              ),
+                                                            );
+                                                      }
+                                                    },
+                                                  )
+                                                : _buildImageOptionsButton(
+                                                    label: 'صورة',
+                                                    onView: () {
                                                       context
                                                           .read<PurchaseBloc>()
                                                           .add(
-                                                            AddPurchaseOffer3Image(
-                                                              image: _image!,
-                                                              id: widget
-                                                                  .purchasesModel
-                                                                  .id!,
-                                                            ),
-                                                          );
-                                                    }
-                                                  },
-                                                )
-                                              : _buildImageOptionsButton(
-                                                  label: 'صورة',
-                                                  onView: () {
-                                                    context
-                                                        .read<PurchaseBloc>()
-                                                        .add(
-                                                          GetPurchaseOffer3Image(
-                                                              id: widget
-                                                                  .purchasesModel
-                                                                  .id!),
-                                                        );
-                                                  },
-                                                  onDelete: () async {
-                                                    bool confirmDelete =
-                                                        await _showDeleteConfirmation(
-                                                      context,
-                                                      message:
-                                                          'هل أنت متأكد أنك تريد حذف صورة عرض السعر الثالث',
-                                                    );
-                                                    if (confirmDelete) {
-                                                      context
-                                                          .read<PurchaseBloc>()
-                                                          .add(
-                                                            DeletePurchaceOffer3Image(
+                                                            GetPurchaseOffer3Image(
                                                                 id: widget
                                                                     .purchasesModel
                                                                     .id!),
                                                           );
-                                                    }
-                                                  },
-                                                ),
+                                                    },
+                                                    onDelete: () async {
+                                                      bool confirmDelete =
+                                                          await _showDeleteConfirmation(
+                                                        context,
+                                                        message:
+                                                            'هل أنت متأكد أنك تريد حذف صورة عرض السعر الثالث',
+                                                      );
+                                                      if (confirmDelete) {
+                                                        context
+                                                            .read<
+                                                                PurchaseBloc>()
+                                                            .add(
+                                                              DeletePurchaceOffer3Image(
+                                                                  id: widget
+                                                                      .purchasesModel
+                                                                      .id!),
+                                                            );
+                                                      }
+                                                    },
+                                                  ),
 
-                                          // Datasheet 3
-                                          (widget.purchasesModel.datasheet_3 ==
-                                                      null ||
-                                                  widget.purchasesModel
-                                                          .datasheet_3 ==
-                                                      "")
-                                              ? _buildAddButton(
-                                                  label: 'نشرة',
-                                                  onAdd: (source) async {
-                                                    await _pickImage(source);
-                                                    if (_image != null) {
+                                            // Datasheet 3
+                                            (widget.purchasesModel
+                                                            .datasheet_3 ==
+                                                        null ||
+                                                    widget.purchasesModel
+                                                            .datasheet_3 ==
+                                                        "")
+                                                ? _buildAddButton(
+                                                    label: 'نشرة',
+                                                    onAdd: (source) async {
+                                                      await _pickImage(source);
+                                                      if (_image != null) {
+                                                        context
+                                                            .read<
+                                                                PurchaseBloc>()
+                                                            .add(
+                                                              AddPurchaseDatasheet3Image(
+                                                                image: _image!,
+                                                                id: widget
+                                                                    .purchasesModel
+                                                                    .id!,
+                                                              ),
+                                                            );
+                                                      }
+                                                    },
+                                                  )
+                                                : _buildImageOptionsButton(
+                                                    label: 'نشرة',
+                                                    onView: () {
                                                       context
                                                           .read<PurchaseBloc>()
                                                           .add(
-                                                            AddPurchaseDatasheet3Image(
-                                                              image: _image!,
-                                                              id: widget
-                                                                  .purchasesModel
-                                                                  .id!,
-                                                            ),
-                                                          );
-                                                    }
-                                                  },
-                                                )
-                                              : _buildImageOptionsButton(
-                                                  label: 'نشرة',
-                                                  onView: () {
-                                                    context
-                                                        .read<PurchaseBloc>()
-                                                        .add(
-                                                          GetPurchaseDatasheet3Image(
-                                                              id: widget
-                                                                  .purchasesModel
-                                                                  .id!),
-                                                        );
-                                                  },
-                                                  onDelete: () async {
-                                                    bool confirmDelete =
-                                                        await _showDeleteConfirmation(
-                                                      context,
-                                                      message:
-                                                          'هل أنت متأكد أنك تريد حذف النشرة الفنية الثالثة',
-                                                    );
-                                                    if (confirmDelete) {
-                                                      context
-                                                          .read<PurchaseBloc>()
-                                                          .add(
-                                                            DeletePurchaceDatasheet3Image(
+                                                            GetPurchaseDatasheet3Image(
                                                                 id: widget
                                                                     .purchasesModel
                                                                     .id!),
                                                           );
-                                                    }
-                                                  },
-                                                ),
-                                        ],
-                                      ),
-                                  ],
-                                ),
-                                // Offer 3 Row
+                                                    },
+                                                    onDelete: () async {
+                                                      bool confirmDelete =
+                                                          await _showDeleteConfirmation(
+                                                        context,
+                                                        message:
+                                                            'هل أنت متأكد أنك تريد حذف النشرة الفنية الثالثة',
+                                                      );
+                                                      if (confirmDelete) {
+                                                        context
+                                                            .read<
+                                                                PurchaseBloc>()
+                                                            .add(
+                                                              DeletePurchaceDatasheet3Image(
+                                                                  id: widget
+                                                                      .purchasesModel
+                                                                      .id!),
+                                                            );
+                                                      }
+                                                    },
+                                                  ),
+                                          ],
+                                        ),
+                                    ],
+                                  ),
+                                  // Offer 3 Row
 
-                                Row(
-                                  children: [
-                                    Radio<int>(
-                                      value: 3,
-                                      groupValue: _applicantApprove,
-                                      onChanged: (value) {
-                                        setState(() {
-                                          _applicantApprove = value;
-                                        });
-                                      },
-                                    ),
-                                    Text(
-                                      'الموافقة على عرض السعر الثالث',
-                                      style: TextStyle(
-                                        color: _applicantApprove == 3
-                                            ? Colors.green
-                                            : null,
-                                        fontWeight: _applicantApprove == 3
-                                            ? FontWeight.bold
-                                            : null,
+                                  Row(
+                                    children: [
+                                      Radio<int>(
+                                        value: 3,
+                                        groupValue: _applicantApprove,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            _applicantApprove = value;
+                                          });
+                                        },
                                       ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(
-                                  height: 10,
-                                ),
-                                MyTextField(
-                                    maxLines: 10,
-                                    controller: _realSupplierController,
-                                    labelText: 'المورد الفعلي'),
-                                Row(
-                                  spacing: 5,
-                                  children: [
-                                    Expanded(
-                                      child: MyTextField(
-                                          readOnly: true,
-                                          controller:
-                                              _insertOfferDateController,
-                                          labelText:
-                                              'تاريخ إدراج عروض الأسعار'),
-                                    ),
-                                    Expanded(
-                                      child: MyTextField(
-                                          readOnly: true,
-                                          controller:
-                                              _applicantApproveDateController,
-                                          labelText:
-                                              'تاريخ الموافقة على عرض السعر'),
-                                    ),
-                                  ],
-                                ),
+                                      Text(
+                                        'الموافقة على عرض السعر الثالث',
+                                        style: TextStyle(
+                                          color: _applicantApprove == 3
+                                              ? Colors.green
+                                              : null,
+                                          fontWeight: _applicantApprove == 3
+                                              ? FontWeight.bold
+                                              : null,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(
+                                    height: 10,
+                                  ),
+
+                                  Row(
+                                    spacing: 5,
+                                    children: [
+                                      Expanded(
+                                        child: MyTextField(
+                                            readOnly: true,
+                                            controller:
+                                                _insertOfferDateController,
+                                            labelText:
+                                                'تاريخ إدراج عروض الأسعار'),
+                                      ),
+                                      Expanded(
+                                        child: MyTextField(
+                                            readOnly: true,
+                                            controller:
+                                                _applicantApproveDateController,
+                                            labelText:
+                                                'تاريخ الموافقة على عرض السعر'),
+                                      ),
+                                    ],
+                                  ),
+                                ],
                                 Row(
                                   spacing: 5,
                                   children: [
@@ -1242,6 +1268,10 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
                                     ),
                                   ],
                                 ),
+                                MyTextField(
+                                    maxLines: 10,
+                                    controller: _realSupplierController,
+                                    labelText: 'المورد الفعلي'),
                                 CheckboxListTile(
                                   value: _isArchived,
                                   onChanged: (bool? value) {
@@ -1258,148 +1288,151 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
                                       MainAxisAlignment.spaceAround,
                                   children: [
                                     if (widget.status != 100)
-                                      BlocBuilder<AppUserCubit, AppUserState>(
-                                        builder: (context, state) {
-                                          if (state is AppUserLoggedIn) {
-                                            final isAdminOrApplicant = (state
-                                                        .userEntity.firstName ==
-                                                    purchasesModel?.applicant ||
-                                                (groups != null &&
-                                                    groups!
-                                                        .contains('admins')));
+                                      if (!["فوارغ", "مواد أولية"]
+                                          .contains(purchasesModel!.department))
+                                        BlocBuilder<AppUserCubit, AppUserState>(
+                                          builder: (context, state) {
+                                            if (state is AppUserLoggedIn) {
+                                              final isAdminOrApplicant = (state
+                                                          .userEntity
+                                                          .firstName ==
+                                                      purchasesModel
+                                                          ?.applicant ||
+                                                  (groups != null &&
+                                                      groups!
+                                                          .contains('admins')));
 
-                                            final hasLastPrice =
-                                                purchasesModel?.last_price !=
-                                                        null &&
-                                                    purchasesModel!.last_price
-                                                        .toString()
-                                                        .isNotEmpty;
+                                              final hasLastPrice =
+                                                  purchasesModel?.last_price !=
+                                                          null &&
+                                                      purchasesModel!.last_price
+                                                          .toString()
+                                                          .isNotEmpty;
 
-                                            final isNotManagerChecked =
-                                                purchasesModel?.manager_check !=
-                                                    true;
+                                              final isNotManagerChecked =
+                                                  purchasesModel
+                                                          ?.manager_check !=
+                                                      true;
 
-                                            if (isAdminOrApplicant &&
-                                                hasLastPrice &&
-                                                isNotManagerChecked) {
-                                              if (widget.purchasesModel
-                                                      .applicant_approve ==
-                                                  null) {
-                                                // Show save approve button
-                                                return Mybutton(
-                                                  onPressed: () {
-                                                    _fillApplicantApprovefromForm();
-                                                    context
-                                                        .read<PurchaseBloc>()
-                                                        .add(
-                                                          UpdatePurchases(
-                                                            id: widget
-                                                                .purchasesModel
-                                                                .id!,
-                                                            purchaseModel:
-                                                                purchasesModel!,
-                                                          ),
-                                                        );
-                                                  },
-                                                  text:
-                                                      'حفظ الموافقة على عرض السعر',
-                                                );
-                                              } else {
-                                                // Show delete approve button
-                                                return Mybutton(
-                                                  onPressed: () {
-                                                    showModalBottomSheet(
-                                                      context: context,
-                                                      builder: (_) =>
-                                                          Directionality(
-                                                        textDirection: ui
-                                                            .TextDirection.rtl,
-                                                        child: Padding(
-                                                          padding:
-                                                              const EdgeInsets
-                                                                  .all(16.0),
-                                                          child: Wrap(
-                                                            children: [
-                                                              const ListTile(
-                                                                title: Text(
-                                                                    'تأكيد الإزالة',
-                                                                    style: TextStyle(
-                                                                        fontWeight:
-                                                                            FontWeight.bold)),
-                                                                subtitle: Text(
-                                                                    'هل انت متأكد من أزالة الموافقة على عرض السعر؟'),
-                                                              ),
-                                                              Row(
-                                                                mainAxisAlignment:
-                                                                    MainAxisAlignment
-                                                                        .end,
-                                                                children: [
-                                                                  TextButton(
-                                                                    onPressed: () =>
-                                                                        Navigator.pop(
-                                                                            context),
-                                                                    child: const Text(
-                                                                        'إلغاء'),
-                                                                  ),
-                                                                  const SizedBox(
-                                                                      width: 8),
-                                                                  TextButton(
-                                                                    style: TextButton
-                                                                        .styleFrom(
-                                                                      backgroundColor: Colors
-                                                                          .red
-                                                                          .withOpacity(
-                                                                              0.1),
-                                                                      shape:
-                                                                          RoundedRectangleBorder(
-                                                                        borderRadius:
-                                                                            BorderRadius.circular(8),
-                                                                        side: BorderSide(
-                                                                            color:
-                                                                                Colors.red.withOpacity(0.3)),
-                                                                      ),
+                                              if (isAdminOrApplicant &&
+                                                  hasLastPrice &&
+                                                  isNotManagerChecked) {
+                                                if (widget.purchasesModel
+                                                        .applicant_approve ==
+                                                    null) {
+                                                  // Show save approve button
+                                                  return Mybutton(
+                                                    onPressed: () {
+                                                      _fillApplicantApprovefromForm();
+                                                      context
+                                                          .read<PurchaseBloc>()
+                                                          .add(
+                                                            UpdatePurchases(
+                                                              id: widget
+                                                                  .purchasesModel
+                                                                  .id!,
+                                                              purchaseModel:
+                                                                  purchasesModel!,
+                                                            ),
+                                                          );
+                                                    },
+                                                    text:
+                                                        'حفظ الموافقة على عرض السعر',
+                                                  );
+                                                } else {
+                                                  // Show delete approve button
+                                                  return Mybutton(
+                                                    onPressed: () {
+                                                      showModalBottomSheet(
+                                                        context: context,
+                                                        builder: (_) =>
+                                                            Directionality(
+                                                          textDirection: ui
+                                                              .TextDirection
+                                                              .rtl,
+                                                          child: Padding(
+                                                            padding:
+                                                                const EdgeInsets
+                                                                    .all(16.0),
+                                                            child: Wrap(
+                                                              children: [
+                                                                const ListTile(
+                                                                  title: Text(
+                                                                      'تأكيد الإزالة',
+                                                                      style: TextStyle(
+                                                                          fontWeight:
+                                                                              FontWeight.bold)),
+                                                                  subtitle: Text(
+                                                                      'هل انت متأكد من أزالة الموافقة على عرض السعر؟'),
+                                                                ),
+                                                                Row(
+                                                                  mainAxisAlignment:
+                                                                      MainAxisAlignment
+                                                                          .end,
+                                                                  children: [
+                                                                    TextButton(
+                                                                      onPressed:
+                                                                          () =>
+                                                                              Navigator.pop(context),
+                                                                      child: const Text(
+                                                                          'إلغاء'),
                                                                     ),
-                                                                    onPressed:
-                                                                        () {
-                                                                      Navigator.pop(
-                                                                          context);
-                                                                      _fillDeleteApplicantApprove();
-                                                                      context
-                                                                          .read<
-                                                                              PurchaseBloc>()
-                                                                          .add(
-                                                                            UpdatePurchases(
-                                                                              id: widget.purchasesModel.id!,
-                                                                              purchaseModel: purchasesModel!,
-                                                                            ),
-                                                                          );
-                                                                    },
-                                                                    child: const Text(
-                                                                        'حذف',
-                                                                        style: TextStyle(
-                                                                            color:
-                                                                                Colors.red)),
-                                                                  ),
-                                                                ],
-                                                              )
-                                                            ],
+                                                                    const SizedBox(
+                                                                        width:
+                                                                            8),
+                                                                    TextButton(
+                                                                      style: TextButton
+                                                                          .styleFrom(
+                                                                        backgroundColor: Colors
+                                                                            .red
+                                                                            .withOpacity(0.1),
+                                                                        shape:
+                                                                            RoundedRectangleBorder(
+                                                                          borderRadius:
+                                                                              BorderRadius.circular(8),
+                                                                          side:
+                                                                              BorderSide(color: Colors.red.withOpacity(0.3)),
+                                                                        ),
+                                                                      ),
+                                                                      onPressed:
+                                                                          () {
+                                                                        Navigator.pop(
+                                                                            context);
+                                                                        _fillDeleteApplicantApprove();
+                                                                        context
+                                                                            .read<PurchaseBloc>()
+                                                                            .add(
+                                                                              UpdatePurchases(
+                                                                                id: widget.purchasesModel.id!,
+                                                                                purchaseModel: purchasesModel!,
+                                                                              ),
+                                                                            );
+                                                                      },
+                                                                      child: const Text(
+                                                                          'حذف',
+                                                                          style:
+                                                                              TextStyle(color: Colors.red)),
+                                                                    ),
+                                                                  ],
+                                                                )
+                                                              ],
+                                                            ),
                                                           ),
                                                         ),
-                                                      ),
-                                                    );
-                                                  },
-                                                  text:
-                                                      'إزالة الموافقة على عرض السعر',
-                                                );
+                                                      );
+                                                    },
+                                                    text:
+                                                        'إزالة الموافقة على عرض السعر',
+                                                  );
+                                                }
+                                              } else {
+                                                return const SizedBox();
                                               }
                                             } else {
                                               return const SizedBox();
                                             }
-                                          } else {
-                                            return const SizedBox();
-                                          }
-                                        },
-                                      ),
+                                          },
+                                        ),
                                     if (widget.status != 100)
                                       if (groups != null &&
                                           (groups!.contains(
@@ -1443,99 +1476,250 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
                     SingleChildScrollView(
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
-                        child: Card(
-                          elevation: 5,
-                          color: isDark
-                              ? const Color.fromRGBO(70, 70, 85, 1)
-                              : Colors.green.shade50,
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                const Text(
-                                  'قسم المدير',
-                                  style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                                const SizedBox(
-                                  height: 10,
-                                ),
-                                RadioListTile<bool?>(
-                                  value: null,
-                                  groupValue: _selectedApproved,
-                                  onChanged: (value) {
-                                    setState(() {
-                                      _selectedApproved = value;
-                                      _managerCheckDateController.clear();
-                                    });
-                                  },
-                                  title: const Text('التوقيع غير محدد'),
-                                ),
-                                RadioListTile<bool?>(
-                                  value: true,
-                                  groupValue: _selectedApproved,
-                                  onChanged: (value) {
-                                    setState(() {
-                                      _selectedApproved = value;
-                                      _managerCheckDateController.text =
-                                          DateFormat('yyyy-MM-dd').format(
-                                              DateTime.now()); // Update date
-                                    });
-                                  },
-                                  title: const Text('موافق'),
-                                ),
-                                RadioListTile<bool?>(
-                                  value: false,
-                                  groupValue: _selectedApproved,
-                                  onChanged: (value) {
-                                    setState(() {
-                                      _selectedApproved = value;
-                                      _managerCheckDateController.text =
-                                          DateFormat('yyyy-MM-dd').format(
-                                              DateTime.now()); // Update date
-                                    });
-                                  },
-                                  title: const Text('مرفوض'),
-                                ),
-                                MyTextField(
-                                  controller: _managerCheckDateController,
-                                  labelText: 'تاريخ الموافقة',
-                                  readOnly: true,
-                                ),
-                                const SizedBox(
-                                  height: 10,
-                                ),
-                                MyTextField(
-                                    maxLines: 10,
-                                    controller: _managerNotesController,
-                                    labelText: 'ملاحظة المدير'),
-                                const SizedBox(
-                                  height: 10,
-                                ),
-                                if (widget.status != 100)
-                                  if (groups != null &&
-                                          groups!.contains('managers') ||
-                                      groups!.contains('admins'))
-                                    Center(
-                                      child: Mybutton(
-                                        onPressed: () {
-                                          _fillManagerModelfromForm();
-                                          context.read<PurchaseBloc>().add(
-                                                UpdatePurchases(
-                                                    id: widget
-                                                        .purchasesModel.id!,
-                                                    purchaseModel:
-                                                        purchasesModel!),
-                                              );
-                                        },
-                                        text: 'حفظ توقيع المدير',
+                        child: Column(
+                          spacing: 10,
+                          children: [
+                            if (purchasesModel!.department != 'فوارغ')
+                              Card(
+                                elevation: 5,
+                                color: isDark
+                                    ? const Color.fromRGBO(70, 70, 85, 1)
+                                    : Colors.green.shade50,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      const Text(
+                                        'قسم السيد أسامة',
+                                        style: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold),
                                       ),
-                                    )
-                              ],
-                            ),
-                          ),
+                                      const SizedBox(
+                                        height: 10,
+                                      ),
+                                      RadioListTile<bool?>(
+                                        value: null,
+                                        groupValue: _selectedApproved,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            _selectedApproved = value;
+                                            _managerCheckDateController.clear();
+                                          });
+                                        },
+                                        title: const Text('التوقيع غير محدد'),
+                                      ),
+                                      RadioListTile<bool?>(
+                                        value: true,
+                                        groupValue: _selectedApproved,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            _selectedApproved = value;
+                                            _managerCheckDateController.text =
+                                                DateFormat('yyyy-MM-dd').format(
+                                                    DateTime
+                                                        .now()); // Update date
+                                          });
+                                        },
+                                        title: const Text('موافق'),
+                                      ),
+                                      RadioListTile<bool?>(
+                                        value: false,
+                                        groupValue: _selectedApproved,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            _selectedApproved = value;
+                                            _managerCheckDateController.text =
+                                                DateFormat('yyyy-MM-dd').format(
+                                                    DateTime
+                                                        .now()); // Update date
+                                          });
+                                        },
+                                        title: const Text('مرفوض'),
+                                      ),
+                                      MyTextField(
+                                        controller: _managerCheckDateController,
+                                        labelText: 'تاريخ الموافقة',
+                                        readOnly: true,
+                                      ),
+                                      const SizedBox(
+                                        height: 10,
+                                      ),
+                                      MyTextField(
+                                          maxLines: 10,
+                                          controller: _managerNotesController,
+                                          labelText: 'ملاحظة المدير'),
+                                      const SizedBox(
+                                        height: 10,
+                                      ),
+                                      if (widget.status != 100)
+                                        if (name == 'أسامة عبيد' ||
+                                            groups != null &&
+                                                groups!.contains('admins'))
+                                          Center(
+                                            child: Mybutton(
+                                              onPressed: () {
+                                                _fillManagerModelfromForm();
+                                                context
+                                                    .read<PurchaseBloc>()
+                                                    .add(
+                                                      UpdatePurchases(
+                                                          id: widget
+                                                              .purchasesModel
+                                                              .id!,
+                                                          purchaseModel:
+                                                              purchasesModel!),
+                                                    );
+                                              },
+                                              text: 'حفظ توقيع السيد أسامة',
+                                            ),
+                                          )
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            if (purchasesModel!.department == 'فوارغ' ||
+                                purchasesModel!.department == 'مواد أولية')
+                              Card(
+                                elevation: 5,
+                                color: isDark
+                                    ? const Color.fromRGBO(70, 70, 85, 1)
+                                    : Colors.green.shade50,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      const Text(
+                                        'قسم السيد حسام',
+                                        style: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                      const SizedBox(
+                                        height: 10,
+                                      ),
+                                      RadioListTile<bool?>(
+                                        value: null,
+                                        groupValue: _selectedApproved2,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            _selectedApproved2 = value;
+                                            _manager2CheckDateController
+                                                .clear();
+                                          });
+                                        },
+                                        title: const Text('التوقيع غير محدد'),
+                                      ),
+                                      RadioListTile<bool?>(
+                                        value: true,
+                                        groupValue: _selectedApproved2,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            _selectedApproved2 = value;
+                                            _manager2CheckDateController.text =
+                                                DateFormat('yyyy-MM-dd').format(
+                                                    DateTime
+                                                        .now()); // Update date
+                                          });
+                                        },
+                                        title: const Text('موافق'),
+                                      ),
+                                      RadioListTile<bool?>(
+                                        value: false,
+                                        groupValue: _selectedApproved2,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            _selectedApproved2 = value;
+                                            _manager2CheckDateController.text =
+                                                DateFormat('yyyy-MM-dd').format(
+                                                    DateTime
+                                                        .now()); // Update date
+                                          });
+                                        },
+                                        title: const Text('مرفوض'),
+                                      ),
+                                      MyTextField(
+                                        controller:
+                                            _manager2CheckDateController,
+                                        labelText: 'تاريخ الموافقة',
+                                        readOnly: true,
+                                      ),
+                                      const SizedBox(
+                                        height: 10,
+                                      ),
+                                      MyTextField(
+                                          maxLines: 10,
+                                          controller: _manager2NotesController,
+                                          labelText: 'ملاحظة المدير'),
+                                      const SizedBox(
+                                        height: 10,
+                                      ),
+                                      const SizedBox(
+                                        height: 20,
+                                      ),
+                                      const Text(
+                                        'المسؤول عن الشراء',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                      RadioListTile<int?>(
+                                        value: null,
+                                        groupValue: _purchaseHandler,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            _purchaseHandler = value;
+                                          });
+                                        },
+                                        title: const Text('غير محدد'),
+                                      ),
+                                      RadioListTile<int?>(
+                                        value: 1,
+                                        groupValue: _purchaseHandler,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            _purchaseHandler = value;
+                                          });
+                                        },
+                                        title: const Text('المدير'),
+                                      ),
+                                      RadioListTile<int?>(
+                                        value: 2,
+                                        groupValue: _purchaseHandler,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            _purchaseHandler = value;
+                                          });
+                                        },
+                                        title: const Text('مسؤول المشتريات'),
+                                      ),
+                                      const SizedBox(height: 10),
+                                      if (name == 'محمد حسام عبيد' ||
+                                          groups != null &&
+                                              groups!.contains('admins'))
+                                        Center(
+                                          child: Mybutton(
+                                            onPressed: () {
+                                              _fillManager2ModelfromForm();
+                                              context.read<PurchaseBloc>().add(
+                                                    UpdatePurchases(
+                                                        id: widget
+                                                            .purchasesModel.id!,
+                                                        purchaseModel:
+                                                            purchasesModel!),
+                                                  );
+                                            },
+                                            text: 'حفظ توقيع السيد حسام',
+                                          ),
+                                        )
+                                    ],
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
                       ),
                     ),
@@ -1829,6 +2013,23 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
       purchasesModel!.buyer = _buyerController.text;
       purchasesModel!.archived = _isArchived;
     }
+    if (["فوارغ", "مواد أولية"].contains(purchasesModel!.department)) {
+      purchasesModel!.last_purchased = _lastPurchaseController.text.isEmpty
+          ? null
+          : _lastPurchaseController.text;
+      purchasesModel!.last_price = _lastPriceController.text;
+      purchasesModel!.purchase_notes = _purchaseNotesController.text;
+      purchasesModel!.expected_date = _expectedDateController.text.isEmpty
+          ? null
+          : _expectedDateController.text;
+      purchasesModel!.price = _priceController.text;
+      purchasesModel!.purchase_date = _purchaseDateController.text.isEmpty
+          ? null
+          : _purchaseDateController.text;
+      purchasesModel!.buyer = _buyerController.text;
+      purchasesModel!.real_supplier = _realSupplierController.text;
+      purchasesModel!.archived = _isArchived;
+    }
     if (purchasesModel!.manager_check == null &&
         purchasesModel!.applicant_approve == null) {
       purchasesModel!.last_purchased = _lastPurchaseController.text.isEmpty
@@ -1870,6 +2071,17 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
             : _managerCheckDateController.text;
 
     purchasesModel!.manager_notes = _managerNotesController.text;
+  }
+
+  void _fillManager2ModelfromForm() {
+    purchasesModel!.manager2_check = _selectedApproved2;
+    purchasesModel!.manager2_check_date =
+        _manager2CheckDateController.text.isEmpty
+            ? null
+            : _manager2CheckDateController.text;
+
+    purchasesModel!.manager2_notes = _manager2NotesController.text;
+    purchasesModel!.purchase_handler = _purchaseHandler;
   }
 
   void _fillApplicantApprovefromForm() {

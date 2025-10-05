@@ -9,6 +9,7 @@ class RawMaterialsModel {
   String? notes;
   String? problems;
   String? completion_date;
+  String? handover_date;
   bool? raw_material_check_1;
   bool? raw_material_check_2;
   bool? raw_material_check_3;
@@ -23,6 +24,7 @@ class RawMaterialsModel {
     this.notes,
     this.problems,
     this.completion_date,
+    this.handover_date,
     this.raw_material_check_1,
     this.raw_material_check_2,
     this.raw_material_check_3,
@@ -39,6 +41,7 @@ class RawMaterialsModel {
     String? notes,
     String? problems,
     String? completion_date,
+    String? handover_date,
     bool? raw_material_check_1,
     bool? raw_material_check_2,
     bool? raw_material_check_3,
@@ -54,6 +57,7 @@ class RawMaterialsModel {
       notes: notes ?? this.notes,
       problems: problems ?? this.problems,
       completion_date: completion_date ?? this.completion_date,
+      handover_date: handover_date ?? this.handover_date,
       raw_material_check_1: raw_material_check_1 ?? this.raw_material_check_1,
       raw_material_check_2: raw_material_check_2 ?? this.raw_material_check_2,
       raw_material_check_3: raw_material_check_3 ?? this.raw_material_check_3,
@@ -73,6 +77,7 @@ class RawMaterialsModel {
         'notes': notes,
         'problems': problems,
         'completion_date': completion_date,
+        'handover_date': handover_date,
         'raw_material_check_1': raw_material_check_1,
         'raw_material_check_2': raw_material_check_2,
         'raw_material_check_3': raw_material_check_3,
@@ -96,23 +101,25 @@ class RawMaterialsModel {
       completion_date: map['completion_date'] != null
           ? map['completion_date'] as String
           : null,
+      handover_date:
+          map['handover_date'] != null ? map['handover_date'] as String : null,
       raw_material_check_1: map['raw_material_check_1'] != null
           ? map['raw_material_check_1'] as bool
-          : false,
+          : null,
       raw_material_check_2: map['raw_material_check_2'] != null
           ? map['raw_material_check_2'] as bool
-          : false,
+          : null,
       raw_material_check_3: map['raw_material_check_3'] != null
           ? map['raw_material_check_3'] as bool
-          : false,
+          : null,
       raw_material_check_4: map['raw_material_check_4'] != null
           ? map['raw_material_check_4'] as bool
-          : false,
+          : null,
       receipt_number:
-          map['receipt_number'] != null ? map['receipt_number'] as int : 0,
+          map['receipt_number'] != null ? map['receipt_number'] as int : null,
       raw_material_weight: map['raw_material_weight'] != null
           ? map['raw_material_weight'] as double
-          : 0.0,
+          : null,
     );
   }
 
@@ -123,7 +130,7 @@ class RawMaterialsModel {
 
   @override
   String toString() {
-    return 'RawMaterialsModel(id: $id, start_time: $start_time, finish_time: $finish_time, employee: $employee, notes: $notes, problems: $problems, completion_date: $completion_date, raw_material_check_1: $raw_material_check_1, raw_material_check_2: $raw_material_check_2, raw_material_check_3: $raw_material_check_3, raw_material_check_4: $raw_material_check_4, receipt_number: $receipt_number, raw_material_weight: $raw_material_weight)';
+    return 'RawMaterialsModel(id: $id, start_time: $start_time, finish_time: $finish_time, employee: $employee, notes: $notes, problems: $problems, completion_date: $completion_date, handover_date: $handover_date, raw_material_check_1: $raw_material_check_1, raw_material_check_2: $raw_material_check_2, raw_material_check_3: $raw_material_check_3, raw_material_check_4: $raw_material_check_4, receipt_number: $receipt_number, raw_material_weight: $raw_material_weight)';
   }
 
   @override
@@ -137,6 +144,7 @@ class RawMaterialsModel {
         other.notes == notes &&
         other.problems == problems &&
         other.completion_date == completion_date &&
+        other.handover_date == handover_date &&
         other.raw_material_check_1 == raw_material_check_1 &&
         other.raw_material_check_2 == raw_material_check_2 &&
         other.raw_material_check_3 == raw_material_check_3 &&
@@ -154,6 +162,7 @@ class RawMaterialsModel {
         notes.hashCode ^
         problems.hashCode ^
         completion_date.hashCode ^
+        handover_date.hashCode ^
         raw_material_check_1.hashCode ^
         raw_material_check_2.hashCode ^
         raw_material_check_3.hashCode ^

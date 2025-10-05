@@ -117,6 +117,8 @@ class _FullProPlanDetailsPageState extends State<FullProPlanDetailsPage> {
       'أندركوت اقتصادي',
       'أندركوت لميع',
       'ايكو لميع',
+      'ايكو نص لمعة',
+      'ايكو اندركوت',
     ],
     'معجونة': [
       'كلاسيك ',

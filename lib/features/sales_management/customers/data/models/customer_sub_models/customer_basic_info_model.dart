@@ -7,14 +7,14 @@ class CustomerBasicInfoModel extends CustomerBasicInfoEntity {
     super.customerName,
     super.shopName,
     super.telNumber,
-    super.mobileNumber,
+    super.phone_details,
   });
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'customer_name': customerName,
       'shop_name': shopName,
       'tel_number': telNumber,
-      'mobile_number': mobileNumber,
+      'phone_details': phone_details,
     };
   }
 
@@ -24,8 +24,8 @@ class CustomerBasicInfoModel extends CustomerBasicInfoEntity {
           map['customer_name'] != null ? map['customer_name'] as String : null,
       shopName: map['shop_name'] != null ? map['shop_name'] as String : null,
       telNumber: map['tel_number'] != null ? map['tel_number'] as String : null,
-      mobileNumber:
-          map['mobile_number'] != null ? map['mobile_number'] as String : null,
+      phone_details:
+          map['phone_details'] != null ? map['phone_details'] as List : null,
     );
   }
 
@@ -34,7 +34,7 @@ class CustomerBasicInfoModel extends CustomerBasicInfoEntity {
       customerName: entity.customerName,
       shopName: entity.shopName,
       telNumber: entity.telNumber,
-      mobileNumber: entity.mobileNumber,
+      phone_details: entity.phone_details,
     );
   }
 

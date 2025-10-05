@@ -8,6 +8,7 @@ class MyTextField extends StatelessWidget {
   final String? Function(String?)? validator;
   final TextAlign textAlign;
   final Widget? suffixIcon;
+  final Widget? prefixIcon;
   final VoidCallback? onSuffixIconTap;
   final bool readOnly;
   final int? minLines;
@@ -24,8 +25,9 @@ class MyTextField extends StatelessWidget {
   final Color? fillColor;
   final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onSubmitted;
+  final VoidCallback? onEditingComplete;
   final FocusNode? focusNode;
-  final bool enableInteractiveSelection; // ✅ NEW
+  final TextStyle? style; // <<< 1. ADD THIS LINE
 
   const MyTextField({
     super.key,
@@ -35,6 +37,7 @@ class MyTextField extends StatelessWidget {
     this.validator,
     this.textAlign = TextAlign.start,
     this.suffixIcon,
+    this.prefixIcon,
     this.onSuffixIconTap,
     this.readOnly = false,
     this.minLines,
@@ -51,8 +54,9 @@ class MyTextField extends StatelessWidget {
     this.fillColor,
     this.onChanged,
     this.onSubmitted,
+    this.onEditingComplete,
     this.focusNode,
-    this.enableInteractiveSelection = true, // ✅ Default to true
+    this.style, // <<< 2. ADD THIS LINE
   });
 
   @override
@@ -69,12 +73,14 @@ class MyTextField extends StatelessWidget {
       keyboardType: keyboardType,
       inputFormatters: inputFormatters,
       obscureText: obscureText,
-      style: const TextStyle(fontSize: 12),
+      // Use the new style property, with a fallback to the original style
+      style: style ??
+          TextStyle(fontSize: 12, color: isDark ? Colors.white : Colors.black),
       validator: validator,
       onChanged: onChanged,
       onFieldSubmitted: onSubmitted,
+      onEditingComplete: onEditingComplete,
       focusNode: focusNode,
-      enableInteractiveSelection: enableInteractiveSelection, // ✅ Use it here
       decoration: decoration ??
           InputDecoration(
             labelText: labelText,
@@ -85,14 +91,24 @@ class MyTextField extends StatelessWidget {
             contentPadding: contentPadding ??
                 const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
             border: const OutlineInputBorder(
-              borderSide: BorderSide(width: 2.0, color: Colors.grey),
+              borderSide: BorderSide(
+                width: 2.0,
+                color: Colors.grey,
+              ),
             ),
             enabledBorder: const OutlineInputBorder(
-              borderSide: BorderSide(width: 2.0, color: Colors.grey),
+              borderSide: BorderSide(
+                width: 2.0,
+                color: Colors.grey,
+              ),
             ),
             focusedBorder: const OutlineInputBorder(
-              borderSide: BorderSide(width: 2.0, color: Colors.blue),
+              borderSide: BorderSide(
+                width: 2.0,
+                color: Colors.blue,
+              ),
             ),
+            prefixIcon: prefixIcon,
             suffixIcon: suffixIcon != null
                 ? IconButton(
                     onPressed: onSuffixIconTap,

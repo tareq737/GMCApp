@@ -166,299 +166,597 @@ class _ProductionManufacturingDataWidgetState
               ),
               child: Padding(
                 padding: const EdgeInsets.all(8),
-                child: Column(
-                  children: [
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    const Text(
-                      'معلومات قسم التصنيع',
-                      style: TextStyle(fontSize: 20),
-                    ),
-                    const SizedBox(
-                      height: 20,
-                    ),
-                    if (widget.type == 'Production') ...[
-                      CheckboxListTile(
-                        title: const Text(
-                          'استلمت من الأولية',
-                          style: TextStyle(fontSize: 12),
-                        ),
-                        value: manufacturingCheck_1,
-                        onChanged: (bool? value) {
-                          setState(() {
-                            manufacturingCheck_1 = value ?? false;
-                          });
-                        },
-                        controlAffinity: ListTileControlAffinity.leading,
+                child: SingleChildScrollView(
+                  // Added to prevent overflow
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 10),
+                      const Text(
+                        'معلومات قسم التصنيع',
+                        style: TextStyle(fontSize: 20),
                       ),
-                      CheckboxListTile(
-                        title: const Text(
-                          'ركبت في المكنة',
-                          style: TextStyle(fontSize: 12),
-                        ),
-                        value: manufacturingCheck_2,
-                        onChanged: (bool? value) {
-                          setState(() {
-                            manufacturingCheck_2 = value ?? false;
-                          });
-                        },
-                        controlAffinity: ListTileControlAffinity.leading,
-                      ),
-                      CheckboxListTile(
-                        title: const Text(
-                          'قيد التصنيع',
-                          style: TextStyle(fontSize: 12),
-                        ),
-                        value: manufacturingCheck_3,
-                        onChanged: (bool? value) {
-                          setState(() {
-                            manufacturingCheck_3 = value ?? false;
-                          });
-                        },
-                        controlAffinity: ListTileControlAffinity.leading,
-                      ),
-                      CheckboxListTile(
-                        title: const Text(
-                          'انتهت من التصنيع',
-                          style: TextStyle(fontSize: 12),
-                        ),
-                        value: manufacturingCheck_4,
-                        onChanged: (bool? value) {
-                          setState(() {
-                            manufacturingCheck_4 = value ?? false;
-                          });
-                        },
-                        controlAffinity: ListTileControlAffinity.leading,
-                      ),
-                      CheckboxListTile(
-                        title: const Text(
-                          'فلترت',
-                          style: TextStyle(fontSize: 12),
-                        ),
-                        value: manufacturingCheck_5,
-                        onChanged: (bool? value) {
-                          setState(() {
-                            manufacturingCheck_5 = value ?? false;
-                          });
-                        },
-                        controlAffinity: ListTileControlAffinity.leading,
-                      ),
-                      CheckboxListTile(
-                        title: const Text(
-                          'المعلومات جاهزة للأرشفة',
-                          style: TextStyle(fontSize: 12),
-                        ),
-                        value: manufacturingCheck_6,
-                        onChanged: (bool? value) {
-                          if (value == true) {
-                            if (employeeController.text.trim().isEmpty) {
-                              showSnackBar(
-                                context: context,
-                                content: 'يرجى إدخال اسم الموظف قبل الأرشفة',
-                                failure: true,
-                              );
-                              return;
-                            }
-                            if (startTimeController.text.trim().isEmpty) {
-                              showSnackBar(
-                                context: context,
-                                content: 'يرجى تحديد وقت البدء قبل الأرشفة',
-                                failure: true,
-                              );
-                              return;
-                            }
-                            if (finishTimeController.text.trim().isEmpty) {
-                              showSnackBar(
-                                context: context,
-                                content: 'يرجى تحديد وقت الإنتهاء قبل الأرشفة',
-                                failure: true,
-                              );
-                              return;
-                            }
-                            if (batchWeightController.text.trim().isEmpty) {
-                              showSnackBar(
-                                context: context,
-                                content: 'يرجى تحديد وزن الطبخة قبل الأرشفة',
-                                failure: true,
-                              );
-                              return;
-                            }
-                            if (completionDateController.text.trim().isEmpty) {
-                              showSnackBar(
-                                context: context,
-                                content:
-                                    'يرجى تحديد تاريخ الانتهاء قبل الأرشفة',
-                                failure: true,
-                              );
-                              return;
-                            }
+                      const SizedBox(height: 20),
+
+                      //-- Using LayoutBuilder to get context that rebuilds on size change --
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          final orientation =
+                              MediaQuery.of(context).orientation;
+                          if (orientation == Orientation.landscape) {
+                            return _buildLandscapeLayout(context);
+                          } else {
+                            return _buildPortraitLayout(context);
                           }
-                          setState(() {
-                            manufacturingCheck_6 = value ?? false;
-                          });
                         },
-                        controlAffinity: ListTileControlAffinity.leading,
                       ),
                     ],
-                    MyTextField(
-                        controller: employeeController,
-                        labelText: 'موظف التصنيع'),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: MyTextField(
-                            controller: startTimeController,
-                            labelText: 'وقت بدء التصنيع',
-                            readOnly: true,
-                            onTap: () async {
-                              TimeOfDay? pickedTime = await showTimePicker(
-                                context: context,
-                                initialTime: TimeOfDay.now(),
-                              );
-                              if (pickedTime != null) {
-                                final now = DateTime.now();
-                                final formattedTime =
-                                    DateFormat('HH:mm').format(
-                                  DateTime(now.year, now.month, now.day,
-                                      pickedTime.hour, pickedTime.minute),
-                                );
-                                startTimeController.text = formattedTime;
-                                _calculateDuration();
-                              }
-                            },
-                          ),
-                        ),
-                        const SizedBox(
-                          width: 10,
-                        ),
-                        Expanded(
-                          child: MyTextField(
-                            controller: finishTimeController,
-                            labelText: 'وقت انتهاء التصنيع',
-                            readOnly: true,
-                            onTap: () async {
-                              TimeOfDay? pickedTime = await showTimePicker(
-                                context: context,
-                                initialTime: TimeOfDay.now(),
-                              );
-                              if (pickedTime != null) {
-                                final now = DateTime.now();
-                                final formattedTime =
-                                    DateFormat('HH:mm').format(
-                                  DateTime(now.year, now.month, now.day,
-                                      pickedTime.hour, pickedTime.minute),
-                                );
-                                finishTimeController.text = formattedTime;
-                                _calculateDuration();
-                              }
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      'مدة العمل: $durationText',
-                      style: const TextStyle(
-                        fontSize: 14,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: MyTextField(
-                            controller: batchWeightController,
-                            labelText: 'وزن التصنيع',
-                            keyboardType: const TextInputType.numberWithOptions(
-                                decimal: true),
-                            inputFormatters: [
-                              FilteringTextInputFormatter.allow(
-                                RegExp(r'^\d*\.?\d*'),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(
-                          width: 10,
-                        ),
-                        Expanded(
-                          child: MyTextField(
-                            readOnly: true,
-                            controller: completionDateController,
-                            labelText: 'تاريخ انتهاء التصنيع',
-                            onTap: () async {
-                              DateTime? pickedDate = await showDatePicker(
-                                context: context,
-                                initialDate: DateTime.now(),
-                                firstDate: DateTime(2020),
-                                lastDate: DateTime(2100),
-                              );
-
-                              if (pickedDate != null) {
-                                setState(() {
-                                  completionDateController.text =
-                                      DateFormat('yyyy-MM-dd')
-                                          .format(pickedDate);
-                                });
-                              }
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    MyTextField(
-                        maxLines: 10,
-                        controller: additionsController,
-                        labelText: 'إضافات التصنيع'),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    MyTextField(
-                        maxLines: 10,
-                        controller: notesController,
-                        labelText: 'ملاحظات التصنيع'),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    MyTextField(
-                        maxLines: 10,
-                        controller: problemsController,
-                        labelText: 'مشاكل التصنيع'),
-                    if ((groups!.contains('admins') ||
-                            groups!.contains('manufacturing_dep')) &&
-                        widget.type == 'Production')
-                      Mybutton(
-                        text: 'حفظ',
-                        onPressed: () {
-                          if (!_isDurationValid()) {
-                            showSnackBar(
-                              context: context,
-                              content: 'الوقت غير صحيح ⏳',
-                              failure: true,
-                            );
-                            return;
-                          }
-                          _fillManufacturingModelFromFomr();
-                          print(_manufacturingModel);
-                          context.read<ProductionBloc>().add(SaveManufacturing(
-                              manufacturingModel: _manufacturingModel));
-                        },
-                      ),
-                  ],
+                  ),
                 ),
               ),
             ),
           ),
         );
       }),
+    );
+  }
+
+  //-- WIDGET FOR PORTRAIT LAYOUT --
+  Widget _buildPortraitLayout(BuildContext context) {
+    return Column(
+      children: [
+        if (widget.type == 'Production') ...[
+          CheckboxListTile(
+            title: const Text(
+              'استلمت من الأولية',
+              style: TextStyle(fontSize: 12),
+            ),
+            value: manufacturingCheck_1,
+            onChanged: (bool? value) {
+              setState(() {
+                manufacturingCheck_1 = value ?? false;
+              });
+            },
+            controlAffinity: ListTileControlAffinity.leading,
+          ),
+          CheckboxListTile(
+            title: const Text(
+              'ركبت في المكنة',
+              style: TextStyle(fontSize: 12),
+            ),
+            value: manufacturingCheck_2,
+            onChanged: (bool? value) {
+              setState(() {
+                manufacturingCheck_2 = value ?? false;
+              });
+            },
+            controlAffinity: ListTileControlAffinity.leading,
+          ),
+          CheckboxListTile(
+            title: const Text(
+              'قيد التصنيع',
+              style: TextStyle(fontSize: 12),
+            ),
+            value: manufacturingCheck_3,
+            onChanged: (bool? value) {
+              setState(() {
+                manufacturingCheck_3 = value ?? false;
+              });
+            },
+            controlAffinity: ListTileControlAffinity.leading,
+          ),
+          CheckboxListTile(
+            title: const Text(
+              'انتهت من التصنيع',
+              style: TextStyle(fontSize: 12),
+            ),
+            value: manufacturingCheck_4,
+            onChanged: (bool? value) {
+              setState(() {
+                manufacturingCheck_4 = value ?? false;
+              });
+            },
+            controlAffinity: ListTileControlAffinity.leading,
+          ),
+          CheckboxListTile(
+            title: const Text(
+              'فلترت',
+              style: TextStyle(fontSize: 12),
+            ),
+            value: manufacturingCheck_5,
+            onChanged: (bool? value) {
+              setState(() {
+                manufacturingCheck_5 = value ?? false;
+              });
+            },
+            controlAffinity: ListTileControlAffinity.leading,
+          ),
+          CheckboxListTile(
+            title: const Text(
+              'المعلومات جاهزة للأرشفة',
+              style: TextStyle(fontSize: 12),
+            ),
+            value: manufacturingCheck_6,
+            onChanged: (bool? value) {
+              if (value == true) {
+                if (employeeController.text.trim().isEmpty) {
+                  showSnackBar(
+                    context: context,
+                    content: 'يرجى إدخال اسم الموظف قبل الأرشفة',
+                    failure: true,
+                  );
+                  return;
+                }
+                if (startTimeController.text.trim().isEmpty) {
+                  showSnackBar(
+                    context: context,
+                    content: 'يرجى تحديد وقت البدء قبل الأرشفة',
+                    failure: true,
+                  );
+                  return;
+                }
+                if (finishTimeController.text.trim().isEmpty) {
+                  showSnackBar(
+                    context: context,
+                    content: 'يرجى تحديد وقت الإنتهاء قبل الأرشفة',
+                    failure: true,
+                  );
+                  return;
+                }
+                if (batchWeightController.text.trim().isEmpty) {
+                  showSnackBar(
+                    context: context,
+                    content: 'يرجى تحديد وزن الطبخة قبل الأرشفة',
+                    failure: true,
+                  );
+                  return;
+                }
+                if (completionDateController.text.trim().isEmpty) {
+                  showSnackBar(
+                    context: context,
+                    content: 'يرجى تحديد تاريخ الانتهاء قبل الأرشفة',
+                    failure: true,
+                  );
+                  return;
+                }
+              }
+              setState(() {
+                manufacturingCheck_6 = value ?? false;
+              });
+            },
+            controlAffinity: ListTileControlAffinity.leading,
+          ),
+        ],
+        MyTextField(controller: employeeController, labelText: 'موظف التصنيع'),
+        const SizedBox(
+          height: 10,
+        ),
+        Row(
+          children: [
+            Expanded(
+              child: MyTextField(
+                controller: startTimeController,
+                labelText: 'وقت بدء التصنيع',
+                readOnly: true,
+                onTap: () async {
+                  TimeOfDay? pickedTime = await showTimePicker(
+                    context: context,
+                    initialTime: TimeOfDay.now(),
+                  );
+                  if (pickedTime != null) {
+                    final now = DateTime.now();
+                    final formattedTime = DateFormat('HH:mm').format(
+                      DateTime(now.year, now.month, now.day, pickedTime.hour,
+                          pickedTime.minute),
+                    );
+                    startTimeController.text = formattedTime;
+                    _calculateDuration();
+                  }
+                },
+              ),
+            ),
+            const SizedBox(
+              width: 10,
+            ),
+            Expanded(
+              child: MyTextField(
+                controller: finishTimeController,
+                labelText: 'وقت انتهاء التصنيع',
+                readOnly: true,
+                onTap: () async {
+                  TimeOfDay? pickedTime = await showTimePicker(
+                    context: context,
+                    initialTime: TimeOfDay.now(),
+                  );
+                  if (pickedTime != null) {
+                    final now = DateTime.now();
+                    final formattedTime = DateFormat('HH:mm').format(
+                      DateTime(now.year, now.month, now.day, pickedTime.hour,
+                          pickedTime.minute),
+                    );
+                    finishTimeController.text = formattedTime;
+                    _calculateDuration();
+                  }
+                },
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Text(
+          'مدة العمل: $durationText',
+          style: const TextStyle(
+            fontSize: 14,
+          ),
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            Expanded(
+              child: MyTextField(
+                controller: batchWeightController,
+                labelText: 'وزن التصنيع',
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(
+                    RegExp(r'^\d*\.?\d*'),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(
+              width: 10,
+            ),
+            Expanded(
+              child: MyTextField(
+                readOnly: true,
+                controller: completionDateController,
+                labelText: 'تاريخ انتهاء التصنيع',
+                onTap: () async {
+                  DateTime? pickedDate = await showDatePicker(
+                    context: context,
+                    initialDate: DateTime.now(),
+                    firstDate: DateTime(2020),
+                    lastDate: DateTime(2100),
+                  );
+
+                  if (pickedDate != null) {
+                    setState(() {
+                      completionDateController.text =
+                          DateFormat('yyyy-MM-dd').format(pickedDate);
+                    });
+                  }
+                },
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        MyTextField(
+            maxLines: 10,
+            controller: additionsController,
+            labelText: 'إضافات التصنيع'),
+        const SizedBox(height: 10),
+        MyTextField(
+            maxLines: 10,
+            controller: notesController,
+            labelText: 'ملاحظات التصنيع'),
+        const SizedBox(height: 10),
+        MyTextField(
+            maxLines: 10,
+            controller: problemsController,
+            labelText: 'مشاكل التصنيع'),
+        if ((groups!.contains('admins') ||
+                groups!.contains('manufacturing_dep')) &&
+            widget.type == 'Production')
+          Mybutton(
+            text: 'حفظ',
+            onPressed: () {
+              if (!_isDurationValid()) {
+                showSnackBar(
+                  context: context,
+                  content: 'الوقت غير صحيح ⏳',
+                  failure: true,
+                );
+                return;
+              }
+              _fillManufacturingModelFromFomr();
+              print(_manufacturingModel);
+              context.read<ProductionBloc>().add(
+                  SaveManufacturing(manufacturingModel: _manufacturingModel));
+            },
+          ),
+      ],
+    );
+  }
+
+  //-- WIDGET FOR LANDSCAPE LAYOUT --
+  Widget _buildLandscapeLayout(BuildContext context) {
+    return Column(
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            //-- COLUMN 1 --
+            Expanded(
+              child: Column(
+                children: [
+                  if (widget.type == 'Production') ...[
+                    CheckboxListTile(
+                      title: const Text(
+                        'استلمت من الأولية',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                      value: manufacturingCheck_1,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          manufacturingCheck_1 = value ?? false;
+                        });
+                      },
+                      controlAffinity: ListTileControlAffinity.leading,
+                    ),
+                    CheckboxListTile(
+                      title: const Text(
+                        'ركبت في المكنة',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                      value: manufacturingCheck_2,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          manufacturingCheck_2 = value ?? false;
+                        });
+                      },
+                      controlAffinity: ListTileControlAffinity.leading,
+                    ),
+                    CheckboxListTile(
+                      title: const Text(
+                        'قيد التصنيع',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                      value: manufacturingCheck_3,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          manufacturingCheck_3 = value ?? false;
+                        });
+                      },
+                      controlAffinity: ListTileControlAffinity.leading,
+                    ),
+                    CheckboxListTile(
+                      title: const Text(
+                        'انتهت من التصنيع',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                      value: manufacturingCheck_4,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          manufacturingCheck_4 = value ?? false;
+                        });
+                      },
+                      controlAffinity: ListTileControlAffinity.leading,
+                    ),
+                    CheckboxListTile(
+                      title: const Text(
+                        'فلترت',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                      value: manufacturingCheck_5,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          manufacturingCheck_5 = value ?? false;
+                        });
+                      },
+                      controlAffinity: ListTileControlAffinity.leading,
+                    ),
+                    CheckboxListTile(
+                      title: const Text(
+                        'المعلومات جاهزة للأرشفة',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                      value: manufacturingCheck_6,
+                      onChanged: (bool? value) {
+                        if (value == true) {
+                          if (employeeController.text.trim().isEmpty) {
+                            showSnackBar(
+                              context: context,
+                              content: 'يرجى إدخال اسم الموظف قبل الأرشفة',
+                              failure: true,
+                            );
+                            return;
+                          }
+                          if (startTimeController.text.trim().isEmpty) {
+                            showSnackBar(
+                              context: context,
+                              content: 'يرجى تحديد وقت البدء قبل الأرشفة',
+                              failure: true,
+                            );
+                            return;
+                          }
+                          if (finishTimeController.text.trim().isEmpty) {
+                            showSnackBar(
+                              context: context,
+                              content: 'يرجى تحديد وقت الإنتهاء قبل الأرشفة',
+                              failure: true,
+                            );
+                            return;
+                          }
+                          if (batchWeightController.text.trim().isEmpty) {
+                            showSnackBar(
+                              context: context,
+                              content: 'يرجى تحديد وزن الطبخة قبل الأرشفة',
+                              failure: true,
+                            );
+                            return;
+                          }
+                          if (completionDateController.text.trim().isEmpty) {
+                            showSnackBar(
+                              context: context,
+                              content: 'يرجى تحديد تاريخ الانتهاء قبل الأرشفة',
+                              failure: true,
+                            );
+                            return;
+                          }
+                        }
+                        setState(() {
+                          manufacturingCheck_6 = value ?? false;
+                        });
+                      },
+                      controlAffinity: ListTileControlAffinity.leading,
+                    ),
+                  ],
+                  const SizedBox(height: 10),
+                  MyTextField(
+                      controller: employeeController,
+                      labelText: 'موظف التصنيع'),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: MyTextField(
+                          controller: startTimeController,
+                          labelText: 'وقت بدء التصنيع',
+                          readOnly: true,
+                          onTap: () async {
+                            TimeOfDay? pickedTime = await showTimePicker(
+                              context: context,
+                              initialTime: TimeOfDay.now(),
+                            );
+                            if (pickedTime != null) {
+                              final now = DateTime.now();
+                              final formattedTime = DateFormat('HH:mm').format(
+                                DateTime(now.year, now.month, now.day,
+                                    pickedTime.hour, pickedTime.minute),
+                              );
+                              startTimeController.text = formattedTime;
+                              _calculateDuration();
+                            }
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: MyTextField(
+                          controller: finishTimeController,
+                          labelText: 'وقت انتهاء التصنيع',
+                          readOnly: true,
+                          onTap: () async {
+                            TimeOfDay? pickedTime = await showTimePicker(
+                              context: context,
+                              initialTime: TimeOfDay.now(),
+                            );
+                            if (pickedTime != null) {
+                              final now = DateTime.now();
+                              final formattedTime = DateFormat('HH:mm').format(
+                                DateTime(now.year, now.month, now.day,
+                                    pickedTime.hour, pickedTime.minute),
+                              );
+                              finishTimeController.text = formattedTime;
+                              _calculateDuration();
+                            }
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'مدة العمل: $durationText',
+                    style: const TextStyle(
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 16), // Spacer between columns
+            //-- COLUMN 2 --
+            Expanded(
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: MyTextField(
+                          controller: batchWeightController,
+                          labelText: 'وزن التصنيع',
+                          keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true),
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(
+                              RegExp(r'^\d*\.?\d*'),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: MyTextField(
+                          readOnly: true,
+                          controller: completionDateController,
+                          labelText: 'تاريخ انتهاء التصنيع',
+                          onTap: () async {
+                            DateTime? pickedDate = await showDatePicker(
+                              context: context,
+                              initialDate: DateTime.now(),
+                              firstDate: DateTime(2020),
+                              lastDate: DateTime(2100),
+                            );
+
+                            if (pickedDate != null) {
+                              setState(() {
+                                completionDateController.text =
+                                    DateFormat('yyyy-MM-dd').format(pickedDate);
+                              });
+                            }
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  MyTextField(
+                      maxLines: 5, // Reduced maxLines for landscape
+                      controller: additionsController,
+                      labelText: 'إضافات التصنيع'),
+                  const SizedBox(height: 10),
+                  MyTextField(
+                      maxLines: 5, // Reduced maxLines for landscape
+                      controller: notesController,
+                      labelText: 'ملاحظات التصنيع'),
+                  const SizedBox(height: 10),
+                  MyTextField(
+                      maxLines: 5, // Reduced maxLines for landscape
+                      controller: problemsController,
+                      labelText: 'مشاكل التصنيع'),
+                  const SizedBox(
+                    height: 30,
+                  )
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        if ((groups!.contains('admins') ||
+                groups!.contains('manufacturing_dep')) &&
+            widget.type == 'Production')
+          Mybutton(
+            text: 'حفظ',
+            onPressed: () {
+              if (!_isDurationValid()) {
+                showSnackBar(
+                  context: context,
+                  content: 'الوقت غير صحيح ⏳',
+                  failure: true,
+                );
+                return;
+              }
+              _fillManufacturingModelFromFomr();
+              print(_manufacturingModel);
+              context.read<ProductionBloc>().add(
+                  SaveManufacturing(manufacturingModel: _manufacturingModel));
+            },
+          ),
+      ],
     );
   }
 

@@ -385,7 +385,8 @@ class _FullMaintanceDetailsPageState extends State<FullMaintanceDetailsPage> {
                                 ),
                                 if (widget.status != 100)
                                   if (widget.log != true &&
-                                      groups != null &&
+                                          groups != null &&
+                                          groups!.contains('managers') ||
                                       groups!.contains('admins'))
                                     Center(
                                       child: Mybutton(

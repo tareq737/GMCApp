@@ -56,13 +56,11 @@ class FullProdPageChild extends StatefulWidget {
 class _FullProdPageChildState extends State<FullProdPageChild> {
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  final Color _darkThemeRed = Colors.red.shade700; // A richer, darker red
-  final Color _darkThemeBlue = Colors.blue.shade700; // A deeper blue
+  final Color _darkThemeRed = Colors.red.shade700;
+  final Color _darkThemeBlue = Colors.blue.shade700;
   double width = 0;
-  // This map will store the last assigned color for each batch prefix
   final Map<String, Color> _prefixColors = {};
-  Color _currentColorForPrefix =
-      Colors.red.shade700; // Start with the new dark theme red
+  late Color _currentColorForPrefix;
 
   int currentPage = 1;
   bool isLoadingMore = false;
@@ -72,6 +70,7 @@ class _FullProdPageChildState extends State<FullProdPageChild> {
   @override
   void initState() {
     super.initState();
+    _currentColorForPrefix = _darkThemeRed; // Initialize here
     _scrollController.addListener(_onScroll);
   }
 
@@ -83,29 +82,25 @@ class _FullProdPageChildState extends State<FullProdPageChild> {
   }
 
   void _onScroll() {
-    // Only load more if not currently loading and at the bottom of the scroll
-    if (_scrollController.position.pixels ==
-            _scrollController.position.maxScrollExtent &&
+    if (_scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent *
+                0.9 && // Trigger near the end
         !isLoadingMore) {
       _nextPage(context);
     }
   }
 
   void _nextPage(BuildContext context) {
-    setState(() {
-      isLoadingMore = true;
-    });
+    setState(() => isLoadingMore = true);
     currentPage++;
 
     if (widget.type == 'Production') {
-      context.read<ProductionBloc>().add(
-            GetBriefProductionPagainted(page: currentPage),
-          );
+      context
+          .read<ProductionBloc>()
+          .add(GetBriefProductionPagainted(page: currentPage));
     } else if (widget.type == 'Archive') {
-      context.read<ProductionBloc>().add(
-            SearchProductionArchivePagainted(
-                page: currentPage, search: _searchController.text),
-          );
+      context.read<ProductionBloc>().add(SearchProductionArchivePagainted(
+          page: currentPage, search: _searchController.text));
     }
   }
 
@@ -115,17 +110,11 @@ class _FullProdPageChildState extends State<FullProdPageChild> {
     return match?.group(0) ?? '';
   }
 
-  // Helper function to get the color for a given batch prefix
   Color _getBatchNumberColor(String batchNumber) {
     final prefix = _getBatchNumberPrefix(batchNumber);
-
-    if (prefix.isEmpty) {
-      return Colors.blueGrey; // Default color if no prefix found
-    }
-
+    if (prefix.isEmpty) return Colors.blueGrey;
     if (!_prefixColors.containsKey(prefix)) {
       _prefixColors[prefix] = _currentColorForPrefix;
-      // Toggle between the new dark theme red and blue
       _currentColorForPrefix = (_currentColorForPrefix == _darkThemeRed)
           ? _darkThemeBlue
           : _darkThemeRed;
@@ -133,58 +122,55 @@ class _FullProdPageChildState extends State<FullProdPageChild> {
     return _prefixColors[prefix]!;
   }
 
-  Widget _buildCheckIcon(String department, bool? checkValue) {
+  Widget _buildCheckIcon(String department, bool? checkValue,
+      {double size = 14}) {
     IconData icon;
-
     switch (department) {
       case 'raw_material':
-        icon = FontAwesomeIcons.boxesStacked; // مواد أولية
+        icon = FontAwesomeIcons.boxesStacked;
         break;
       case 'manufacturing':
-        icon = FontAwesomeIcons.industry; // تصنيع
+        icon = FontAwesomeIcons.industry;
         break;
       case 'lab':
-        icon = FontAwesomeIcons.flaskVial; // مخبر
+        icon = FontAwesomeIcons.flaskVial;
         break;
       case 'empty_packaging':
-        icon = FontAwesomeIcons.boxOpen; // فوارغ
+        icon = FontAwesomeIcons.boxOpen;
         break;
       case 'packaging':
-        icon = FontAwesomeIcons.boxesPacking; // تعبئة
+        icon = FontAwesomeIcons.boxesPacking;
         break;
       case 'finished_goods':
-        icon = FontAwesomeIcons.cubes; // مواد جاهزة
+        icon = FontAwesomeIcons.cubes;
         break;
       default:
-        icon = FontAwesomeIcons.circleQuestion; // fallback
+        icon = FontAwesomeIcons.circleQuestion;
     }
-
     return FaIcon(
       icon,
       color: checkValue == true ? Colors.green : Colors.grey,
-      size: 14,
+      size: size,
     );
   }
 
   @override
   Widget build(BuildContext context) {
     width = MediaQuery.of(context).size.width;
-    AppUserState state = context.watch<AppUserCubit>().state;
-    if (state is AppUserLoggedIn) {
-      groups = state.userEntity.groups;
+    AppUserState userState = context.watch<AppUserCubit>().state;
+    if (userState is AppUserLoggedIn) {
+      groups = userState.userEntity.groups;
     }
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
         appBar: AppBar(
           title: Text(
-            widget.type == 'Production' ? 'برنامج الإنتاج' : 'أرشيف الإنتاج',
-          ),
+              widget.type == 'Production' ? 'برنامج الإنتاج' : 'أرشيف الإنتاج'),
           actions: [
             if (widget.type == 'Production')
               IconButton(
                 onPressed: () {
-                  // Reset to first page and clear existing results before refreshing
                   setState(() {
                     resultList.clear();
                     currentPage = 1;
@@ -201,20 +187,19 @@ class _FullProdPageChildState extends State<FullProdPageChild> {
         body: Column(
           children: [
             if (widget.type == 'Archive')
-              SizedBox(
-                height: 80,
+              Padding(
+                padding: const EdgeInsets.all(8.0),
                 child: SearchRow(
                   textEditingController: _searchController,
                   onSearch: () {
                     setState(() {
-                      resultList.clear(); // Clear the existing data
-                      currentPage = 1; // Reset to first page
-                      isLoadingMore = false; // Reset loading state
+                      resultList.clear();
+                      currentPage = 1;
+                      isLoadingMore = false;
                     });
                     context.read<ProductionBloc>().add(
-                          SearchProductionArchivePagainted(
-                              search: _searchController.text, page: 1),
-                        );
+                        SearchProductionArchivePagainted(
+                            search: _searchController.text, page: 1));
                   },
                 ),
               ),
@@ -222,37 +207,22 @@ class _FullProdPageChildState extends State<FullProdPageChild> {
               child: BlocConsumer<ProductionBloc, ProductionState>(
                 listener: (context, state) {
                   if (state is ProductionError) {
-                    // Reset isLoadingMore on error to allow retrying
-                    setState(() {
-                      isLoadingMore = false;
-                    });
+                    setState(() => isLoadingMore = false);
                     showSnackBar(
-                      context: context,
-                      content: 'حدث خطأ ما',
-                      failure: true,
-                    );
+                        context: context, content: 'حدث خطأ ما', failure: true);
                   } else if (state is ProductionSuccess<FullProductionModel>) {
-                    // Navigate to full data page for both Production and Archive types
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) {
-                          return ProductionFullDataPage(
-                            fullProductionModel: state.result,
-                            type: widget.type,
-                          );
-                        },
-                      ),
-                    );
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) {
+                      return ProductionFullDataPage(
+                        fullProductionModel: state.result,
+                        type: widget.type,
+                      );
+                    }));
                   } else if (state is ProductionSuccess<String>) {
-                    // Handle the success message for archiving
                     showSnackBar(
-                      context: context,
-                      content: state.result, // Display the success message
-                      failure: false,
-                    );
-                    // You might want to refresh the list after archiving if needed
-                    // For example, if the archived item should disappear from the "Production" list
+                        context: context,
+                        content: state.result,
+                        failure: false);
                     if (widget.type == 'Production') {
                       setState(() {
                         resultList.clear();
@@ -266,22 +236,19 @@ class _FullProdPageChildState extends State<FullProdPageChild> {
                   }
                 },
                 builder: (context, state) {
-                  if (state is ProductionLoading && currentPage == 1) {
+                  if (state is ProductionLoading && resultList.isEmpty) {
                     return const Loader();
                   }
-                  // Update resultList on successful data fetch
-                  else if (state
-                      is ProductionSuccess<List<BriefProductionModel>>) {
-                    // If it's the first page, replace the list; otherwise, add to it
+
+                  if (state is ProductionSuccess<List<BriefProductionModel>>) {
                     if (currentPage == 1) {
                       resultList = state.result;
                     } else {
                       resultList.addAll(state.result);
                     }
-                    isLoadingMore = false; // Stop loading more
+                    isLoadingMore = false;
                   }
 
-                  // Handle cases where resultList might be empty after an initial load or search
                   if (resultList.isEmpty && state is! ProductionLoading) {
                     return Center(
                       child: Text(
@@ -297,8 +264,16 @@ class _FullProdPageChildState extends State<FullProdPageChild> {
                     );
                   }
 
-                  // Display the list or loading indicator at the bottom
-                  return _buildProdPlanList(context, resultList);
+                  // Use OrientationBuilder to switch between layouts
+                  return OrientationBuilder(
+                    builder: (context, orientation) {
+                      if (orientation == Orientation.landscape) {
+                        return _buildProdPlanGrid(context, resultList);
+                      } else {
+                        return _buildProdPlanList(context, resultList);
+                      }
+                    },
+                  );
                 },
               ),
             ),
@@ -308,152 +283,273 @@ class _FullProdPageChildState extends State<FullProdPageChild> {
     );
   }
 
+  // --- PORTRAIT LAYOUT: Your original ListView ---
   Widget _buildProdPlanList(
       BuildContext context, List<BriefProductionModel> briefProductionModel) {
     return ListView.builder(
       controller: _scrollController,
-      itemCount: briefProductionModel.length +
-          (isLoadingMore ? 1 : 0), // Add 1 for the loading indicator
+      itemCount: briefProductionModel.length + (isLoadingMore ? 1 : 0),
       itemBuilder: (context, index) {
         if (index == briefProductionModel.length) {
-          // Show loading indicator at the bottom if more data is being loaded
           return const Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Center(child: Loader()),
-          );
+              padding: EdgeInsets.all(16.0), child: Center(child: Loader()));
         }
 
-        final screenWidth = MediaQuery.of(context).size.width;
-        final String currentBatchNumber =
-            briefProductionModel[index].batch_number ?? '';
-        final Color batchColor = _getBatchNumberColor(currentBatchNumber);
-        return TweenAnimationBuilder<double>(
-          tween: Tween(begin: width, end: 0),
-          duration: const Duration(milliseconds: 600),
-          curve: Curves.decelerate,
-          builder: (context, value, child) {
-            return Transform.translate(
-              offset: Offset(value, 0),
-              child: child,
-            );
-          },
-          child: Card(
-            margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-            child: ListTile(
-              onTap: () {
-                if (widget.type == 'Production') {
-                  context.read<ProductionBloc>().add(
-                        GetOneProductionByID(
-                            id: briefProductionModel[index].id!),
-                      );
-                } else if (widget.type == 'Archive') {
-                  context.read<ProductionBloc>().add(
-                        GetOneProductionArchiveByID(
-                            id: briefProductionModel[index].id!),
-                      );
-                }
-              },
-              title: Text(
-                "${briefProductionModel[index].type} - ${briefProductionModel[index].tier}",
-                textAlign: TextAlign.center,
-                style:
-                    const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-              ),
-              subtitle: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.center, // Center the content
-                children: [
-                  const SizedBox(height: 5),
-                  Text(
-                    briefProductionModel[index].color ?? 'No Color',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 12),
+        final item = briefProductionModel[index];
+        final batchColor = _getBatchNumberColor(item.batch_number ?? '');
+
+        return Card(
+          margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+          child: ListTile(
+            onTap: () {
+              if (widget.type == 'Production') {
+                context
+                    .read<ProductionBloc>()
+                    .add(GetOneProductionByID(id: item.id!));
+              } else if (widget.type == 'Archive') {
+                context
+                    .read<ProductionBloc>()
+                    .add(GetOneProductionArchiveByID(id: item.id!));
+              }
+            },
+            title: Text(
+              "${item.type} - ${item.tier}",
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            ),
+            subtitle: Column(
+              children: [
+                Text(item.color ?? 'No Color',
+                    style: const TextStyle(fontSize: 12)),
+                const SizedBox(height: 5),
+                if (widget.type == 'Production')
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    spacing: 4.0,
+                    children: [
+                      _buildCheckIcon(
+                          'raw_material', item.raw_material_check_4),
+                      _buildCheckIcon(
+                          'manufacturing', item.manufacturing_check_6),
+                      _buildCheckIcon('lab', item.lab_check_6),
+                      _buildCheckIcon(
+                          'empty_packaging', item.empty_packaging_check_5),
+                      _buildCheckIcon('packaging', item.packaging_check_6),
+                      _buildCheckIcon(
+                          'finished_goods', item.finished_goods_check_3),
+                    ],
                   ),
-                  const SizedBox(height: 5),
-                  if (widget.type == 'Production')
-                    Wrap(
-                      // Use Wrap to allow icons to wrap if space is limited
-                      alignment: WrapAlignment.center,
-                      spacing: 4.0, // Space between icons
-                      runSpacing: 4.0, // Space between lines of icons
-                      children: [
-                        _buildCheckIcon('raw_material',
-                            briefProductionModel[index].raw_material_check_4),
-                        _buildCheckIcon('manufacturing',
-                            briefProductionModel[index].manufacturing_check_6),
-                        _buildCheckIcon(
-                            'lab', briefProductionModel[index].lab_check_6),
-                        _buildCheckIcon(
-                            'empty_packaging',
-                            briefProductionModel[index]
-                                .empty_packaging_check_5),
-                        _buildCheckIcon('packaging',
-                            briefProductionModel[index].packaging_check_6),
-                        _buildCheckIcon('finished_goods',
-                            briefProductionModel[index].finished_goods_check_3),
-                      ],
-                    ),
-                ],
-              ),
-              trailing: SizedBox(
-                width: screenWidth * 0.20,
-                child: Column(
-                  mainAxisAlignment:
-                      MainAxisAlignment.center, // Center vertically
-                  crossAxisAlignment:
-                      CrossAxisAlignment.end, // Align to end for numbers
-                  children: [
-                    Text(
-                      briefProductionModel[index].total_weight != null
-                          ? '${briefProductionModel[index].total_weight!.toStringAsFixed(2)} KG'
-                          : '',
-                      style: const TextStyle(
-                          fontSize: 12, fontWeight: FontWeight.w500),
-                    ),
-                    Text(
-                      briefProductionModel[index].total_volume != null
-                          ? '${briefProductionModel[index].total_volume!.toStringAsFixed(2)} L'
-                          : '',
-                      style: const TextStyle(
-                          fontSize: 12, fontWeight: FontWeight.w500),
-                    ),
-                  ],
+              ],
+            ),
+            trailing: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                    item.total_weight != null
+                        ? '${item.total_weight!.toStringAsFixed(2)} KG'
+                        : '',
+                    style: const TextStyle(
+                        fontSize: 12, fontWeight: FontWeight.w500)),
+                Text(
+                    item.total_volume != null
+                        ? '${item.total_volume!.toStringAsFixed(2)} L'
+                        : '',
+                    style: const TextStyle(
+                        fontSize: 12, fontWeight: FontWeight.w500)),
+              ],
+            ),
+            leading: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircleAvatar(
+                  radius: 12,
+                  backgroundColor: batchColor,
+                  child: Text(item.id.toString(),
+                      style: const TextStyle(fontSize: 8, color: Colors.white)),
                 ),
-              ),
-              leading: Column(
-                mainAxisAlignment:
-                    MainAxisAlignment.center, // Center vertically
-                children: [
-                  SizedBox(
-                    width: screenWidth * 0.10,
-                    child: CircleAvatar(
-                      radius: 12, // Slightly larger for better visibility
-                      backgroundColor: batchColor,
-                      child: Text(
-                        briefProductionModel[index].id.toString(),
-                        textAlign: TextAlign.center,
-                        style:
-                            const TextStyle(fontSize: 8, color: Colors.white),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    briefProductionModel[index].batch_number ?? '',
+                const SizedBox(height: 4),
+                Text(item.batch_number ?? '',
                     style: TextStyle(
-                      fontSize: 11,
-                      fontWeight:
-                          FontWeight.bold, // Make it bold for more emphasis
-                      color: _getBatchNumberColor(
-                          briefProductionModel[index].batch_number ?? ''),
-                    ),
-                  ),
-                ],
-              ),
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: batchColor)),
+              ],
             ),
           ),
         );
       },
+    );
+  }
+
+  Widget _buildProdPlanGrid(
+      BuildContext context, List<BriefProductionModel> briefProductionModel) {
+    return GridView.builder(
+      controller: _scrollController,
+      padding: const EdgeInsets.all(8.0),
+      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+        maxCrossAxisExtent: 300,
+        mainAxisSpacing: 8,
+        crossAxisSpacing: 8,
+        childAspectRatio: 1.7,
+      ),
+      itemCount: briefProductionModel.length + (isLoadingMore ? 1 : 0),
+      itemBuilder: (context, index) {
+        if (index == briefProductionModel.length) {
+          return const Center(child: Loader());
+        }
+        final item = briefProductionModel[index];
+        final batchColor = _getBatchNumberColor(item.batch_number ?? '');
+        return _ProductionGridItem(
+          item: item,
+          batchColor: batchColor,
+          type: widget.type,
+          onTap: () {
+            if (widget.type == 'Production') {
+              context
+                  .read<ProductionBloc>()
+                  .add(GetOneProductionByID(id: item.id!));
+            } else if (widget.type == 'Archive') {
+              context
+                  .read<ProductionBloc>()
+                  .add(GetOneProductionArchiveByID(id: item.id!));
+            }
+          },
+        );
+      },
+    );
+  }
+}
+
+// --- NEW WIDGET: Custom card for the GridView ---
+class _ProductionGridItem extends StatelessWidget {
+  final BriefProductionModel item;
+  final Color batchColor;
+  final String type;
+  final VoidCallback onTap;
+
+  const _ProductionGridItem({
+    required this.item,
+    required this.batchColor,
+    required this.type,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 12,
+                        backgroundColor: batchColor,
+                        child: Text(item.id.toString(),
+                            style: const TextStyle(
+                                fontSize: 10, color: Colors.white)),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        item.batch_number ?? '',
+                        style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: batchColor),
+                      ),
+                    ],
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                          item.total_weight != null
+                              ? '${item.total_weight!.toStringAsFixed(1)} KG'
+                              : '',
+                          style: const TextStyle(
+                              fontSize: 12, fontWeight: FontWeight.bold)),
+                      Text(
+                          item.total_volume != null
+                              ? '${item.total_volume!.toStringAsFixed(1)} L'
+                              : '',
+                          style: const TextStyle(
+                              fontSize: 12, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ],
+              ),
+              const Spacer(),
+              // Middle: Title and Color
+              Text("${item.type} - ${item.tier}",
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center),
+              Text(
+                item.color ?? '',
+                textAlign: TextAlign.center,
+              ),
+              const Spacer(),
+              // Bottom: Status Icons
+              if (type == 'Production')
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  spacing: 8.0,
+                  children: [
+                    _buildCheckIcon('raw_material', item.raw_material_check_4),
+                    _buildCheckIcon(
+                        'manufacturing', item.manufacturing_check_6),
+                    _buildCheckIcon('lab', item.lab_check_6),
+                    _buildCheckIcon(
+                        'empty_packaging', item.empty_packaging_check_5),
+                    _buildCheckIcon('packaging', item.packaging_check_6),
+                    _buildCheckIcon(
+                        'finished_goods', item.finished_goods_check_3),
+                  ],
+                ),
+              const Spacer(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Duplicating this helper here for encapsulation
+  Widget _buildCheckIcon(String department, bool? checkValue,
+      {double size = 16}) {
+    IconData icon;
+    switch (department) {
+      case 'raw_material':
+        icon = FontAwesomeIcons.boxesStacked;
+        break;
+      case 'manufacturing':
+        icon = FontAwesomeIcons.industry;
+        break;
+      case 'lab':
+        icon = FontAwesomeIcons.flaskVial;
+        break;
+      case 'empty_packaging':
+        icon = FontAwesomeIcons.boxOpen;
+        break;
+      case 'packaging':
+        icon = FontAwesomeIcons.boxesPacking;
+        break;
+      case 'finished_goods':
+        icon = FontAwesomeIcons.cubes;
+        break;
+      default:
+        icon = FontAwesomeIcons.circleQuestion;
+    }
+    return FaIcon(
+      icon,
+      color: checkValue == true ? Colors.green : Colors.grey,
+      size: size,
     );
   }
 }

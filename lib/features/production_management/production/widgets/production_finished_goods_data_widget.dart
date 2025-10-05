@@ -88,27 +88,19 @@ class _ProductionFinishedGoodsDataWidgetState
     completionDateController.text =
         widget.fullProductionModel.finishedGoods.completion_date ?? '';
 
-    // if (startTimeController.text.isNotEmpty) {
-    //   DateTime parsedTime = DateFormat('HH:mm').parse(startTimeController.text);
-    //   String formattedTime = DateFormat('hh:mm').format(parsedTime);
-    //   startTimeController.text = formattedTime;
-    // }
-    // if (finishTimeController.text.isNotEmpty) {
-    //   DateTime parsedTime =
-    //       DateFormat('HH:mm').parse(finishTimeController.text);
-    //   String formattedTime = DateFormat('hh:mm').format(parsedTime);
-    //   finishTimeController.text = formattedTime;
-    // }
-
     _calculateDuration();
   }
 
   @override
   Widget build(BuildContext context) {
-    AppUserState state = context.watch<AppUserCubit>().state;
-    if (state is AppUserLoggedIn) {
-      groups = state.userEntity.groups;
+    AppUserState userState = context.watch<AppUserCubit>().state;
+    if (userState is AppUserLoggedIn) {
+      groups = userState.userEntity.groups;
     }
+
+    // Get the device orientation
+    final orientation = MediaQuery.of(context).orientation;
+
     return BlocProvider(
       create: (context) => ProductionBloc(ProductionServices(
         apiClient: getIt<ApiClient>(),
@@ -157,197 +149,27 @@ class _ProductionFinishedGoodsDataWidgetState
               ),
               child: Padding(
                 padding: const EdgeInsets.all(8),
-                child: Column(
-                  children: [
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    const Text(
-                      'معلومات قسم الجاهزة',
-                      style: TextStyle(fontSize: 20),
-                    ),
-                    const SizedBox(
-                      height: 20,
-                    ),
-                    if (widget.type == 'Production') ...[
-                      CheckboxListTile(
-                        title: const Text(
-                          'استلمت من التعبئة',
-                          style: TextStyle(fontSize: 12),
-                        ),
-                        value: finishedGoodsCheck_1,
-                        onChanged: (bool? value) {
-                          setState(() {
-                            finishedGoodsCheck_1 = value ?? false;
-                          });
-                        },
-                        controlAffinity: ListTileControlAffinity.leading,
+                // Use SingleChildScrollView to prevent overflow issues
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      const SizedBox(
+                        height: 10,
                       ),
-                      CheckboxListTile(
-                        title: const Text(
-                          'وضعت في مكانها',
-                          style: TextStyle(fontSize: 12),
-                        ),
-                        value: finishedGoodsCheck_2,
-                        onChanged: (bool? value) {
-                          setState(() {
-                            finishedGoodsCheck_2 = value ?? false;
-                          });
-                        },
-                        controlAffinity: ListTileControlAffinity.leading,
+                      const Text(
+                        'معلومات قسم الجاهزة',
+                        style: TextStyle(fontSize: 20),
                       ),
-                      CheckboxListTile(
-                        title: const Text(
-                          'أرشفت العينة',
-                          style: TextStyle(fontSize: 12),
-                        ),
-                        value: finishedGoodsCheck_4,
-                        onChanged: (bool? value) {
-                          setState(() {
-                            finishedGoodsCheck_4 = value ?? false;
-                          });
-                        },
-                        controlAffinity: ListTileControlAffinity.leading,
+                      const SizedBox(
+                        height: 20,
                       ),
-                      CheckboxListTile(
-                        title: const Text(
-                          'المعلومات جاهزة للأرشفة',
-                          style: TextStyle(fontSize: 12),
-                        ),
-                        value: finishedGoodsCheck_3,
-                        onChanged: (bool? value) {
-                          setState(() {
-                            finishedGoodsCheck_3 = value ?? false;
-                          });
-                        },
-                        controlAffinity: ListTileControlAffinity.leading,
-                      ),
+                      // Conditionally build the layout based on orientation
+                      if (orientation == Orientation.landscape)
+                        _buildLandscapeLayout(context)
+                      else
+                        _buildPortraitLayout(context),
                     ],
-                    MyTextField(
-                        controller: employeeController,
-                        labelText: 'موظف الجاهزة'),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: MyTextField(
-                            controller: startTimeController,
-                            labelText: 'وقت بدء الجاهزة',
-                            readOnly: true,
-                            onTap: () async {
-                              TimeOfDay? pickedTime = await showTimePicker(
-                                context: context,
-                                initialTime: TimeOfDay.now(),
-                              );
-                              if (pickedTime != null) {
-                                final now = DateTime.now();
-                                final formattedTime =
-                                    DateFormat('HH:mm').format(
-                                  DateTime(now.year, now.month, now.day,
-                                      pickedTime.hour, pickedTime.minute),
-                                );
-                                startTimeController.text = formattedTime;
-                                _calculateDuration();
-                              }
-                            },
-                          ),
-                        ),
-                        const SizedBox(
-                          width: 10,
-                        ),
-                        Expanded(
-                          child: MyTextField(
-                            controller: finishTimeController,
-                            labelText: 'وقت انتهاء الجاهزة',
-                            readOnly: true,
-                            onTap: () async {
-                              TimeOfDay? pickedTime = await showTimePicker(
-                                context: context,
-                                initialTime: TimeOfDay.now(),
-                              );
-                              if (pickedTime != null) {
-                                final now = DateTime.now();
-                                final formattedTime =
-                                    DateFormat('HH:mm').format(
-                                  DateTime(now.year, now.month, now.day,
-                                      pickedTime.hour, pickedTime.minute),
-                                );
-                                finishTimeController.text = formattedTime;
-                                _calculateDuration();
-                              }
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      'مدة العمل: $durationText',
-                      style: const TextStyle(
-                        fontSize: 14,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    MyTextField(
-                      readOnly: true,
-                      controller: completionDateController,
-                      labelText: 'تاريخ استلام الجاهزة',
-                      onTap: () async {
-                        DateTime? pickedDate = await showDatePicker(
-                          context: context,
-                          initialDate: DateTime.now(),
-                          firstDate: DateTime(2020),
-                          lastDate: DateTime(2100),
-                        );
-
-                        if (pickedDate != null) {
-                          setState(() {
-                            completionDateController.text =
-                                DateFormat('yyyy-MM-dd').format(pickedDate);
-                          });
-                        }
-                      },
-                    ),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    MyTextField(
-                        maxLines: 10,
-                        controller: notesController,
-                        labelText: 'ملاحظات الجاهزة'),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    MyTextField(
-                        maxLines: 10,
-                        controller: problemsController,
-                        labelText: 'مشاكل الجاهزة'),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    if ((groups!.contains('admins') ||
-                            groups!.contains('finishedGoods_dep')) &&
-                        widget.type == 'Production')
-                      Mybutton(
-                        text: 'حفظ',
-                        onPressed: () {
-                          if (!_isDurationValid()) {
-                            showSnackBar(
-                              context: context,
-                              content: 'الوقت غير صحيح ⏳',
-                              failure: true,
-                            );
-                            return;
-                          }
-                          _fillPackagingModelFromFomr();
-                          print(_finishedGoodsModel);
-                          context.read<ProductionBloc>().add(SaveFinishedGoods(
-                              finishedGoodsModel: _finishedGoodsModel));
-                        },
-                      ),
-                  ],
+                  ),
                 ),
               ),
             ),
@@ -355,6 +177,263 @@ class _ProductionFinishedGoodsDataWidgetState
         );
       }),
     );
+  }
+
+  /// Builds the UI for portrait mode (single column).
+  Widget _buildPortraitLayout(BuildContext context) {
+    return Column(
+      children: [
+        ..._buildCheckboxes(),
+        const SizedBox(height: 10),
+        MyTextField(controller: employeeController, labelText: 'موظف الجاهزة'),
+        const SizedBox(height: 10),
+        _buildTimeFields(context),
+        const SizedBox(height: 10),
+        Text(
+          'مدة العمل: $durationText',
+          style: const TextStyle(
+            fontSize: 14,
+          ),
+        ),
+        const SizedBox(height: 10),
+        _buildCompletionDateField(context),
+        const SizedBox(height: 10),
+        MyTextField(
+            maxLines: 10,
+            controller: notesController,
+            labelText: 'ملاحظات الجاهزة'),
+        const SizedBox(height: 10),
+        MyTextField(
+            maxLines: 10,
+            controller: problemsController,
+            labelText: 'مشاكل الجاهزة'),
+        const SizedBox(height: 10),
+        _buildSaveButton(context),
+      ],
+    );
+  }
+
+  /// Builds the UI for landscape mode (two columns).
+  Widget _buildLandscapeLayout(BuildContext context) {
+    return Column(
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ..._buildCheckboxes(),
+                  const SizedBox(height: 10),
+                  MyTextField(
+                    controller: employeeController,
+                    labelText: 'موظف الجاهزة',
+                  ),
+                  const SizedBox(height: 10),
+                  _buildTimeFields(context),
+                  const SizedBox(height: 10),
+                  Text(
+                    'مدة العمل: $durationText',
+                    style: const TextStyle(
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _buildCompletionDateField(context),
+                  const SizedBox(height: 10),
+                  MyTextField(
+                      maxLines: 5, // Reduced maxLines for landscape
+                      controller: notesController,
+                      labelText: 'ملاحظات الجاهزة'),
+                  const SizedBox(height: 10),
+                  MyTextField(
+                      maxLines: 5, // Reduced maxLines for landscape
+                      controller: problemsController,
+                      labelText: 'مشاكل الجاهزة'),
+                  const SizedBox(height: 30),
+                ],
+              ),
+            ),
+          ],
+        ),
+        _buildSaveButton(context),
+      ],
+    );
+  }
+
+  /// Helper method to create the list of checkboxes.
+  List<Widget> _buildCheckboxes() {
+    if (widget.type != 'Production') return [];
+    return [
+      CheckboxListTile(
+        title: const Text(
+          'استلمت من التعبئة',
+          style: TextStyle(fontSize: 12),
+        ),
+        value: finishedGoodsCheck_1,
+        onChanged: (bool? value) {
+          setState(() {
+            finishedGoodsCheck_1 = value ?? false;
+          });
+        },
+        controlAffinity: ListTileControlAffinity.leading,
+      ),
+      CheckboxListTile(
+        title: const Text(
+          'وضعت في مكانها',
+          style: TextStyle(fontSize: 12),
+        ),
+        value: finishedGoodsCheck_2,
+        onChanged: (bool? value) {
+          setState(() {
+            finishedGoodsCheck_2 = value ?? false;
+          });
+        },
+        controlAffinity: ListTileControlAffinity.leading,
+      ),
+      CheckboxListTile(
+        title: const Text(
+          'أرشفت العينة',
+          style: TextStyle(fontSize: 12),
+        ),
+        value: finishedGoodsCheck_4,
+        onChanged: (bool? value) {
+          setState(() {
+            finishedGoodsCheck_4 = value ?? false;
+          });
+        },
+        controlAffinity: ListTileControlAffinity.leading,
+      ),
+      CheckboxListTile(
+        title: const Text(
+          'المعلومات جاهزة للأرشفة',
+          style: TextStyle(fontSize: 12),
+        ),
+        value: finishedGoodsCheck_3,
+        onChanged: (bool? value) {
+          setState(() {
+            finishedGoodsCheck_3 = value ?? false;
+          });
+        },
+        controlAffinity: ListTileControlAffinity.leading,
+      ),
+    ];
+  }
+
+  /// Helper method for the start and finish time fields.
+  Widget _buildTimeFields(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: MyTextField(
+            controller: startTimeController,
+            labelText: 'وقت بدء الجاهزة',
+            readOnly: true,
+            onTap: () async {
+              TimeOfDay? pickedTime = await showTimePicker(
+                context: context,
+                initialTime: TimeOfDay.now(),
+              );
+              if (pickedTime != null) {
+                final now = DateTime.now();
+                final formattedTime = DateFormat('HH:mm').format(
+                  DateTime(now.year, now.month, now.day, pickedTime.hour,
+                      pickedTime.minute),
+                );
+                startTimeController.text = formattedTime;
+                _calculateDuration();
+              }
+            },
+          ),
+        ),
+        const SizedBox(
+          width: 10,
+        ),
+        Expanded(
+          child: MyTextField(
+            controller: finishTimeController,
+            labelText: 'وقت انتهاء الجاهزة',
+            readOnly: true,
+            onTap: () async {
+              TimeOfDay? pickedTime = await showTimePicker(
+                context: context,
+                initialTime: TimeOfDay.now(),
+              );
+              if (pickedTime != null) {
+                final now = DateTime.now();
+                final formattedTime = DateFormat('HH:mm').format(
+                  DateTime(now.year, now.month, now.day, pickedTime.hour,
+                      pickedTime.minute),
+                );
+                finishTimeController.text = formattedTime;
+                _calculateDuration();
+              }
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Helper method for the completion date field.
+  Widget _buildCompletionDateField(BuildContext context) {
+    return MyTextField(
+      readOnly: true,
+      controller: completionDateController,
+      labelText: 'تاريخ استلام الجاهزة',
+      onTap: () async {
+        DateTime? pickedDate = await showDatePicker(
+          context: context,
+          initialDate: DateTime.now(),
+          firstDate: DateTime(2020),
+          lastDate: DateTime(2100),
+        );
+
+        if (pickedDate != null) {
+          setState(() {
+            completionDateController.text =
+                DateFormat('yyyy-MM-dd').format(pickedDate);
+          });
+        }
+      },
+    );
+  }
+
+  /// Helper method to create the save button conditionally.
+  Widget _buildSaveButton(BuildContext context) {
+    // Safely check if groups is not null before accessing its methods
+    if (groups != null &&
+        (groups!.contains('admins') || groups!.contains('finishedGoods_dep')) &&
+        widget.type == 'Production') {
+      return Mybutton(
+        text: 'حفظ',
+        onPressed: () {
+          if (!_isDurationValid()) {
+            showSnackBar(
+              context: context,
+              content: 'الوقت غير صحيح ⏳',
+              failure: true,
+            );
+            return;
+          }
+          _fillPackagingModelFromFomr();
+          print(_finishedGoodsModel);
+          context
+              .read<ProductionBloc>()
+              .add(SaveFinishedGoods(finishedGoodsModel: _finishedGoodsModel));
+        },
+      );
+    }
+    // Return an empty widget if the conditions are not met
+    return const SizedBox.shrink();
   }
 
   void _calculateDuration() {
@@ -394,9 +473,23 @@ class _ProductionFinishedGoodsDataWidgetState
 
       final Duration duration = finishTime.difference(startTime);
 
-      // If finish time is before start time OR duration > 9 hours => invalid
+      // If duration is negative (unless it wraps to the next day)
+      // or exceeds a reasonable work duration (e.g., 9 hours), it's invalid.
+      // Note: The next-day calculation is in _calculateDuration, not here.
+      // This check simplifies to just ensuring finish time is not before start time
+      // within the same day for more than 9 hours.
       if (duration.isNegative || duration > const Duration(hours: 9)) {
-        return false;
+        // We allow next-day calculation for display, but for validation,
+        // we might want a stricter rule. If a task spanning midnight is valid,
+        // the `isNegative` check alone isn't enough.
+        // Let's adjust to check if the calculated duration is too long.
+        final displayDuration = finishTime.isBefore(startTime)
+            ? finishTime.add(const Duration(days: 1)).difference(startTime)
+            : duration;
+
+        if (displayDuration > const Duration(hours: 9)) {
+          return false;
+        }
       }
     } catch (e) {
       return false; // invalid parse means invalid duration

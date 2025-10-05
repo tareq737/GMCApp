@@ -32,23 +32,27 @@ class CashflowService {
   }) async {
     try {
       final userEntity = await getCredentials();
-      return userEntity.fold((failure) {
-        return null;
-      }, (success) async {
-        final response = await _apiClient.getPageinated(
-          user: success,
-          endPoint: 'cashflow',
-          queryParams: {
-            'date_1': date_1,
-            'date_2': date_2,
-            'page': page,
-            'currency': currency
-          },
-        );
-        return List.generate(response.length, (index) {
-          return CashflowModel.fromMap(response[index]);
-        });
-      });
+      return userEntity.fold(
+        (failure) {
+          return null;
+        },
+        (success) async {
+          final response = await _apiClient.getPageinated(
+            user: success,
+            endPoint: 'cashflow',
+            queryParams: {
+              'date_1': date_1,
+              'date_2': date_2,
+              'page': page,
+              'currency': currency,
+              'page_size': 100
+            },
+          );
+          return List.generate(response.length, (index) {
+            return CashflowModel.fromMap(response[index]);
+          });
+        },
+      );
     } catch (e) {
       print('exception caught');
       return null;

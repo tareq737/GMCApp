@@ -26,10 +26,6 @@ class CashflowPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final today = DateTime.now();
-    final formattedDate =
-        "${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}";
-
     return BlocProvider(
       create: (context) => CashflowBloc(CashflowService(
         apiClient: getIt<ApiClient>(),
@@ -205,90 +201,8 @@ class _CashflowPageChildState extends State<CashflowPageChild> {
         ),
         body: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-              child: Card(
-                elevation: 2,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        'رصيد الصندوق:  ',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      _latestBalance == null
-                          ? const SizedBox(
-                              height: 18, width: 18, child: Loader())
-                          : TweenAnimationBuilder<num>(
-                              tween: Tween<num>(
-                                begin: 0,
-                                end: _latestBalance ?? 0,
-                              ),
-                              duration: const Duration(milliseconds: 1000),
-                              builder: (context, value, child) {
-                                return Text(
-                                  _formatBalance(value
-                                      .toDouble()), // Use the new balance formatting method
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: (_latestBalance ?? 0) >= 0
-                                        ? Colors.green.shade600
-                                        : Colors.red.shade600,
-                                  ),
-                                );
-                              },
-                            ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.chevron_left),
-                    onPressed: () => _changeDate(-1),
-                  ),
-                  Expanded(
-                    child: MyTextField(
-                      readOnly: true,
-                      controller: _dateController,
-                      labelText: 'تاريخ الحركة',
-                      onTap: () async {
-                        DateTime? pickedDate = await showDatePicker(
-                          context: context,
-                          initialDate: DateTime.now(),
-                          firstDate: DateTime(2000),
-                          lastDate: DateTime(2100),
-                        );
-                        if (pickedDate != null) {
-                          setState(() {
-                            _dateController.text =
-                                DateFormat('yyyy-MM-dd').format(pickedDate);
-                          });
-                          _fetchTasksWithNewDate();
-                        }
-                      },
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.chevron_right),
-                    onPressed: () => _changeDate(1),
-                  ),
-                ],
-              ),
-            ),
+            // UPDATED: Replaced the direct widgets with a responsive header method.
+            _buildHeader(),
             Expanded(
               child: BlocConsumer<CashflowBloc, CashflowState>(
                 listener: (context, state) {
@@ -450,6 +364,118 @@ class _CashflowPageChildState extends State<CashflowPageChild> {
         ),
       ),
     );
+  }
+
+  // NEW: This method builds the header UI responsively.
+  Widget _buildHeader() {
+    final orientation = MediaQuery.of(context).orientation;
+
+    final balanceCard = Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text(
+              'رصيد الصندوق:  ',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            _latestBalance == null
+                ? const SizedBox(height: 18, width: 18, child: Loader())
+                : TweenAnimationBuilder<num>(
+                    tween: Tween<num>(
+                      begin: 0,
+                      end: _latestBalance ?? 0,
+                    ),
+                    duration: const Duration(milliseconds: 1000),
+                    builder: (context, value, child) {
+                      return Text(
+                        _formatBalance(value
+                            .toDouble()), // Use the new balance formatting method
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: (_latestBalance ?? 0) >= 0
+                              ? Colors.green.shade600
+                              : Colors.red.shade600,
+                        ),
+                      );
+                    },
+                  ),
+          ],
+        ),
+      ),
+    );
+
+    final dateSelector = Row(
+      children: [
+        IconButton(
+          icon: const Icon(Icons.chevron_left),
+          onPressed: () => _changeDate(-1),
+        ),
+        Expanded(
+          child: MyTextField(
+            readOnly: true,
+            controller: _dateController,
+            labelText: 'تاريخ الحركة',
+            onTap: () async {
+              DateTime? pickedDate = await showDatePicker(
+                context: context,
+                initialDate: DateTime.now(),
+                firstDate: DateTime(2000),
+                lastDate: DateTime(2100),
+              );
+              if (pickedDate != null) {
+                setState(() {
+                  _dateController.text =
+                      DateFormat('yyyy-MM-dd').format(pickedDate);
+                });
+                _fetchTasksWithNewDate();
+              }
+            },
+          ),
+        ),
+        IconButton(
+          icon: const Icon(Icons.chevron_right),
+          onPressed: () => _changeDate(1),
+        ),
+      ],
+    );
+
+    if (orientation == Orientation.landscape) {
+      // For landscape, use a Row to place items side-by-side.
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(child: dateSelector),
+            const SizedBox(width: 8),
+            Expanded(child: balanceCard),
+          ],
+        ),
+      );
+    } else {
+      return Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+            child: balanceCard,
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: dateSelector,
+          ),
+        ],
+      );
+    }
   }
 
   Widget _buildTransactionItem(

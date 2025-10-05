@@ -59,10 +59,12 @@ class _PurchasesListChildState extends State<PurchasesListChild> {
   bool isLoadingMore = false;
   List<BriefPurchaseModel> _briefPurchases = [];
   double width = 0;
-  final Map<int, String> _itemStatus = {
+
+  final Map<int, String> _regularItemStatus = {
     2: 'طلبات بدون ملاحظة المشتريات',
     9: 'طلبات بدون موافقة عرض السعر',
-    1: 'الطلبات الغير موافقة من المدير',
+    1: 'الطلبات الغير موافقة من السيد أسامة',
+    10: 'الطلبات الغير موافقة من السيد حسام',
     3: 'الطلبات الموافقة من المدير',
     4: 'الطلبات المرفوضة من المدير',
     5: 'الطلبات الموافقة من المدير وغير منفذة',
@@ -70,6 +72,27 @@ class _PurchasesListChildState extends State<PurchasesListChild> {
     7: 'كافة الطلبات الغير مؤرشفة',
     8: 'كافة طلبات المشتريات',
   };
+
+  final Map<int, String> _adminItemStatus = {
+    1: 'الطلبات الغير موافقة من السيد أسامة',
+    10: 'الطلبات الغير موافقة من السيد حسام',
+    5: 'الطلبات الموافقة من المدير وغير منفذة',
+    8: 'كافة طلبات المشتريات',
+  };
+
+  Map<int, String> get _itemStatus {
+    final name = context.read<AppUserCubit>().state is AppUserLoggedIn
+        ? (context.read<AppUserCubit>().state as AppUserLoggedIn)
+            .userEntity
+            .firstName
+        : null;
+
+    if (name == 'محمد حسام عبيد') {
+      return _adminItemStatus;
+    }
+    return _regularItemStatus;
+  }
+
   final List<String> _itemsSection = [
     'الصيانة',
     'الزراعة',
@@ -79,6 +102,8 @@ class _PurchasesListChildState extends State<PurchasesListChild> {
     'أقسام الإنتاج',
     'IT',
     'شركة النور',
+    'مواد أولية',
+    'فوارغ',
   ];
 
   late String _selectedStatus;
@@ -128,9 +153,7 @@ class _PurchasesListChildState extends State<PurchasesListChild> {
                       context,
                       MaterialPageRoute(
                         builder: (context) {
-                          return const AddPurchasePage(
-                            type: 'general',
-                          );
+                          return const AddPurchasePage();
                         },
                       ),
                     );
@@ -494,29 +517,63 @@ class _PurchasesListChildState extends State<PurchasesListChild> {
                                                       : Colors.red,
                                                   size: 15,
                                                 ),
-                                                Icon(
-                                                  _briefPurchases[index]
-                                                              .manager_check ==
-                                                          true
-                                                      ? Icons
-                                                          .check // ✅ If true, show check mark
-                                                      : _briefPurchases[index]
-                                                                  .manager_check ==
-                                                              false
-                                                          ? Icons.close
-                                                          : Icons
-                                                              .stop_circle_outlined,
-                                                  color: _briefPurchases[index]
-                                                              .manager_check ==
-                                                          true
-                                                      ? Colors.green
-                                                      : _briefPurchases[index]
-                                                                  .manager_check ==
-                                                              false
-                                                          ? Colors.red
-                                                          : Colors.grey,
-                                                  size: 15,
-                                                ),
+                                                if (_briefPurchases[index]
+                                                        .department !=
+                                                    'فوارغ')
+                                                  Icon(
+                                                    _briefPurchases[index]
+                                                                .manager_check ==
+                                                            true
+                                                        ? Icons
+                                                            .check // ✅ If true, show check mark
+                                                        : _briefPurchases[index]
+                                                                    .manager_check ==
+                                                                false
+                                                            ? Icons.close
+                                                            : Icons
+                                                                .stop_circle_outlined,
+                                                    color: _briefPurchases[
+                                                                    index]
+                                                                .manager_check ==
+                                                            true
+                                                        ? Colors.green
+                                                        : _briefPurchases[index]
+                                                                    .manager_check ==
+                                                                false
+                                                            ? Colors.red
+                                                            : Colors.grey,
+                                                    size: 15,
+                                                  ),
+                                                if (_briefPurchases[index]
+                                                            .department ==
+                                                        'مواد أولية' ||
+                                                    _briefPurchases[index]
+                                                            .department ==
+                                                        'فوارغ')
+                                                  Icon(
+                                                    _briefPurchases[index]
+                                                                .manager2_check ==
+                                                            true
+                                                        ? Icons
+                                                            .check // ✅ If true, show check mark
+                                                        : _briefPurchases[index]
+                                                                    .manager2_check ==
+                                                                false
+                                                            ? Icons.close
+                                                            : Icons
+                                                                .stop_circle_outlined,
+                                                    color: _briefPurchases[
+                                                                    index]
+                                                                .manager2_check ==
+                                                            true
+                                                        ? Colors.green
+                                                        : _briefPurchases[index]
+                                                                    .manager2_check ==
+                                                                false
+                                                            ? Colors.red
+                                                            : Colors.grey,
+                                                    size: 15,
+                                                  ),
                                                 Icon(
                                                   (_briefPurchases[index]
                                                               .received_check ==

@@ -9,6 +9,7 @@ import 'package:gmcappclean/core/common/widgets/mytextfield.dart';
 import 'package:gmcappclean/core/services/auth_interactor.dart';
 import 'package:gmcappclean/core/utils/show_snackbar.dart';
 import 'package:gmcappclean/features/Inventory/bloc/inventory_bloc.dart';
+import 'package:gmcappclean/features/Inventory/models/groups_model.dart';
 import 'package:gmcappclean/features/Inventory/models/items_model.dart';
 import 'package:gmcappclean/features/Inventory/models/movement_model.dart';
 import 'package:gmcappclean/features/Inventory/models/transfer_model.dart';
@@ -47,21 +48,26 @@ class _ItemMovementListPageChildState extends State<ItemMovementListPageChild> {
   final _fromDateController = TextEditingController();
   final _toDateController = TextEditingController();
   final _warehouseController = TextEditingController();
+  final _groupController = TextEditingController(); // Added
   final _itemController = TextEditingController();
   final _warehouseFocusNode = FocusNode();
+  final _groupFocusNode = FocusNode(); // Added
   final _itemFocusNode = FocusNode();
   int? _selectedWarehouseId;
+  int? _selectedGroupId; // Added
   int? _selectedItemId;
   final ScrollController _scrollController = ScrollController();
   int _currentPage = 1;
   bool _isFetchingMore = false;
   bool _hasMore = true;
   bool _isSearchingWarehouse = false;
+  bool _isSearchingGroup = false; // Added
   bool _isSearchingItem = false;
   List<MovementModel> _movementList = [];
 
   // Flags to prevent main page listener from firing when dialog is active
   bool _isWarehouseDialogShowing = false;
+  bool _isGroupDialogShowing = false; // Added
   bool _isItemDialogShowing = false;
 
   @override
@@ -70,6 +76,7 @@ class _ItemMovementListPageChildState extends State<ItemMovementListPageChild> {
     _fromDateController.text = '2000-01-01';
     _toDateController.text = DateFormat('yyyy-MM-dd').format(DateTime.now());
     _warehouseFocusNode.addListener(_onWarehouseFocusChange);
+    _groupFocusNode.addListener(_onGroupFocusChange); // Added
     _itemFocusNode.addListener(_onItemFocusChange);
   }
 
@@ -78,9 +85,12 @@ class _ItemMovementListPageChildState extends State<ItemMovementListPageChild> {
     _fromDateController.dispose();
     _toDateController.dispose();
     _warehouseController.dispose();
+    _groupController.dispose(); // Added
     _itemController.dispose();
     _warehouseFocusNode.removeListener(_onWarehouseFocusChange);
     _warehouseFocusNode.dispose();
+    _groupFocusNode.removeListener(_onGroupFocusChange); // Added
+    _groupFocusNode.dispose(); // Added
     _itemFocusNode.removeListener(_onItemFocusChange);
     _itemFocusNode.dispose();
     _scrollController.dispose();
@@ -176,6 +186,95 @@ class _ItemMovementListPageChildState extends State<ItemMovementListPageChild> {
     }
   }
 
+  // --- Group Functions (Added) ---
+  void _onGroupFocusChange() {
+    if (!_groupFocusNode.hasFocus && _groupController.text.isNotEmpty) {
+      setState(() {
+        _isSearchingGroup = true;
+      });
+      context.read<InventoryBloc>().add(
+            SearchGroups(
+              search: _groupController.text,
+              page: 1,
+            ),
+          );
+    } else if (!_groupFocusNode.hasFocus && _groupController.text.isEmpty) {
+      setState(() {
+        _selectedGroupId = null;
+      });
+    }
+  }
+
+  void _handleGroupSearchResults(
+    BuildContext context,
+    List<GroupsModel> results,
+  ) {
+    if (results.length == 1) {
+      final selectedGroup = results.first;
+      setState(() {
+        _groupController.text =
+            '${selectedGroup.code ?? ''}-${selectedGroup.name ?? ''}';
+        _selectedGroupId = selectedGroup.id;
+        _isSearchingGroup = false;
+      });
+      FocusScope.of(context).unfocus();
+    } else if (results.length > 1) {
+      _showGroupSelectionDialog(context, results, _groupController.text);
+    } else {
+      _groupController.clear();
+      setState(() {
+        _selectedGroupId = null;
+        _isSearchingGroup = false;
+      });
+      showSnackBar(
+        context: context,
+        content: 'لم يتم العثور على مجموعات مطابقة.',
+        failure: true,
+      );
+    }
+  }
+
+  void _showGroupSelectionDialog(
+    BuildContext context,
+    List<GroupsModel> groups,
+    String currentSearch,
+  ) async {
+    final inventoryBloc = context.read<InventoryBloc>();
+    setState(() {
+      _isGroupDialogShowing = true;
+      _isSearchingGroup = false;
+    });
+
+    final selectedGroup = await showDialog<GroupsModel>(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return BlocProvider.value(
+          value: inventoryBloc,
+          child: _GroupSelectionDialog(
+            initialGroups: groups,
+            initialSearch: currentSearch,
+          ),
+        );
+      },
+    );
+
+    setState(() {
+      _isGroupDialogShowing = false;
+    });
+
+    if (selectedGroup != null) {
+      setState(() {
+        _groupController.text =
+            '${selectedGroup.code ?? ''}-${selectedGroup.name ?? ''}';
+        _selectedGroupId = selectedGroup.id;
+      });
+      FocusScope.of(context).unfocus();
+    } else {
+      // Keep text field as is if user cancels
+    }
+  }
+  // --- End of Group Functions ---
+
   void _fetchInitialItemMovementList(BuildContext context) {
     setState(() {
       _currentPage = 1;
@@ -188,6 +287,7 @@ class _ItemMovementListPageChildState extends State<ItemMovementListPageChild> {
             date_1: _fromDateController.text,
             date_2: _toDateController.text,
             warehouse_id: _selectedWarehouseId,
+            group_id: _selectedGroupId, // Modified
             item_id: _selectedItemId,
             page: _currentPage,
           ),
@@ -205,6 +305,7 @@ class _ItemMovementListPageChildState extends State<ItemMovementListPageChild> {
             date_1: _fromDateController.text,
             date_2: _toDateController.text,
             warehouse_id: _selectedWarehouseId,
+            group_id: _selectedGroupId, // Modified
             item_id: _selectedItemId,
             page: _currentPage,
           ),
@@ -266,7 +367,7 @@ class _ItemMovementListPageChildState extends State<ItemMovementListPageChild> {
     final inventoryBloc = context.read<InventoryBloc>();
     setState(() {
       _isItemDialogShowing = true;
-      _isSearchingItem = false; // This is already correct
+      _isSearchingItem = false;
     });
     final selectedItems = await showDialog<ItemsModel>(
       context: context,
@@ -283,7 +384,7 @@ class _ItemMovementListPageChildState extends State<ItemMovementListPageChild> {
 
     setState(() {
       _isItemDialogShowing = false;
-      _isSearchingItem = false; // Add this line here
+      _isSearchingItem = false;
     });
 
     if (selectedItems != null) {
@@ -387,13 +488,23 @@ class _ItemMovementListPageChildState extends State<ItemMovementListPageChild> {
                       focusNode: _warehouseFocusNode,
                     ),
                     const SizedBox(height: 5),
+                    // --- Group TextField (Added) ---
+                    MyTextField(
+                      controller: _groupController,
+                      labelText: 'المجموعة',
+                      focusNode: _groupFocusNode,
+                    ),
+                    const SizedBox(height: 5),
                     MyTextField(
                       controller: _itemController,
                       labelText: 'المادة',
                       focusNode: _itemFocusNode,
                     ),
                     const SizedBox(height: 5),
-                    _isSearchingWarehouse || _isSearchingItem
+                    // --- Modified Loader Condition ---
+                    _isSearchingWarehouse ||
+                            _isSearchingItem ||
+                            _isSearchingGroup
                         ? const Loader()
                         : Mybutton(
                             text: 'بحث',
@@ -411,6 +522,11 @@ class _ItemMovementListPageChildState extends State<ItemMovementListPageChild> {
                   if (state is InventorySuccess<List<WarehousesModel>> &&
                       !_isWarehouseDialogShowing) {
                     _handleWarehouseSearchResults(context, state.result);
+                  }
+                  // --- Handle Group Search Results (Added) ---
+                  else if (state is InventorySuccess<List<GroupsModel>> &&
+                      !_isGroupDialogShowing) {
+                    _handleGroupSearchResults(context, state.result);
                   }
                   // Handle Item Search Results
                   else if (state is InventorySuccess<List<ItemsModel>> &&
@@ -458,6 +574,7 @@ class _ItemMovementListPageChildState extends State<ItemMovementListPageChild> {
                       setState(() {
                         _isFetchingMore = false;
                         _isSearchingWarehouse = false;
+                        _isSearchingGroup = false; // Modified
                         _isSearchingItem = false;
                       });
                     }
@@ -719,6 +836,146 @@ class _WarehouseSelectionDialogState extends State<_WarehouseSelectionDialog> {
                                 title: Text(warehouse.name ?? ''),
                                 subtitle: Text(warehouse.code ?? ''),
                                 onTap: () => Navigator.pop(context, warehouse),
+                              );
+                            } else {
+                              return const Center(child: Loader());
+                            }
+                          },
+                        ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _GroupSelectionDialog extends StatefulWidget {
+  final List<GroupsModel> initialGroups;
+  final String initialSearch;
+
+  const _GroupSelectionDialog({
+    required this.initialGroups,
+    required this.initialSearch,
+  });
+
+  @override
+  State<_GroupSelectionDialog> createState() => _GroupSelectionDialogState();
+}
+
+class _GroupSelectionDialogState extends State<_GroupSelectionDialog> {
+  late List<GroupsModel> _groups;
+  final _scrollController = ScrollController();
+  final _searchController = TextEditingController();
+  int _currentPage = 1;
+  bool _isFetchingMore = false;
+  bool _hasMore = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _groups = List.from(widget.initialGroups);
+    _searchController.text = widget.initialSearch;
+    _scrollController.addListener(_onScroll);
+    if (widget.initialGroups.length < 10) {
+      _hasMore = false;
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent - 100 &&
+        !_isFetchingMore &&
+        _hasMore) {
+      _fetchMoreGroups();
+    }
+  }
+
+  void _fetchMoreGroups() {
+    setState(() => _isFetchingMore = true);
+    _currentPage++;
+    context.read<InventoryBloc>().add(
+          SearchGroups(search: _searchController.text, page: _currentPage),
+        );
+  }
+
+  void _performSearch() {
+    setState(() {
+      _groups.clear();
+      _currentPage = 1;
+      _hasMore = true;
+      _isFetchingMore = true;
+    });
+    context
+        .read<InventoryBloc>()
+        .add(SearchGroups(search: _searchController.text, page: 1));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Directionality(
+      textDirection: ui.TextDirection.rtl,
+      child: BlocListener<InventoryBloc, InventoryState>(
+        listener: (context, state) {
+          if (state is InventorySuccess<List<GroupsModel>>) {
+            if (mounted) {
+              setState(() {
+                if (_currentPage == 1) {
+                  _groups = state.result;
+                } else {
+                  _groups.addAll(state.result);
+                }
+                if (state.result.length < 10) {
+                  _hasMore = false;
+                }
+                _isFetchingMore = false;
+              });
+            }
+          } else if (state is InventoryError) {
+            if (mounted) setState(() => _isFetchingMore = false);
+          }
+        },
+        child: AlertDialog(
+          title: const Text('اختر المجموعة'),
+          content: SizedBox(
+            width: double.maxFinite,
+            height: 400,
+            child: Column(
+              children: [
+                TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    labelText: 'بحث',
+                    suffixIcon: IconButton(
+                        icon: const Icon(Icons.search),
+                        onPressed: _performSearch),
+                  ),
+                  onSubmitted: (_) => _performSearch(),
+                ),
+                Expanded(
+                  child: _isFetchingMore && _groups.isEmpty
+                      ? const Center(child: Loader())
+                      : ListView.builder(
+                          controller: _scrollController,
+                          shrinkWrap: true,
+                          itemCount: _groups.length + (_hasMore ? 1 : 0),
+                          itemBuilder: (BuildContext context, int index) {
+                            if (index < _groups.length) {
+                              final groups = _groups[index];
+                              return ListTile(
+                                title: Text(groups.name ?? ''),
+                                subtitle: Text(groups.code ?? ''),
+                                onTap: () => Navigator.pop(context, groups),
                               );
                             } else {
                               return const Center(child: Loader());

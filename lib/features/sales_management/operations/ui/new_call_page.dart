@@ -49,8 +49,8 @@ class _NewCallPageState extends State<NewCallPage> {
     'محمد العمر',
     'أحمد الناصري',
     'عبد الله عويد',
+    'هادي السهلي',
     'عبد الله دياب',
-    'غيث الشيخ',
   ];
   List processKindList = [
     'دورية',

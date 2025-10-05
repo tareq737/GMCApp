@@ -1,6 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gmcappclean/core/common/api/api.dart';
 import 'package:gmcappclean/core/services/auth_interactor.dart';
 import 'package:gmcappclean/features/Exchange%20Rate/bloc/exchange_rate_bloc.dart';
@@ -61,7 +62,23 @@ class _RateChartPageState extends State<RateChartPage> {
                   final rates = state.result;
 
                   if (rates.isEmpty) {
-                    return const Center(child: Text("لا توجد بيانات لعرضها"));
+                    return const Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            FontAwesomeIcons.solidClipboard,
+                            size: 50,
+                            color: Colors.grey,
+                          ),
+                          SizedBox(height: 10),
+                          Text(
+                            'لا توجد بيانات لعرضها.',
+                            style: TextStyle(fontSize: 18, color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                    );
                   }
 
                   return Column(

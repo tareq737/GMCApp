@@ -77,10 +77,6 @@ class MyApp extends StatelessWidget {
                   status: 1,
                 ),
             'FullCoustomersPage': (context) => const FullCoustomersPage(),
-            'ProductionPurchasesList': (context) =>
-                const ProductionPurchasesList(
-                  status: 1,
-                ),
           },
         );
       },

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:gmcappclean/core/common/widgets/counter_row_widget.dart';
 import 'package:gmcappclean/core/common/widgets/full_data_widget.dart';
@@ -11,6 +12,7 @@ import 'package:gmcappclean/core/common/widgets/mytextfield.dart';
 import 'package:gmcappclean/core/utils/select_year_function.dart';
 import 'package:gmcappclean/core/utils/show_snackbar.dart';
 import 'package:gmcappclean/features/sales_management/customers/presentation/bloc/sales_bloc.dart';
+import 'package:gmcappclean/features/sales_management/customers/presentation/pages/full_coustomers_page.dart';
 import 'package:gmcappclean/features/sales_management/customers/presentation/viewmodels/customer_view_model.dart';
 import 'package:gmcappclean/init_dependencies.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -28,6 +30,10 @@ class _FullCustomerDataPageState extends State<FullCustomerDataPage> {
   bool _isLoadingOperation = false;
   late final bool hasCustomerViewModel;
   late final Map<String, TextEditingController> _controllers;
+
+  // New state for dynamic phone numbers
+  List<Map<String, TextEditingController>> _phoneControllers = [];
+
   CustomerViewModel _customerdata = CustomerViewModel(id: 0);
 
   List responsible = [
@@ -268,36 +274,82 @@ class _FullCustomerDataPageState extends State<FullCustomerDataPage> {
       specialBrands: widget._customerViewModel!.specialBrands,
       notes: widget._customerViewModel!.notes,
     );
+
+    // Clear and populate phone controllers from view model
+    _phoneControllers.forEach((controllerMap) {
+      controllerMap['detail']!.dispose();
+      controllerMap['number']!.dispose();
+    });
+    _phoneControllers.clear();
+
+    if (_customerdata.basicInfo.phone_details != null) {
+      for (var phone in _customerdata.basicInfo.phone_details!) {
+        _addPhoneNumberControllers(
+            detail: phone['detail'] ?? '', number: phone['number'] ?? '');
+      }
+    }
   }
 
   void _fillCustomerDatafromForm() {
-    _customerdata.address.address = _controllers['address']!.text;
-    _customerdata.basicInfo.customerName = _controllers['customerName']!.text;
-    _customerdata.basicInfo.shopName = _controllers['shopName']!.text;
-    _customerdata.basicInfo.telNumber = _controllers['tel']!.text;
-    _customerdata.basicInfo.mobileNumber = _controllers['mobile']!.text;
+    _customerdata.address.address =
+        _convertHindiNumbersToWestern(_controllers['address']!.text);
+    _customerdata.basicInfo.customerName =
+        _convertHindiNumbersToWestern(_controllers['customerName']!.text);
+    _customerdata.basicInfo.shopName =
+        _convertHindiNumbersToWestern(_controllers['shopName']!.text);
+    _customerdata.basicInfo.telNumber =
+        _convertHindiNumbersToWestern(_controllers['tel']!.text);
+
     _customerdata.marketInfo.clientActivityOld =
-        _controllers['clientActivityOld']!.text;
+        _convertHindiNumbersToWestern(_controllers['clientActivityOld']!.text);
     _customerdata.personalInfo.clientPlaceOfBirth =
-        _controllers['clientPlaceOfBirth']!.text;
+        _convertHindiNumbersToWestern(_controllers['clientPlaceOfBirth']!.text);
     _customerdata.personalInfo.clientMaritalStatus =
-        _controllers['clientMaterialStatus']!.text;
+        _convertHindiNumbersToWestern(
+            _controllers['clientMaterialStatus']!.text);
     _customerdata.discounts.giftOnQuantity =
-        _controllers['giftOnQuantity']!.text;
-    _customerdata.discounts.giftOnValue = _controllers['giftOnValue']!.text;
+        _convertHindiNumbersToWestern(_controllers['giftOnQuantity']!.text);
+    _customerdata.discounts.giftOnValue =
+        _convertHindiNumbersToWestern(_controllers['giftOnValue']!.text);
     _customerdata.specialBrands.specialItemsOil =
-        _controllers['specialItemsOil']!.text;
+        _convertHindiNumbersToWestern(_controllers['specialItemsOil']!.text);
     _customerdata.specialBrands.specialItemsWater =
-        _controllers['specialItemsWater']!.text;
+        _convertHindiNumbersToWestern(_controllers['specialItemsWater']!.text);
     _customerdata.specialBrands.specialItemsAcrylic =
-        _controllers['specialItemsAcrylic']!.text;
-    _customerdata.notes = _controllers['notes']!.text;
-    _customerdata.personalInfo.clientYearOfBirth =
-        int.tryParse(_controllers['clientYearOfBirth']!.text) ?? 1900;
-    _customerdata.discounts.staticDiscount =
-        double.tryParse(_controllers['staticDiscount']!.text) ?? 0.0;
-    _customerdata.discounts.monthDiscount =
-        double.tryParse(_controllers['monthDiscount']!.text) ?? 0.0;
+        _convertHindiNumbersToWestern(
+            _controllers['specialItemsAcrylic']!.text);
+    _customerdata.notes =
+        _convertHindiNumbersToWestern(_controllers['notes']!.text);
+
+    _customerdata.personalInfo.clientYearOfBirth = int.tryParse(
+            _convertHindiNumbersToWestern(
+                _controllers['clientYearOfBirth']!.text)) ??
+        1900;
+    _customerdata.discounts.staticDiscount = double.tryParse(
+            _convertHindiNumbersToWestern(
+                _controllers['staticDiscount']!.text)) ??
+        0.0;
+    _customerdata.discounts.monthDiscount = double.tryParse(
+            _convertHindiNumbersToWestern(
+                _controllers['monthDiscount']!.text)) ??
+        0.0;
+    _customerdata.discounts.yearDiscount = double.tryParse(
+            _convertHindiNumbersToWestern(
+                _controllers['yearDiscount']!.text)) ??
+        0.0;
+
+    // Save dynamic phone numbers
+    List<Map<String, String>> updatedPhoneDetails = [];
+    for (var controllerMap in _phoneControllers) {
+      String detail =
+          _convertHindiNumbersToWestern(controllerMap['detail']!.text);
+      String number =
+          _convertHindiNumbersToWestern(controllerMap['number']!.text);
+      if (number.isNotEmpty) {
+        updatedPhoneDetails.add({'detail': detail, 'number': number});
+      }
+    }
+    _customerdata.basicInfo.phone_details = updatedPhoneDetails;
   }
 
   @override
@@ -307,6 +359,7 @@ class _FullCustomerDataPageState extends State<FullCustomerDataPage> {
     if (hasCustomerViewModel) {
       _fillFormWithViewModel();
     }
+
     _controllers = {
       'customerName': TextEditingController(
         text: _customerdata.basicInfo.customerName,
@@ -314,9 +367,6 @@ class _FullCustomerDataPageState extends State<FullCustomerDataPage> {
       'shopName': TextEditingController(text: _customerdata.basicInfo.shopName),
       'address': TextEditingController(text: _customerdata.address.address),
       'tel': TextEditingController(text: _customerdata.basicInfo.telNumber),
-      'mobile': TextEditingController(
-        text: _customerdata.basicInfo.mobileNumber,
-      ),
       'clientActivityOld': TextEditingController(
         text: _customerdata.marketInfo.clientActivityOld,
       ),
@@ -359,26 +409,32 @@ class _FullCustomerDataPageState extends State<FullCustomerDataPage> {
 
   @override
   void dispose() {
-    _controllers['customerName']!.dispose();
-    _controllers['shopName']!.dispose();
-    _controllers['address']!.dispose();
-    _controllers['tel']!.dispose();
-    _controllers['mobile']!.dispose();
-    _controllers['clientActivityOld']!.dispose();
-    _controllers['clientPlaceOfBirth']!.dispose();
-    _controllers['clientYearOfBirth']!.dispose();
-    _controllers['clientMaterialStatus']!.dispose();
-    _controllers['staticDiscount']!.dispose();
-    _controllers['monthDiscount']!.dispose();
-    _controllers['yearDiscount']!.dispose();
-    _controllers['giftOnQuantity']!.dispose();
-    _controllers['giftOnValue']!.dispose();
-    _controllers['specialItemsOil']!.dispose();
-    _controllers['specialItemsWater']!.dispose();
-    _controllers['specialItemsAcrylic']!.dispose();
-    _controllers['notes']!.dispose();
+    _controllers.values.forEach((controller) => controller.dispose());
+
+    // Dispose dynamic phone controllers
+    for (var controllerMap in _phoneControllers) {
+      controllerMap['detail']!.dispose();
+      controllerMap['number']!.dispose();
+    }
     super.dispose();
   }
+
+  // --- Methods for Dynamic Phone List ---
+  void _addPhoneNumberControllers({String detail = '', String number = ''}) {
+    final detailController = TextEditingController(text: detail);
+    final numberController = TextEditingController(text: number);
+    _phoneControllers.add({
+      'detail': detailController,
+      'number': numberController,
+    });
+  }
+
+  void _addPhoneNumber() {
+    setState(() {
+      _addPhoneNumberControllers();
+    });
+  }
+  // --- End of Methods for Dynamic Phone List ---
 
   bool _isLoading = false;
 
@@ -390,13 +446,115 @@ class _FullCustomerDataPageState extends State<FullCustomerDataPage> {
     if (state is SalesOpSuccess<bool>) {
       showSnackBar(context: context, failure: false, content: 'تم حذف الزبون');
       Navigator.pop(context);
-      Navigator.pop(context);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (
+            context,
+          ) {
+            return const FullCoustomersPage();
+          },
+        ),
+      );
     }
     if (state is SalesOpSuccess<CustomerViewModel>) {
       showSnackBar(context: context, content: 'تمت العملية', failure: false);
       _isLoadingOperation = false;
       Navigator.pop(context);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (
+            context,
+          ) {
+            return const FullCoustomersPage();
+          },
+        ),
+      );
     }
+  }
+
+  void _makePhoneCall(String phoneNumber) async {
+    if (phoneNumber.isEmpty) return;
+    final Uri launchUri = Uri(
+      scheme: 'tel',
+      path: phoneNumber,
+    );
+    if (await canLaunchUrl(launchUri)) {
+      await launchUrl(launchUri);
+    } else {
+      showSnackBar(
+          context: context,
+          content: 'Could not launch phone dialer',
+          failure: true);
+    }
+  }
+
+  void _openWhatsAppChat(String phoneNumber) async {
+    if (phoneNumber.isEmpty) return;
+    String formattedPhoneNumber =
+        phoneNumber.startsWith('+') ? phoneNumber : '+963$phoneNumber';
+    final Uri whatsappUrl = Uri.parse("https://wa.me/$formattedPhoneNumber");
+
+    if (await canLaunchUrl(whatsappUrl)) {
+      await launchUrl(whatsappUrl, mode: LaunchMode.externalApplication);
+    } else {
+      showSnackBar(
+          context: context, content: 'Could not open WhatsApp', failure: true);
+    }
+  }
+
+  String _convertHindiNumbersToWestern(String input) {
+    const Map<String, String> hindiToWestern = {
+      '٠': '0',
+      '١': '1',
+      '٢': '2',
+      '٣': '3',
+      '٤': '4',
+      '٥': '5',
+      '٦': '6',
+      '٧': '7',
+      '٨': '8',
+      '٩': '9',
+      '٪': '%',
+    };
+
+    String result = input;
+    hindiToWestern.forEach((hindi, western) {
+      result = result.replaceAll(hindi, western);
+    });
+    return result;
+  }
+
+  void _showDeleteConfirmationDialog(int index) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('تأكيد الحذف'),
+          content: const Text('هل أنت متأكد أنك تريد حذف هذا الرقم؟'),
+          actions: [
+            TextButton(
+              child: const Text('إلغاء'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('حذف', style: TextStyle(color: Colors.red)),
+              onPressed: () {
+                setState(() {
+                  _phoneControllers[index]['detail']!.dispose();
+                  _phoneControllers[index]['number']!.dispose();
+                  _phoneControllers.removeAt(index);
+                });
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -417,28 +575,31 @@ class _FullCustomerDataPageState extends State<FullCustomerDataPage> {
               child: FullData(
                 appBarText: 'بيانات الزبون',
                 listOfData: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Text(
-                        _customerdata.shopBasicInfo.shopStatus
-                            ? 'يعمل'
-                            : 'لا يعمل',
-                        style: const TextStyle(fontSize: 20),
+                  SwitchListTile(
+                    title: const Text(
+                      'حالة المحل',
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text(
+                      _customerdata.shopBasicInfo.shopStatus
+                          ? 'يعمل'
+                          : 'لا يعمل',
+                      style: TextStyle(
+                        color: _customerdata.shopBasicInfo.shopStatus
+                            ? Colors.green
+                            : Colors.red,
                       ),
-                      const SizedBox(width: 20),
-                      Switch(
-                        value: _customerdata.shopBasicInfo.shopStatus,
-                        onChanged: (value) {
-                          setState(() {
-                            _customerdata.shopBasicInfo.shopStatus = value;
-                          });
-                        },
-                        activeColor: Colors.green,
-                        inactiveThumbColor: Colors.red,
-                        inactiveTrackColor: Colors.black,
-                      ),
-                    ],
+                    ),
+                    value: _customerdata.shopBasicInfo.shopStatus,
+                    onChanged: (value) {
+                      setState(() {
+                        _customerdata.shopBasicInfo.shopStatus = value;
+                      });
+                    },
+                    activeColor: Colors.green,
+                    inactiveThumbColor: Colors.red,
+                    inactiveTrackColor: Colors.grey.shade400,
                   ),
                   Row(
                     spacing: 5,
@@ -491,9 +652,98 @@ class _FullCustomerDataPageState extends State<FullCustomerDataPage> {
                     controller: _controllers['address']!,
                     labelText: 'العنوان',
                   ),
-                  MyTextField(
-                    controller: _controllers['mobile']!,
-                    labelText: 'الموبايل',
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Padding(
+                        padding: EdgeInsets.symmetric(
+                            vertical: 8.0, horizontal: 4.0),
+                        child: Text(
+                          'أرقام الموبايل',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: _phoneControllers.length,
+                        itemBuilder: (context, index) {
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 12.0),
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    flex:
+                                        2, // Give more space to details if needed
+                                    child: MyTextField(
+                                      controller: _phoneControllers[index]
+                                          ['detail']!,
+                                      labelText: 'التفصيل',
+                                      maxLines: 1, // Corrected maxLines
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    flex: 3, // Give more space to the number
+                                    child: MyTextField(
+                                      controller: _phoneControllers[index]
+                                          ['number']!,
+                                      labelText: 'الرقم',
+                                      keyboardType: TextInputType.phone,
+                                      maxLines: 1, // Corrected maxLines
+                                    ),
+                                  ),
+                                  // --- Action Buttons ---
+                                  IconButton(
+                                    icon: const Icon(Icons.phone,
+                                        color: Colors.green),
+                                    onPressed: () {
+                                      _makePhoneCall(_phoneControllers[index]
+                                              ['number']!
+                                          .text);
+                                    },
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(FontAwesomeIcons.whatsapp,
+                                        color: Colors.green),
+                                    onPressed: () {
+                                      _openWhatsAppChat(_phoneControllers[index]
+                                              ['number']!
+                                          .text);
+                                    },
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(
+                                        Icons.remove_circle_outline,
+                                        color: Colors.red),
+                                    onPressed: () {
+                                      // **IMPORTANT: Show a confirmation dialog here!**
+                                      _showDeleteConfirmationDialog(index);
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      // Use a more prominent button to add a new number
+                      Center(
+                        child: OutlinedButton.icon(
+                          icon: const Icon(Icons.add),
+                          label: const Text('إضافة رقم جديد'),
+                          onPressed: () {
+                            setState(() {
+                              _addPhoneNumber();
+                            });
+                          },
+                        ),
+                      ),
+                      const Divider(),
+                    ],
                   ),
                   Row(
                     spacing: 5,
@@ -1077,23 +1327,28 @@ class _FullCustomerDataPageState extends State<FullCustomerDataPage> {
                           ? const Loader()
                           : Mybutton(
                               onPressed: () async {
-                                setState(() {
-                                  _isLoading = true; // Start loading
-                                });
+                                setState(() => _isLoading = true);
 
                                 try {
+                                  // Wait for location
                                   Position position =
                                       await _determinePosition();
-                                  setState(() {
-                                    _customerdata.address.shopCoordinates =
-                                        '${position.latitude},${position.longitude}';
-                                  });
+
+                                  // Update customer data first
+                                  _customerdata.address.shopCoordinates =
+                                      '${position.latitude},${position.longitude}';
+
+                                  // Then send update to Bloc
+                                  setState(() => _isLoadingOperation = true);
+                                  _fillCustomerDatafromForm();
+                                  context.read<SalesBloc>().add(
+                                        SalesUpdateCustomer(
+                                            item: _customerdata),
+                                      );
                                 } catch (e) {
                                   print('Error: $e');
                                 } finally {
-                                  setState(() {
-                                    _isLoading = false; // Stop loading
-                                  });
+                                  setState(() => _isLoading = false);
                                 }
                               },
                               text: 'إضافة موقع',
@@ -1121,35 +1376,52 @@ class _FullCustomerDataPageState extends State<FullCustomerDataPage> {
                                     : Mybutton(
                                         text: 'تعديل الموقع',
                                         onPressed: () async {
-                                          setState(() {
-                                            _isLoading = true; // Start loading
-                                          });
+                                          setState(() => _isLoading = true);
 
                                           try {
-                                            Position position =
+                                            final pos =
                                                 await _determinePosition();
-                                            setState(() {
-                                              _customerdata
-                                                      .address.shopCoordinates =
-                                                  '${position.latitude},${position.longitude}';
-                                            });
+                                            _customerdata
+                                                    .address.shopCoordinates =
+                                                '${pos.latitude},${pos.longitude}';
+
+                                            setState(() =>
+                                                _isLoadingOperation = true);
+                                            _fillCustomerDatafromForm();
+                                            context.read<SalesBloc>().add(
+                                                SalesUpdateCustomer(
+                                                    item: _customerdata));
                                           } catch (e) {
-                                            print('Error: $e');
+                                            print(
+                                                'Error updating location: $e');
                                           } finally {
-                                            setState(() {
-                                              _isLoading =
-                                                  false; // Stop loading
-                                            });
+                                            setState(() => _isLoading = false);
                                           }
                                         },
                                       ),
                                 Mybutton(
                                   text: 'إزالة الموقع',
-                                  onPressed: () {
-                                    setState(() {
+                                  onPressed: () async {
+                                    setState(() => _isLoading = true);
+
+                                    try {
+                                      // Clear the coordinates
                                       _customerdata.address.shopCoordinates =
                                           '';
-                                    });
+
+                                      // Update customer immediately
+                                      setState(
+                                          () => _isLoadingOperation = true);
+                                      _fillCustomerDatafromForm();
+                                      context.read<SalesBloc>().add(
+                                            SalesUpdateCustomer(
+                                                item: _customerdata),
+                                          );
+                                    } catch (e) {
+                                      print('Error removing location: $e');
+                                    } finally {
+                                      setState(() => _isLoading = false);
+                                    }
                                   },
                                 ),
                               ],
@@ -1164,7 +1436,7 @@ class _FullCustomerDataPageState extends State<FullCustomerDataPage> {
                 bottomNavigationBarItems: _isLoadingOperation
                     ? [
                         const BottomNavigationBarItem(
-                          icon: Loader(), // Use your Loader widget here
+                          icon: Loader(),
                           label: 'جاري المعالجة',
                         ),
                         const BottomNavigationBarItem(
@@ -1241,13 +1513,11 @@ Future<Position> _determinePosition() async {
   bool serviceEnabled;
   LocationPermission permission;
 
-  // Check if location services are enabled
   serviceEnabled = await Geolocator.isLocationServiceEnabled();
   if (!serviceEnabled) {
     throw Exception('Location services are disabled.');
   }
 
-  // Check location permissions
   permission = await Geolocator.checkPermission();
   if (permission == LocationPermission.denied) {
     permission = await Geolocator.requestPermission();
@@ -1262,6 +1532,5 @@ Future<Position> _determinePosition() async {
     );
   }
 
-  // Get current location
   return await Geolocator.getCurrentPosition();
 }

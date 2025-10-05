@@ -37,8 +37,8 @@ class OperationsBloc extends Bloc<OperationsEvent, OperationsState> {
     );
     on<GetAllOperationsForCustomer>(
       (event, emit) async {
-        var result = await _operationsServices
-            .getAllOperationsForCustomer({"customer_id": event.customerID});
+        var result = await _operationsServices.getAllOperationsForCustomer(
+            {"customer_id": event.customerID, "page_size": 30});
 
         if (result == null) {
           emit(OperationsError(errorMessage: 'خطأ'));

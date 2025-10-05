@@ -155,6 +155,17 @@ class GetOneTransferBySerial extends InventoryEvent {
   GetOneTransferBySerial({required this.serial, required this.transfer_type});
 }
 
+class TransfersNavigation extends InventoryEvent {
+  final int serial;
+  final int transfer_type;
+  final String action;
+  TransfersNavigation({
+    required this.serial,
+    required this.transfer_type,
+    required this.action,
+  });
+}
+
 class GetWarehouseBalance extends InventoryEvent {
   final int page;
 
@@ -162,13 +173,28 @@ class GetWarehouseBalance extends InventoryEvent {
   final String date_2;
   final int? warehouse_id;
   final int? item_id;
-  GetWarehouseBalance({
-    required this.date_1,
-    required this.date_2,
-    required this.page,
-    this.warehouse_id,
-    this.item_id,
-  });
+  final int? group_id;
+  GetWarehouseBalance(
+      {required this.date_1,
+      required this.date_2,
+      required this.page,
+      this.warehouse_id,
+      this.item_id,
+      this.group_id});
+}
+
+class ExportExcelBalance extends InventoryEvent {
+  final int? warehouse_id;
+  final int? item_id;
+  final String date_1;
+  final String date_2;
+  final int? group_id;
+  ExportExcelBalance(
+      {required this.date_1,
+      required this.date_2,
+      this.warehouse_id,
+      this.item_id,
+      this.group_id});
 }
 
 class GetItemActivity extends InventoryEvent {
@@ -177,13 +203,14 @@ class GetItemActivity extends InventoryEvent {
   final String date_2;
   final int? warehouse_id;
   final int? item_id;
-  GetItemActivity({
-    required this.date_1,
-    required this.date_2,
-    required this.page,
-    this.warehouse_id,
-    this.item_id,
-  });
+  final int? group_id;
+  GetItemActivity(
+      {required this.date_1,
+      required this.date_2,
+      required this.page,
+      this.warehouse_id,
+      this.item_id,
+      this.group_id});
 }
 
 //Manufacturing
@@ -194,6 +221,11 @@ class GetListBriefManufacturing extends InventoryEvent {
     required this.page,
     this.search,
   });
+}
+
+class DeleteOneManufacturing extends InventoryEvent {
+  final int id;
+  DeleteOneManufacturing({required this.id});
 }
 
 class GetOneManufacturing extends InventoryEvent {
@@ -215,6 +247,149 @@ class UpdateManufacturing extends InventoryEvent {
 }
 
 class GetOneManufacturingBySerial extends InventoryEvent {
+  final int id;
+  GetOneManufacturingBySerial({required this.id});
+}
+
+// Bill
+class GetListBills extends InventoryEvent {
+  final int page;
+  final String bill_type;
+  GetListBills({
+    required this.page,
+    required this.bill_type,
+  });
+}
+
+class GetListBillsOfCustomer extends InventoryEvent {
+  final int page;
+  final int customer;
+  GetListBillsOfCustomer({
+    required this.page,
+    required this.customer,
+  });
+}
+
+class GetOneBillByID extends InventoryEvent {
+  final int id;
+
+  GetOneBillByID({required this.id});
+}
+
+class DeleteOneBill extends InventoryEvent {
+  final int id;
+  DeleteOneBill({required this.id});
+}
+
+class AddBill extends InventoryEvent {
+  final BillModel billModel;
+
+  AddBill({required this.billModel});
+}
+
+class UpdateBill extends InventoryEvent {
+  final int id;
+  final BillModel billModel;
+
+  UpdateBill({required this.billModel, required this.id});
+}
+
+class GetOneBillBySerial extends InventoryEvent {
   final int serial;
-  GetOneManufacturingBySerial({required this.serial});
+  final int transfer_type;
+  GetOneBillBySerial({required this.serial, required this.transfer_type});
+}
+
+class BillNavigation extends InventoryEvent {
+  final int serial;
+  final int transfer_type;
+  final String action;
+  BillNavigation({
+    required this.serial,
+    required this.transfer_type,
+    required this.action,
+  });
+}
+
+//Accounts
+class SearchAccounts extends InventoryEvent {
+  final String search;
+  final int page;
+
+  SearchAccounts({
+    required this.search,
+    required this.page,
+  });
+}
+
+class GetOneAccountByID extends InventoryEvent {
+  final int id;
+
+  GetOneAccountByID({required this.id});
+}
+
+class DeleteOneAccount extends InventoryEvent {
+  final int id;
+  DeleteOneAccount({required this.id});
+}
+
+class AddAccount extends InventoryEvent {
+  final AccountsModel accountsModel;
+
+  AddAccount({required this.accountsModel});
+}
+
+class UpdateAccount extends InventoryEvent {
+  final int id;
+  final AccountsModel accountsModel;
+
+  UpdateAccount({required this.accountsModel, required this.id});
+}
+
+class GetAccountStatement extends InventoryEvent {
+  final int customer;
+  final int page;
+  final String? date_1;
+  final String? date_2;
+
+  GetAccountStatement(
+      {required this.customer, required this.page, this.date_1, this.date_2});
+}
+
+//Payments
+class AddPayment extends InventoryEvent {
+  final PaymentModel paymentModel;
+
+  AddPayment({required this.paymentModel});
+}
+
+class GetPaymentsForCustomer extends InventoryEvent {
+  final int customer;
+  final int page;
+
+  GetPaymentsForCustomer({required this.customer, required this.page});
+}
+
+class GetPayments extends InventoryEvent {
+  final int page;
+
+  GetPayments({required this.page});
+}
+
+class UpdatePayment extends InventoryEvent {
+  final int id;
+  final PaymentModel paymentModel;
+
+  UpdatePayment({required this.paymentModel, required this.id});
+}
+
+class GetOnePaymentByID extends InventoryEvent {
+  final int id;
+
+  GetOnePaymentByID({required this.id});
+}
+
+class DeleteOnePayment extends InventoryEvent {
+  final int id;
+  DeleteOnePayment({required this.id});
 }

@@ -50,12 +50,12 @@ class CustomerBasicInfoEntity {
   String? customerName;
   String? shopName;
   String? telNumber;
-  String? mobileNumber;
+  List? phone_details;
   CustomerBasicInfoEntity({
     this.customerName,
     this.shopName,
     this.telNumber,
-    this.mobileNumber,
+    this.phone_details,
   });
 }
 

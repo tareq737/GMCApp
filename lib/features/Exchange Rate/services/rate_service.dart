@@ -45,6 +45,7 @@ class RateService {
             'end': end,
             'details': details,
             'page': page,
+            'page_size': 50
           },
         );
         return List.generate(response.length, (index) {

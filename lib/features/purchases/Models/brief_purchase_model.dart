@@ -9,6 +9,7 @@ class BriefPurchaseModel {
   String? details;
   String? last_price;
   bool? manager_check;
+  bool? manager2_check;
   bool? received_check;
   bool? archived;
   String? bill;
@@ -21,6 +22,7 @@ class BriefPurchaseModel {
     this.details,
     this.last_price,
     this.manager_check,
+    this.manager2_check,
     this.received_check,
     this.archived,
     this.bill,
@@ -35,6 +37,7 @@ class BriefPurchaseModel {
     String? details,
     String? last_price,
     bool? manager_check,
+    bool? manager2_check,
     bool? received_check,
     bool? archived,
     String? bill,
@@ -48,6 +51,7 @@ class BriefPurchaseModel {
       details: details ?? this.details,
       last_price: last_price ?? this.last_price,
       manager_check: manager_check ?? this.manager_check,
+      manager2_check: manager2_check ?? this.manager2_check,
       received_check: received_check ?? this.received_check,
       archived: archived ?? this.archived,
       bill: bill ?? this.bill,
@@ -64,6 +68,7 @@ class BriefPurchaseModel {
       'details': details,
       'last_price': last_price,
       'manager_check': manager_check,
+      'manager2_check': manager2_check,
       'received_check': received_check,
       'archived': archived,
       'bill': bill,
@@ -84,6 +89,8 @@ class BriefPurchaseModel {
           map['last_price'] != null ? map['last_price'] as String : null,
       manager_check:
           map['manager_check'] != null ? map['manager_check'] as bool : null,
+      manager2_check:
+          map['manager2_check'] != null ? map['manager2_check'] as bool : null,
       received_check:
           map['received_check'] != null ? map['received_check'] as bool : null,
       archived: map['archived'] != null ? map['archived'] as bool : null,
@@ -99,7 +106,7 @@ class BriefPurchaseModel {
 
   @override
   String toString() {
-    return 'BriefPurchaseModel(id: $id, insert_date: $insert_date, department: $department, type: $type, details: $details, last_price: $last_price, manager_check: $manager_check, received_check: $received_check, archived: $archived, bill: $bill, duration: $duration)';
+    return 'BriefPurchaseModel(id: $id, insert_date: $insert_date, department: $department, type: $type, details: $details, last_price: $last_price, manager_check: $manager_check, manager2_check: $manager2_check, received_check: $received_check, archived: $archived, bill: $bill, duration: $duration)';
   }
 
   @override
@@ -113,6 +120,7 @@ class BriefPurchaseModel {
         other.details == details &&
         other.last_price == last_price &&
         other.manager_check == manager_check &&
+        other.manager2_check == manager2_check &&
         other.received_check == received_check &&
         other.archived == archived &&
         other.bill == bill &&
@@ -128,6 +136,7 @@ class BriefPurchaseModel {
         details.hashCode ^
         last_price.hashCode ^
         manager_check.hashCode ^
+        manager2_check.hashCode ^
         received_check.hashCode ^
         archived.hashCode ^
         bill.hashCode ^

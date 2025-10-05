@@ -1,4 +1,4 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
+// ignore_for_file: public_member_api_docs, sort_constructors_first, deprecated_member_use
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -183,17 +183,15 @@ class _ProductionPackagingDataWidgetState
     String weightText = packagingWeightController.text.trim();
 
     if (emptyText.isEmpty || weightText.isEmpty) {
-      // Handle the error (show a message, set default, etc.)
-      print('Please fill in all fields');
+      countDensityController.text = '';
       return;
     }
 
     double? empty = double.tryParse(emptyText);
     double? weight = double.tryParse(weightText);
 
-    if (empty == null || weight == null) {
-      // Handle the error (show a message, set default, etc.)
-      print('Invalid input. Please enter valid numbers.');
+    if (empty == null || weight == null || empty >= 100) {
+      countDensityController.text = 'Error';
       return;
     }
 
@@ -255,437 +253,849 @@ class _ProductionPackagingDataWidgetState
               ),
               child: Padding(
                 padding: const EdgeInsets.all(8),
-                child: Column(
-                  children: [
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    const Text(
-                      'معلومات قسم التعبئة',
-                      style: TextStyle(fontSize: 20),
-                    ),
-                    const SizedBox(
-                      height: 20,
-                    ),
-                    if (widget.type == 'Production') ...[
-                      CheckboxListTile(
-                        title: const Text(
-                          'استلمت الطبخة من التصنيع',
-                          style: TextStyle(fontSize: 12),
-                        ),
-                        value: packagingCheck_1,
-                        onChanged: (bool? value) {
-                          setState(() {
-                            packagingCheck_1 = value ?? false;
-                          });
-                        },
-                        controlAffinity: ListTileControlAffinity.leading,
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 10),
+                      const Text(
+                        'معلومات قسم التعبئة',
+                        style: TextStyle(fontSize: 20),
                       ),
-                      CheckboxListTile(
-                        title: const Text(
-                          'استلمت الفوارغ جاهزة',
-                          style: TextStyle(fontSize: 12),
-                        ),
-                        value: packagingCheck_2,
-                        onChanged: (bool? value) {
-                          setState(() {
-                            packagingCheck_2 = value ?? false;
-                          });
-                        },
-                        controlAffinity: ListTileControlAffinity.leading,
-                      ),
-                      CheckboxListTile(
-                        title: const Text(
-                          'قيد التعبئة',
-                          style: TextStyle(fontSize: 12),
-                        ),
-                        value: packagingCheck_3,
-                        onChanged: (bool? value) {
-                          setState(() {
-                            packagingCheck_3 = value ?? false;
-                          });
-                        },
-                        controlAffinity: ListTileControlAffinity.leading,
-                      ),
-                      CheckboxListTile(
-                        title: const Text(
-                          'انتهت التعبئة',
-                          style: TextStyle(fontSize: 12),
-                        ),
-                        value: packagingCheck_4,
-                        onChanged: (bool? value) {
-                          setState(() {
-                            packagingCheck_4 = value ?? false;
-                          });
-                        },
-                        controlAffinity: ListTileControlAffinity.leading,
-                      ),
-                      CheckboxListTile(
-                        title: const Text(
-                          'كرتنت للتسليم',
-                          style: TextStyle(fontSize: 12),
-                        ),
-                        value: packagingCheck_5,
-                        onChanged: (bool? value) {
-                          setState(() {
-                            packagingCheck_5 = value ?? false;
-                          });
-                        },
-                        controlAffinity: ListTileControlAffinity.leading,
-                      ),
-                      CheckboxListTile(
-                        title: const Text(
-                          'المعلومات جاهزة للأرشفة',
-                          style: TextStyle(fontSize: 12),
-                        ),
-                        value: packagingCheck_6,
-                        onChanged: (bool? value) {
-                          if (value == true) {
-                            if (employeeController.text.trim().isEmpty) {
-                              showSnackBar(
-                                context: context,
-                                content: 'يرجى إدخال اسم الموظف قبل الأرشفة',
-                                failure: true,
-                              );
-                              return;
-                            }
-                            if (startTimeController.text.trim().isEmpty) {
-                              showSnackBar(
-                                context: context,
-                                content: 'يرجى تحديد وقت البدء قبل الأرشفة',
-                                failure: true,
-                              );
-                              return;
-                            }
-                            if (finishTimeController.text.trim().isEmpty) {
-                              showSnackBar(
-                                context: context,
-                                content: 'يرجى تحديد وقت الإنتهاء قبل الأرشفة',
-                                failure: true,
-                              );
-                              return;
-                            }
-                            if (packagingDensityController.text
-                                .trim()
-                                .isEmpty) {
-                              showSnackBar(
-                                context: context,
-                                content: 'يرجى تحديد كثافة الطبخة قبل الأرشفة',
-                                failure: true,
-                              );
-                              return;
-                            }
-                            if (receiptNumberController.text.trim().isEmpty) {
-                              showSnackBar(
-                                context: context,
-                                content: 'يرجى تحديد رقم الوصل قبل الأرشفة',
-                                failure: true,
-                              );
-                              return;
-                            }
-                            if (packagingWeightController.text.trim().isEmpty) {
-                              showSnackBar(
-                                context: context,
-                                content: 'يرجى تحديد وزن الطبخة قبل الأرشفة',
-                                failure: true,
-                              );
-                              return;
-                            }
-                            if (completionDateController.text.trim().isEmpty) {
-                              showSnackBar(
-                                context: context,
-                                content:
-                                    'يرجى تحديد تاريخ الانتهاء قبل الأرشفة',
-                                failure: true,
-                              );
-                              return;
-                            }
+                      const SizedBox(height: 20),
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          final orientation =
+                              MediaQuery.of(context).orientation;
+                          if (orientation == Orientation.landscape) {
+                            return _buildLandscapeLayout(context);
+                          } else {
+                            return _buildPortraitLayout(context);
                           }
-                          setState(() {
-                            packagingCheck_6 = value ?? false;
-                          });
                         },
-                        controlAffinity: ListTileControlAffinity.leading,
                       ),
                     ],
-                    Row(
-                      spacing: 10,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: MyTextField(
-                              controller: printingController,
-                              labelText: 'طباعة'),
-                        ),
-                        Expanded(
-                          child: MyTextField(
-                              controller: fillingController,
-                              labelText: 'تعبئة'),
-                        ),
-                        Expanded(
-                          child: MyTextField(
-                              controller: shrinkageController,
-                              labelText: 'شرنكة'),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    Row(
-                      spacing: 10,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: MyTextField(
-                              controller: baggingController,
-                              labelText: 'تكييس'),
-                        ),
-                        Expanded(
-                          child: MyTextField(
-                              controller: strappingController,
-                              labelText: 'تربيط'),
-                        ),
-                        Expanded(
-                          child: MyTextField(
-                              controller: pressingController,
-                              labelText: 'تكبيس'),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    Row(
-                      spacing: 10,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: MyTextField(
-                              controller: stickersController,
-                              labelText: 'لصاقات'),
-                        ),
-                        Expanded(
-                          child: MyTextField(
-                              controller: wrappingController, labelText: 'لف'),
-                        ),
-                        Expanded(
-                          child: MyTextField(
-                              controller: cartonsController,
-                              labelText: 'كرتنة'),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    MyTextField(
-                        controller: employeeController,
-                        labelText: 'المسلم لقسم الجاهزة'),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: MyTextField(
-                            controller: startTimeController,
-                            labelText: 'وقت بدء التعبئة',
-                            readOnly: true,
-                            onTap: () async {
-                              TimeOfDay? pickedTime = await showTimePicker(
-                                context: context,
-                                initialTime: TimeOfDay.now(),
-                              );
-                              if (pickedTime != null) {
-                                final now = DateTime.now();
-                                final formattedTime =
-                                    DateFormat('HH:mm').format(
-                                  DateTime(now.year, now.month, now.day,
-                                      pickedTime.hour, pickedTime.minute),
-                                );
-                                startTimeController.text = formattedTime;
-                                _calculateDuration();
-                              }
-                            },
-                          ),
-                        ),
-                        const SizedBox(
-                          width: 10,
-                        ),
-                        Expanded(
-                          child: MyTextField(
-                            controller: finishTimeController,
-                            labelText: 'وقت انتهاء التعبئة',
-                            readOnly: true,
-                            onTap: () async {
-                              TimeOfDay? pickedTime = await showTimePicker(
-                                context: context,
-                                initialTime: TimeOfDay.now(),
-                              );
-                              if (pickedTime != null) {
-                                final now = DateTime.now();
-                                final formattedTime =
-                                    DateFormat('HH:mm').format(
-                                  DateTime(now.year, now.month, now.day,
-                                      pickedTime.hour, pickedTime.minute),
-                                );
-                                finishTimeController.text = formattedTime;
-                                _calculateDuration();
-                              }
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      'مدة العمل: $durationText',
-                      style: const TextStyle(
-                        fontSize: 14,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Row(
-                      spacing: 10,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: MyTextField(
-                            controller: packagingDensityController,
-                            labelText: 'كثافة التعبئة',
-                            keyboardType: const TextInputType.numberWithOptions(
-                                decimal: true),
-                            inputFormatters: [
-                              FilteringTextInputFormatter.allow(
-                                RegExp(r'^\d*\.?\d*'),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Expanded(
-                          child: MyTextField(
-                              controller: batchLeftoverController,
-                              labelText: 'متبقي الطبخة'),
-                        ),
-                        Expanded(
-                          child: MyTextField(
-                              readOnly: true,
-                              controller: countDensityController,
-                              labelText: 'الكثافة حسب الفراغ'),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    Row(
-                      spacing: 10,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: MyTextField(
-                            controller: receiptNumberController,
-                            labelText: 'رقم الوصل',
-                            keyboardType: TextInputType.number,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly,
-                            ],
-                          ),
-                        ),
-                        Expanded(
-                          child: MyTextField(
-                            onChanged: (value) => _calculateDensity(),
-                            controller: containerEmptyController,
-                            labelText: 'فراغ الحلة',
-                            keyboardType: const TextInputType.numberWithOptions(
-                                decimal: true),
-                            inputFormatters: [
-                              FilteringTextInputFormatter.allow(
-                                RegExp(r'^\d*\.?\d*'),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Expanded(
-                          child: MyTextField(
-                            onChanged: (value) => _calculateDensity(),
-                            controller: packagingWeightController,
-                            labelText: 'وزن التعبئة',
-                            keyboardType: const TextInputType.numberWithOptions(
-                                decimal: true),
-                            inputFormatters: [
-                              FilteringTextInputFormatter.allow(
-                                RegExp(r'^\d*\.?\d*'),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    MyTextField(
-                      readOnly: true,
-                      controller: completionDateController,
-                      labelText: 'تاريخ انتهاء التعبئة',
-                      onTap: () async {
-                        DateTime? pickedDate = await showDatePicker(
-                          context: context,
-                          initialDate: DateTime.now(),
-                          firstDate: DateTime(2020),
-                          lastDate: DateTime(2100),
-                        );
-
-                        if (pickedDate != null) {
-                          setState(() {
-                            completionDateController.text =
-                                DateFormat('yyyy-MM-dd').format(pickedDate);
-                          });
-                        }
-                      },
-                    ),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    MyTextField(
-                        maxLines: 10,
-                        controller: notesController,
-                        labelText: 'ملاحظات التعبئة'),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    MyTextField(
-                        maxLines: 10,
-                        controller: problemsController,
-                        labelText: 'مشاكل التعبئة'),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    if ((groups!.contains('admins') ||
-                            groups!.contains('packaging_dep')) &&
-                        widget.type == 'Production')
-                      Mybutton(
-                        text: 'حفظ',
-                        onPressed: () {
-                          if (!_isDurationValid()) {
-                            showSnackBar(
-                              context: context,
-                              content: 'الوقت غير صحيح ⏳',
-                              failure: true,
-                            );
-                            return;
-                          }
-                          _fillPackagingModelFromFomr();
-                          print(_packagingModel);
-                          context.read<ProductionBloc>().add(
-                              SavePackaging(packagingModel: _packagingModel));
-                        },
-                      ),
-                  ],
+                  ),
                 ),
               ),
             ),
           ),
         );
       }),
+    );
+  }
+
+  //-- WIDGET FOR PORTRAIT LAYOUT --
+  Widget _buildPortraitLayout(BuildContext context) {
+    return Column(
+      children: [
+        if (widget.type == 'Production') ...[
+          CheckboxListTile(
+            title: const Text(
+              'استلمت الطبخة من التصنيع',
+              style: TextStyle(fontSize: 12),
+            ),
+            value: packagingCheck_1,
+            onChanged: (bool? value) {
+              setState(() {
+                packagingCheck_1 = value ?? false;
+              });
+            },
+            controlAffinity: ListTileControlAffinity.leading,
+          ),
+          CheckboxListTile(
+            title: const Text(
+              'استلمت الفوارغ جاهزة',
+              style: TextStyle(fontSize: 12),
+            ),
+            value: packagingCheck_2,
+            onChanged: (bool? value) {
+              setState(() {
+                packagingCheck_2 = value ?? false;
+              });
+            },
+            controlAffinity: ListTileControlAffinity.leading,
+          ),
+          CheckboxListTile(
+            title: const Text(
+              'قيد التعبئة',
+              style: TextStyle(fontSize: 12),
+            ),
+            value: packagingCheck_3,
+            onChanged: (bool? value) {
+              setState(() {
+                packagingCheck_3 = value ?? false;
+              });
+            },
+            controlAffinity: ListTileControlAffinity.leading,
+          ),
+          CheckboxListTile(
+            title: const Text(
+              'انتهت التعبئة',
+              style: TextStyle(fontSize: 12),
+            ),
+            value: packagingCheck_4,
+            onChanged: (bool? value) {
+              setState(() {
+                packagingCheck_4 = value ?? false;
+              });
+            },
+            controlAffinity: ListTileControlAffinity.leading,
+          ),
+          CheckboxListTile(
+            title: const Text(
+              'كرتنت للتسليم',
+              style: TextStyle(fontSize: 12),
+            ),
+            value: packagingCheck_5,
+            onChanged: (bool? value) {
+              setState(() {
+                packagingCheck_5 = value ?? false;
+              });
+            },
+            controlAffinity: ListTileControlAffinity.leading,
+          ),
+          CheckboxListTile(
+            title: const Text(
+              'المعلومات جاهزة للأرشفة',
+              style: TextStyle(fontSize: 12),
+            ),
+            value: packagingCheck_6,
+            onChanged: (bool? value) {
+              if (value == true) {
+                if (employeeController.text.trim().isEmpty) {
+                  showSnackBar(
+                    context: context,
+                    content: 'يرجى إدخال اسم الموظف قبل الأرشفة',
+                    failure: true,
+                  );
+                  return;
+                }
+                if (startTimeController.text.trim().isEmpty) {
+                  showSnackBar(
+                    context: context,
+                    content: 'يرجى تحديد وقت البدء قبل الأرشفة',
+                    failure: true,
+                  );
+                  return;
+                }
+                if (finishTimeController.text.trim().isEmpty) {
+                  showSnackBar(
+                    context: context,
+                    content: 'يرجى تحديد وقت الإنتهاء قبل الأرشفة',
+                    failure: true,
+                  );
+                  return;
+                }
+                if (packagingDensityController.text.trim().isEmpty) {
+                  showSnackBar(
+                    context: context,
+                    content: 'يرجى تحديد كثافة الطبخة قبل الأرشفة',
+                    failure: true,
+                  );
+                  return;
+                }
+                if (receiptNumberController.text.trim().isEmpty) {
+                  showSnackBar(
+                    context: context,
+                    content: 'يرجى تحديد رقم الوصل قبل الأرشفة',
+                    failure: true,
+                  );
+                  return;
+                }
+                if (packagingWeightController.text.trim().isEmpty) {
+                  showSnackBar(
+                    context: context,
+                    content: 'يرجى تحديد وزن الطبخة قبل الأرشفة',
+                    failure: true,
+                  );
+                  return;
+                }
+                if (completionDateController.text.trim().isEmpty) {
+                  showSnackBar(
+                    context: context,
+                    content: 'يرجى تحديد تاريخ الانتهاء قبل الأرشفة',
+                    failure: true,
+                  );
+                  return;
+                }
+              }
+              setState(() {
+                packagingCheck_6 = value ?? false;
+              });
+            },
+            controlAffinity: ListTileControlAffinity.leading,
+          ),
+        ],
+        Row(
+          // spacing: 10,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Expanded(
+              child: MyTextField(
+                  controller: printingController, labelText: 'طباعة'),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: MyTextField(
+                  controller: fillingController, labelText: 'تعبئة'),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: MyTextField(
+                  controller: shrinkageController, labelText: 'شرنكة'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Row(
+          // spacing: 10,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Expanded(
+              child: MyTextField(
+                  controller: baggingController, labelText: 'تكييس'),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: MyTextField(
+                  controller: strappingController, labelText: 'تربيط'),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: MyTextField(
+                  controller: pressingController, labelText: 'تكبيس'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Row(
+          // spacing: 10,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Expanded(
+              child: MyTextField(
+                  controller: stickersController, labelText: 'لصاقات'),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child:
+                  MyTextField(controller: wrappingController, labelText: 'لف'),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: MyTextField(
+                  controller: cartonsController, labelText: 'كرتنة'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        MyTextField(
+            controller: employeeController, labelText: 'المسلم لقسم الجاهزة'),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            Expanded(
+              child: MyTextField(
+                controller: startTimeController,
+                labelText: 'وقت بدء التعبئة',
+                readOnly: true,
+                onTap: () async {
+                  TimeOfDay? pickedTime = await showTimePicker(
+                    context: context,
+                    initialTime: TimeOfDay.now(),
+                  );
+                  if (pickedTime != null) {
+                    final now = DateTime.now();
+                    final formattedTime = DateFormat('HH:mm').format(
+                      DateTime(now.year, now.month, now.day, pickedTime.hour,
+                          pickedTime.minute),
+                    );
+                    startTimeController.text = formattedTime;
+                    _calculateDuration();
+                  }
+                },
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: MyTextField(
+                controller: finishTimeController,
+                labelText: 'وقت انتهاء التعبئة',
+                readOnly: true,
+                onTap: () async {
+                  TimeOfDay? pickedTime = await showTimePicker(
+                    context: context,
+                    initialTime: TimeOfDay.now(),
+                  );
+                  if (pickedTime != null) {
+                    final now = DateTime.now();
+                    final formattedTime = DateFormat('HH:mm').format(
+                      DateTime(now.year, now.month, now.day, pickedTime.hour,
+                          pickedTime.minute),
+                    );
+                    finishTimeController.text = formattedTime;
+                    _calculateDuration();
+                  }
+                },
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Text(
+          'مدة العمل: $durationText',
+          style: const TextStyle(
+            fontSize: 14,
+          ),
+        ),
+        const SizedBox(height: 10),
+        Row(
+          // spacing: 10,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Expanded(
+              child: MyTextField(
+                controller: packagingDensityController,
+                labelText: 'كثافة التعبئة',
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(
+                    RegExp(r'^\d*\.?\d*'),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: MyTextField(
+                  controller: batchLeftoverController,
+                  labelText: 'متبقي الطبخة'),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: MyTextField(
+                  readOnly: true,
+                  controller: countDensityController,
+                  labelText: 'الكثافة حسب الفراغ'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Row(
+          // spacing: 10,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Expanded(
+              child: MyTextField(
+                controller: receiptNumberController,
+                labelText: 'رقم الوصل',
+                keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                ],
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: MyTextField(
+                onChanged: (value) => _calculateDensity(),
+                controller: containerEmptyController,
+                labelText: 'فراغ الحلة',
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(
+                    RegExp(r'^\d*\.?\d*'),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: MyTextField(
+                onChanged: (value) => _calculateDensity(),
+                controller: packagingWeightController,
+                labelText: 'وزن التعبئة',
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(
+                    RegExp(r'^\d*\.?\d*'),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        MyTextField(
+          readOnly: true,
+          controller: completionDateController,
+          labelText: 'تاريخ انتهاء التعبئة',
+          onTap: () async {
+            DateTime? pickedDate = await showDatePicker(
+              context: context,
+              initialDate: DateTime.now(),
+              firstDate: DateTime(2020),
+              lastDate: DateTime(2100),
+            );
+
+            if (pickedDate != null) {
+              setState(() {
+                completionDateController.text =
+                    DateFormat('yyyy-MM-dd').format(pickedDate);
+              });
+            }
+          },
+        ),
+        const SizedBox(height: 10),
+        MyTextField(
+            maxLines: 10,
+            controller: notesController,
+            labelText: 'ملاحظات التعبئة'),
+        const SizedBox(height: 10),
+        MyTextField(
+            maxLines: 10,
+            controller: problemsController,
+            labelText: 'مشاكل التعبئة'),
+        const SizedBox(height: 10),
+        if ((groups!.contains('admins') || groups!.contains('packaging_dep')) &&
+            widget.type == 'Production')
+          Mybutton(
+            text: 'حفظ',
+            onPressed: () {
+              if (!_isDurationValid()) {
+                showSnackBar(
+                  context: context,
+                  content: 'الوقت غير صحيح ⏳',
+                  failure: true,
+                );
+                return;
+              }
+              _fillPackagingModelFromFomr();
+              print(_packagingModel);
+              context
+                  .read<ProductionBloc>()
+                  .add(SavePackaging(packagingModel: _packagingModel));
+            },
+          ),
+      ],
+    );
+  }
+
+  //-- WIDGET FOR LANDSCAPE LAYOUT --
+  Widget _buildLandscapeLayout(BuildContext context) {
+    return Column(
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            //-- COLUMN 1 --
+            Expanded(
+              child: Column(
+                children: [
+                  if (widget.type == 'Production') ...[
+                    CheckboxListTile(
+                      title: const Text(
+                        'استلمت الطبخة من التصنيع',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                      value: packagingCheck_1,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          packagingCheck_1 = value ?? false;
+                        });
+                      },
+                      controlAffinity: ListTileControlAffinity.leading,
+                    ),
+                    CheckboxListTile(
+                      title: const Text(
+                        'استلمت الفوارغ جاهزة',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                      value: packagingCheck_2,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          packagingCheck_2 = value ?? false;
+                        });
+                      },
+                      controlAffinity: ListTileControlAffinity.leading,
+                    ),
+                    CheckboxListTile(
+                      title: const Text(
+                        'قيد التعبئة',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                      value: packagingCheck_3,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          packagingCheck_3 = value ?? false;
+                        });
+                      },
+                      controlAffinity: ListTileControlAffinity.leading,
+                    ),
+                    CheckboxListTile(
+                      title: const Text(
+                        'انتهت التعبئة',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                      value: packagingCheck_4,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          packagingCheck_4 = value ?? false;
+                        });
+                      },
+                      controlAffinity: ListTileControlAffinity.leading,
+                    ),
+                    CheckboxListTile(
+                      title: const Text(
+                        'كرتنت للتسليم',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                      value: packagingCheck_5,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          packagingCheck_5 = value ?? false;
+                        });
+                      },
+                      controlAffinity: ListTileControlAffinity.leading,
+                    ),
+                    CheckboxListTile(
+                      title: const Text(
+                        'المعلومات جاهزة للأرشفة',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                      value: packagingCheck_6,
+                      onChanged: (bool? value) {
+                        if (value == true) {
+                          if (employeeController.text.trim().isEmpty) {
+                            showSnackBar(
+                              context: context,
+                              content: 'يرجى إدخال اسم الموظف قبل الأرشفة',
+                              failure: true,
+                            );
+                            return;
+                          }
+                          if (startTimeController.text.trim().isEmpty) {
+                            showSnackBar(
+                              context: context,
+                              content: 'يرجى تحديد وقت البدء قبل الأرشفة',
+                              failure: true,
+                            );
+                            return;
+                          }
+                          if (finishTimeController.text.trim().isEmpty) {
+                            showSnackBar(
+                              context: context,
+                              content: 'يرجى تحديد وقت الإنتهاء قبل الأرشفة',
+                              failure: true,
+                            );
+                            return;
+                          }
+                          if (packagingDensityController.text.trim().isEmpty) {
+                            showSnackBar(
+                              context: context,
+                              content: 'يرجى تحديد كثافة الطبخة قبل الأرشفة',
+                              failure: true,
+                            );
+                            return;
+                          }
+                          if (receiptNumberController.text.trim().isEmpty) {
+                            showSnackBar(
+                              context: context,
+                              content: 'يرجى تحديد رقم الوصل قبل الأرشفة',
+                              failure: true,
+                            );
+                            return;
+                          }
+                          if (packagingWeightController.text.trim().isEmpty) {
+                            showSnackBar(
+                              context: context,
+                              content: 'يرجى تحديد وزن الطبخة قبل الأرشفة',
+                              failure: true,
+                            );
+                            return;
+                          }
+                          if (completionDateController.text.trim().isEmpty) {
+                            showSnackBar(
+                              context: context,
+                              content: 'يرجى تحديد تاريخ الانتهاء قبل الأرشفة',
+                              failure: true,
+                            );
+                            return;
+                          }
+                        }
+                        setState(() {
+                          packagingCheck_6 = value ?? false;
+                        });
+                      },
+                      controlAffinity: ListTileControlAffinity.leading,
+                    ),
+                  ],
+                  const SizedBox(height: 29),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: MyTextField(
+                          controller: startTimeController,
+                          labelText: 'وقت البدء',
+                          readOnly: true,
+                          onTap: () async {
+                            TimeOfDay? pickedTime = await showTimePicker(
+                              context: context,
+                              initialTime: TimeOfDay.now(),
+                            );
+                            if (pickedTime != null) {
+                              final now = DateTime.now();
+                              final formattedTime = DateFormat('HH:mm').format(
+                                DateTime(now.year, now.month, now.day,
+                                    pickedTime.hour, pickedTime.minute),
+                              );
+                              startTimeController.text = formattedTime;
+                              _calculateDuration();
+                            }
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: MyTextField(
+                          controller: finishTimeController,
+                          labelText: 'وقت الانتهاء',
+                          readOnly: true,
+                          onTap: () async {
+                            TimeOfDay? pickedTime = await showTimePicker(
+                              context: context,
+                              initialTime: TimeOfDay.now(),
+                            );
+                            if (pickedTime != null) {
+                              final now = DateTime.now();
+                              final formattedTime = DateFormat('HH:mm').format(
+                                DateTime(now.year, now.month, now.day,
+                                    pickedTime.hour, pickedTime.minute),
+                              );
+                              finishTimeController.text = formattedTime;
+                              _calculateDuration();
+                            }
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'مدة العمل: $durationText',
+                    style: const TextStyle(
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  MyTextField(
+                    readOnly: true,
+                    controller: completionDateController,
+                    labelText: 'تاريخ الانتهاء',
+                    onTap: () async {
+                      DateTime? pickedDate = await showDatePicker(
+                        context: context,
+                        initialDate: DateTime.now(),
+                        firstDate: DateTime(2020),
+                        lastDate: DateTime(2100),
+                      );
+                      if (pickedDate != null) {
+                        setState(() {
+                          completionDateController.text =
+                              DateFormat('yyyy-MM-dd').format(pickedDate);
+                        });
+                      }
+                    },
+                  ),
+                  const SizedBox(width: 10),
+                ],
+              ),
+            ),
+            const SizedBox(width: 16),
+            //-- COLUMN 2 --
+            Expanded(
+              flex: 2, // Give more space to the second column
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: MyTextField(
+                            controller: printingController, labelText: 'طباعة'),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: MyTextField(
+                            controller: fillingController, labelText: 'تعبئة'),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: MyTextField(
+                            controller: shrinkageController,
+                            labelText: 'شرنكة'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: MyTextField(
+                            controller: baggingController, labelText: 'تكييس'),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: MyTextField(
+                            controller: strappingController,
+                            labelText: 'تربيط'),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: MyTextField(
+                            controller: pressingController, labelText: 'تكبيس'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: MyTextField(
+                            controller: stickersController,
+                            labelText: 'لصاقات'),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: MyTextField(
+                            controller: wrappingController, labelText: 'لف'),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: MyTextField(
+                            controller: cartonsController, labelText: 'كرتنة'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  MyTextField(
+                      controller: employeeController,
+                      labelText: 'المسلم لقسم الجاهزة'),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: MyTextField(
+                          controller: packagingDensityController,
+                          labelText: 'كثافة التعبئة',
+                          keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true),
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(
+                              RegExp(r'^\d*\.?\d*'),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: MyTextField(
+                            controller: batchLeftoverController,
+                            labelText: 'متبقي الطبخة'),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: MyTextField(
+                          controller: receiptNumberController,
+                          labelText: 'رقم الوصل',
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: MyTextField(
+                          onChanged: (value) => _calculateDensity(),
+                          controller: containerEmptyController,
+                          labelText: 'فراغ الحلة',
+                          keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true),
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(
+                              RegExp(r'^\d*\.?\d*'),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: MyTextField(
+                          onChanged: (value) => _calculateDensity(),
+                          controller: packagingWeightController,
+                          labelText: 'وزن التعبئة',
+                          keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true),
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(
+                              RegExp(r'^\d*\.?\d*'),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: MyTextField(
+                            readOnly: true,
+                            controller: countDensityController,
+                            labelText: 'الكثافة المحسوبة'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  MyTextField(
+                      maxLines: 5,
+                      controller: notesController,
+                      labelText: 'ملاحظات'),
+                  const SizedBox(height: 10),
+                  MyTextField(
+                      maxLines: 5,
+                      controller: problemsController,
+                      labelText: 'مشاكل'),
+                  const SizedBox(height: 10),
+                ],
+              ),
+            ),
+          ],
+        ),
+        if ((groups!.contains('admins') || groups!.contains('packaging_dep')) &&
+            widget.type == 'Production')
+          Mybutton(
+            text: 'حفظ',
+            onPressed: () {
+              if (!_isDurationValid()) {
+                showSnackBar(
+                  context: context,
+                  content: 'الوقت غير صحيح ⏳',
+                  failure: true,
+                );
+                return;
+              }
+              _fillPackagingModelFromFomr();
+              print(_packagingModel);
+              context
+                  .read<ProductionBloc>()
+                  .add(SavePackaging(packagingModel: _packagingModel));
+            },
+          ),
+      ],
     );
   }
 

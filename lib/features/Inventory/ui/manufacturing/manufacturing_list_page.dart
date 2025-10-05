@@ -184,17 +184,16 @@ class _ManufacturingListPageChildState
                       }
                     },
                     builder: (context, state) {
-                      if (state is InventoryInitial) {
-                        return const SizedBox();
-                      } else if (state is InventoryLoading &&
-                          currentPage == 1) {
+                      if (state is InventoryLoading && currentPage == 1) {
                         return const Center(
                           child: Loader(),
                         );
-                      } else if (state is InventoryError) {
-                        return const Center(child: Text('حدث خطأ ما'));
-                      } else if (_model.isEmpty) {
-                        // This is the new condition for empty list
+                      }
+
+                      if (_model.isEmpty) {
+                        if (state is InventoryLoading) {
+                          return const Center(child: Loader());
+                        }
                         return Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -215,107 +214,53 @@ class _ManufacturingListPageChildState
                             ],
                           ),
                         );
-                      } else if (_model.isNotEmpty) {
-                        return Builder(builder: (context) {
-                          return ListView.builder(
-                            controller: _scrollController,
-                            itemCount: _model.length + 1,
-                            itemBuilder: (context, index) {
-                              if (index == _model.length) {
-                                return isLoadingMore
-                                    ? const Padding(
-                                        padding: EdgeInsets.all(16.0),
-                                        child: Center(child: Loader()),
-                                      )
-                                    : const SizedBox
-                                        .shrink(); // Empty space when not loading more data
-                              }
-
-                              return InkWell(
-                                onTap: () {
-                                  context.read<InventoryBloc>().add(
-                                        GetOneManufacturing(
-                                            id: _model[index].id),
-                                      );
-                                },
-                                child: Card(
-                                  margin: const EdgeInsets.symmetric(
-                                      vertical: 8, horizontal: 12),
-                                  elevation: 4,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(12.0),
-                                    child: Row(
-                                      spacing: 10,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      children: [
-                                        Expanded(
-                                          flex: 1,
-                                          child: CircleAvatar(
-                                            backgroundColor: Colors.teal,
-                                            radius: 11,
-                                            child: Text(
-                                              _model[index].serial.toString(),
-                                              style: const TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 8),
-                                            ),
-                                          ),
-                                        ),
-                                        Expanded(
-                                          flex: 7,
-                                          child: Column(
-                                            spacing: 5,
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                _model[index]
-                                                        .manufactured_item_name ??
-                                                    "",
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                              Row(
-                                                spacing: 5,
-                                                children: [
-                                                  Text(
-                                                      _model[index].date ?? ""),
-                                                ],
-                                              )
-                                            ],
-                                          ),
-                                        ),
-                                        Expanded(
-                                          flex: 3,
-                                          child: Text(
-                                            _model[index].batch_number ?? "",
-                                            style: const TextStyle(
-                                              fontSize: 12,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
-                          );
-                        });
-                      } else if (state is InventoryError) {
-                        return const Center(
-                          child: Text(
-                            'حدث خطأ ما',
-                          ),
-                        );
-                      } else {
-                        return const Center(
-                          child: Loader(),
-                        );
                       }
+
+                      // --- RESPONSIVE LAYOUT IMPLEMENTATION ---
+                      return OrientationBuilder(
+                        builder: (context, orientation) {
+                          if (orientation == Orientation.landscape) {
+                            // --- LANDSCAPE UI: GridView ---
+                            return GridView.builder(
+                              controller: _scrollController,
+                              padding: const EdgeInsets.all(8.0),
+                              gridDelegate:
+                                  const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 3, // Set to 3 columns
+                                childAspectRatio: 2.5, // Adjust for better look
+                                crossAxisSpacing: 8,
+                                mainAxisSpacing: 8,
+                              ),
+                              itemCount: _model.length + 1,
+                              itemBuilder: (context, index) {
+                                if (index == _model.length) {
+                                  return isLoadingMore
+                                      ? const Center(child: Loader())
+                                      : const SizedBox.shrink();
+                                }
+                                return _buildManufacturingCard(index);
+                              },
+                            );
+                          } else {
+                            // --- PORTRAIT UI: ListView ---
+                            return ListView.builder(
+                              controller: _scrollController,
+                              itemCount: _model.length + 1,
+                              itemBuilder: (context, index) {
+                                if (index == _model.length) {
+                                  return isLoadingMore
+                                      ? const Padding(
+                                          padding: EdgeInsets.all(16.0),
+                                          child: Center(child: Loader()),
+                                        )
+                                      : const SizedBox.shrink();
+                                }
+                                return _buildManufacturingCard(index);
+                              },
+                            );
+                          }
+                        },
+                      );
                     },
                   ),
                 ),
@@ -325,5 +270,65 @@ class _ManufacturingListPageChildState
         ),
       );
     });
+  }
+
+  /// Helper widget to build the manufacturing item card.
+  /// This avoids code duplication between ListView and GridView.
+  Widget _buildManufacturingCard(int index) {
+    return InkWell(
+      onTap: () {
+        context.read<InventoryBloc>().add(
+              GetOneManufacturing(id: _model[index].id),
+            );
+      },
+      child: Card(
+        margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+        elevation: 4,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              CircleAvatar(
+                backgroundColor: Colors.teal,
+                radius: 11,
+                child: Text(
+                  _model[index].serial.toString(),
+                  style: const TextStyle(color: Colors.white, fontSize: 8),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                flex: 7,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _model[index].manufactured_item_name ?? "",
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(_model[index].date ?? ""),
+                  ],
+                ),
+              ),
+              Expanded(
+                flex: 3,
+                child: Text(
+                  _model[index].batch_number ?? "",
+                  textAlign: TextAlign.end,
+                  style: const TextStyle(
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

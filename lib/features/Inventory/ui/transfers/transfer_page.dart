@@ -1,8 +1,6 @@
 import 'dart:async';
-import 'dart:math';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gmcappclean/core/common/api/api.dart';
@@ -20,9 +18,7 @@ import 'package:gmcappclean/features/Inventory/services/inventory_services.dart'
 import 'package:gmcappclean/features/Inventory/ui/transfers/transfers_list_page.dart';
 import 'package:gmcappclean/init_dependencies.dart';
 import 'package:intl/intl.dart';
-import 'package:pdf/pdf.dart';
-import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
+import 'package:flutter/scheduler.dart';
 
 class TransferPage extends StatelessWidget {
   final TransferModel? transferModel;
@@ -68,329 +64,13 @@ class TransferPageChild extends StatefulWidget {
 }
 
 class _TransferPageChildState extends State<TransferPageChild> {
-  Future<Uint8List> _generatePdf(PdfPageFormat format) async {
-    final pdf = pw.Document();
-    final arabicFont =
-        pw.Font.ttf(await rootBundle.load('assets/fonts/Cairo-Regular.ttf'));
-
-    // Calculate how many items can fit per page
-    const itemsPerPage = 15; // Adjust this based on your testing
-    final totalPages = (_editableItems.length / itemsPerPage).ceil();
-
-    for (var pageNum = 0; pageNum < totalPages; pageNum++) {
-      final startIndex = pageNum * itemsPerPage;
-      final endIndex = min((pageNum + 1) * itemsPerPage, _editableItems.length);
-      final pageItems = _editableItems.sublist(startIndex, endIndex);
-
-      pdf.addPage(
-        pw.Page(
-          pageFormat: PdfPageFormat.a5,
-          build: (pw.Context context) {
-            return pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                // Header section (same for all pages)
-                pw.Row(
-                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                  children: [
-                    pw.Text(
-                      'الرقم: ${_serialController.text}',
-                      style: pw.TextStyle(font: arabicFont),
-                      textDirection: pw.TextDirection.rtl,
-                    ),
-                    pw.Text(
-                      'التاريخ: ${_dateController.text}',
-                      style: pw.TextStyle(font: arabicFont),
-                      textDirection: pw.TextDirection.rtl,
-                    ),
-                  ],
-                ),
-                pw.SizedBox(height: 5),
-                pw.Row(
-                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                  children: [
-                    pw.Text(
-                      'من المستودع: ${_fromWarehouseController.text}',
-                      style: pw.TextStyle(font: arabicFont, fontSize: 10),
-                      textDirection: pw.TextDirection.rtl,
-                    ),
-                    pw.Text(
-                      'إلى المستودع: ${_toWarehouseController.text}',
-                      style: pw.TextStyle(font: arabicFont, fontSize: 10),
-                      textDirection: pw.TextDirection.rtl,
-                    ),
-                  ],
-                ),
-                pw.SizedBox(height: 5),
-                pw.Align(
-                  alignment: pw.Alignment.bottomRight,
-                  child: pw.Text(
-                    'البيان: ${_noteController.text}',
-                    style: pw.TextStyle(font: arabicFont),
-                    textDirection: pw.TextDirection.rtl,
-                  ),
-                ),
-                pw.SizedBox(height: 5),
-                pw.Align(
-                  alignment: pw.Alignment.bottomRight,
-                  child: pw.Text(
-                    'تفاصيل المواد',
-                    style: pw.TextStyle(
-                      fontSize: 10,
-                      fontWeight: pw.FontWeight.bold,
-                      font: arabicFont,
-                    ),
-                    textDirection: pw.TextDirection.rtl,
-                  ),
-                ),
-                pw.SizedBox(height: 10),
-
-                // Table with current page items
-                pw.Table(
-                  border: pw.TableBorder.all(),
-                  columnWidths: {
-                    0: const pw.FlexColumnWidth(2), // Total
-                    1: const pw.FlexColumnWidth(2), // Price
-                    2: const pw.FlexColumnWidth(1.5), // Quantity
-                    3: const pw.FlexColumnWidth(1.5), // Unit
-                    4: const pw.FlexColumnWidth(5), // Item
-                    5: const pw.FlexColumnWidth(1), // No.
-                  },
-                  children: [
-                    // Table header
-                    pw.TableRow(
-                      verticalAlignment: pw.TableCellVerticalAlignment.middle,
-                      children: [
-                        pw.Padding(
-                          padding: const pw.EdgeInsets.all(4),
-                          child: pw.Center(
-                            child: pw.Text(
-                              'الإجمالي',
-                              style: pw.TextStyle(
-                                fontWeight: pw.FontWeight.bold,
-                                font: arabicFont,
-                                fontSize: 9,
-                              ),
-                              textDirection: pw.TextDirection.rtl,
-                              textAlign: pw.TextAlign.center,
-                            ),
-                          ),
-                        ),
-                        pw.Padding(
-                          padding: const pw.EdgeInsets.all(4),
-                          child: pw.Center(
-                            child: pw.Text(
-                              'السعر',
-                              style: pw.TextStyle(
-                                fontWeight: pw.FontWeight.bold,
-                                font: arabicFont,
-                                fontSize: 9,
-                              ),
-                              textDirection: pw.TextDirection.rtl,
-                              textAlign: pw.TextAlign.center,
-                            ),
-                          ),
-                        ),
-                        pw.Padding(
-                          padding: const pw.EdgeInsets.all(4),
-                          child: pw.Center(
-                            child: pw.Text(
-                              'الكمية',
-                              style: pw.TextStyle(
-                                fontWeight: pw.FontWeight.bold,
-                                font: arabicFont,
-                                fontSize: 9,
-                              ),
-                              textDirection: pw.TextDirection.rtl,
-                              textAlign: pw.TextAlign.center,
-                            ),
-                          ),
-                        ),
-                        pw.Padding(
-                          padding: const pw.EdgeInsets.all(4),
-                          child: pw.Center(
-                            child: pw.Text(
-                              'الوحدة',
-                              style: pw.TextStyle(
-                                fontWeight: pw.FontWeight.bold,
-                                font: arabicFont,
-                                fontSize: 9,
-                              ),
-                              textDirection: pw.TextDirection.rtl,
-                              textAlign: pw.TextAlign.center,
-                            ),
-                          ),
-                        ),
-                        pw.Padding(
-                          padding: const pw.EdgeInsets.all(4),
-                          child: pw.Center(
-                            child: pw.Text(
-                              'المادة',
-                              style: pw.TextStyle(
-                                fontWeight: pw.FontWeight.bold,
-                                font: arabicFont,
-                                fontSize: 9,
-                              ),
-                              textDirection: pw.TextDirection.rtl,
-                              textAlign: pw.TextAlign.center,
-                            ),
-                          ),
-                        ),
-                        pw.Padding(
-                          padding: const pw.EdgeInsets.all(4),
-                          child: pw.Center(
-                            child: pw.Text(
-                              '.',
-                              style: pw.TextStyle(
-                                fontWeight: pw.FontWeight.bold,
-                                font: arabicFont,
-                                fontSize: 9,
-                              ),
-                              textDirection: pw.TextDirection.rtl,
-                              textAlign: pw.TextAlign.center,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    // Table data rows
-                    for (var i = 0; i < pageItems.length; i++)
-                      pw.TableRow(
-                        verticalAlignment: pw.TableCellVerticalAlignment.middle,
-                        children: [
-                          pw.Padding(
-                            padding: const pw.EdgeInsets.all(4),
-                            child: pw.Center(
-                              child: pw.Text(
-                                _numberFormat
-                                    .format(_getItemTotal(startIndex + i)),
-                                style:
-                                    pw.TextStyle(font: arabicFont, fontSize: 7),
-                                textDirection: pw.TextDirection.rtl,
-                                textAlign: pw.TextAlign.center,
-                              ),
-                            ),
-                          ),
-                          pw.Padding(
-                            padding: const pw.EdgeInsets.all(4),
-                            child: pw.Center(
-                              child: pw.Text(
-                                _priceControllers[startIndex + i].text,
-                                style:
-                                    pw.TextStyle(font: arabicFont, fontSize: 7),
-                                textDirection: pw.TextDirection.rtl,
-                                textAlign: pw.TextAlign.center,
-                              ),
-                            ),
-                          ),
-                          pw.Padding(
-                            padding: const pw.EdgeInsets.all(4),
-                            child: pw.Center(
-                              child: pw.Text(
-                                _quantityControllers[startIndex + i].text,
-                                style:
-                                    pw.TextStyle(font: arabicFont, fontSize: 7),
-                                textDirection: pw.TextDirection.rtl,
-                                textAlign: pw.TextAlign.center,
-                              ),
-                            ),
-                          ),
-                          pw.Padding(
-                            padding: const pw.EdgeInsets.all(4),
-                            child: pw.Center(
-                              child: pw.Text(
-                                _itemUnitControllers[startIndex + i].text,
-                                style:
-                                    pw.TextStyle(font: arabicFont, fontSize: 7),
-                                textDirection: pw.TextDirection.rtl,
-                                textAlign: pw.TextAlign.center,
-                              ),
-                            ),
-                          ),
-                          pw.Padding(
-                            padding: const pw.EdgeInsets.all(4),
-                            child: pw.Center(
-                              child: pw.Text(
-                                _itemNameControllers[startIndex + i]
-                                    .text
-                                    .split('-')
-                                    .last
-                                    .trim(), // This will split by '-' and take the last part
-                                style:
-                                    pw.TextStyle(font: arabicFont, fontSize: 7),
-                                textDirection: pw.TextDirection.rtl,
-                                textAlign: pw.TextAlign.center,
-                              ),
-                            ),
-                          ),
-                          pw.Padding(
-                            padding: const pw.EdgeInsets.all(4),
-                            child: pw.Center(
-                              child: pw.Text(
-                                (startIndex + i + 1).toString(),
-                                style:
-                                    pw.TextStyle(font: arabicFont, fontSize: 7),
-                                textDirection: pw.TextDirection.rtl,
-                                textAlign: pw.TextAlign.center,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                  ],
-                ),
-
-                // Footer section
-                pw.SizedBox(height: 10),
-                if (pageNum ==
-                    totalPages - 1) // Show grand total only on last page
-                  pw.Align(
-                    alignment: pw.Alignment.bottomRight,
-                    child: pw.Text(
-                      'الإجمالي الكلي: ${_numberFormat.format(_grandTotal)}',
-                      style: pw.TextStyle(
-                        fontSize: 12,
-                        fontWeight: pw.FontWeight.bold,
-                        font: arabicFont,
-                      ),
-                      textDirection: pw.TextDirection.rtl,
-                    ),
-                  ),
-                pw.Align(
-                  alignment: pw.Alignment.bottomRight,
-                  child: pw.Text(
-                    ' (صفحة ${pageNum + 1} من $totalPages)',
-                    style: pw.TextStyle(
-                      fontSize: 10,
-                      fontWeight: pw.FontWeight.bold,
-                      font: arabicFont,
-                    ),
-                    textDirection: pw.TextDirection.rtl,
-                  ),
-                ),
-              ],
-            );
-          },
-        ),
-      );
-    }
-
-    return pdf.save();
+  bool get _isLandscape {
+    final mediaQuery = MediaQuery.of(context);
+    return mediaQuery.orientation == Orientation.landscape;
   }
 
-  void _printTransfer() async {
-    try {
-      await Printing.layoutPdf(onLayout: _generatePdf);
-    } catch (e) {
-      showSnackBar(
-        context: context,
-        content: 'فشل في إنشاء وثيقة الطباعة: $e',
-        failure: true,
-      );
-    }
-  }
-
+  bool _isSubmitting = false;
+  int? _currentTransferId;
   String? _previousSerial;
   final _fromWarehouseController = TextEditingController();
   final _fromWarehouseFocusNode = FocusNode();
@@ -402,8 +82,7 @@ class _TransferPageChildState extends State<TransferPageChild> {
   bool _isSelectingToWarehouse = false;
   int? _selectedToWarehouseId;
 
-  final bool _isFormSubmitting =
-      false; // This variable is declared but not used to prevent submission state.
+  final bool _isFormSubmitting = false;
   String? _lastSearchField;
 
   int currentItemSearchPage = 1;
@@ -435,7 +114,7 @@ class _TransferPageChildState extends State<TransferPageChild> {
   @override
   void initState() {
     super.initState();
-
+    _currentTransferId = widget.transferModel?.id;
     if (widget.transferModel != null) {
       // Populate fields from existing transfer model
       _serialController.text = widget.transferModel!.serial.toString();
@@ -977,76 +656,134 @@ class _TransferPageChildState extends State<TransferPageChild> {
   }
 
   void _fillFormFromTransferModel(TransferModel transfer) {
-    // Clear existing data
-    _disposeItemControllers();
-    _editableItems.clear();
-    _selectedItemData.clear();
+    // Use setState to ensure the UI rebuilds with the new data.
+    setState(() {
+      // 1. Update the state variables with the new transfer's info.
+      _currentTransferId = transfer.id; // Solves the update ID issue
+      _serialController.text =
+          transfer.serial.toString(); // Updates the serial field
 
-    // Set basic fields
-    _dateController.text = transfer.date ?? '';
-    _noteController.text = transfer.note ?? '';
-    _fromWarehouseController.text = transfer.from_warehouse_name ?? '';
-    _toWarehouseController.text = transfer.to_warehouse_name ?? '';
-    _selectedFromWarehouseId = transfer.from_warehouse;
-    _selectedToWarehouseId = transfer.to_warehouse;
+      // 2. Clear all previous data and controllers to prevent memory leaks.
+      _disposeItemControllers();
+      _editableItems.clear();
+      _selectedItemData.clear();
 
-    // Add items
-    if (transfer.items != null) {
-      for (var item in transfer.items!) {
-        _editableItems.add(Map<String, dynamic>.from(item));
+      // 3. Set the main form fields from the new transfer object.
+      _dateController.text = transfer.date ?? '';
+      _noteController.text = transfer.note ?? '';
+      _fromWarehouseController.text = transfer.from_warehouse_name ?? '';
+      _toWarehouseController.text = transfer.to_warehouse_name ?? '';
+      _selectedFromWarehouseId = transfer.from_warehouse;
+      _selectedToWarehouseId = transfer.to_warehouse;
 
-        // Create controllers for this item
-        final itemNameController =
-            TextEditingController(text: item['item_name']?.toString() ?? '');
-        final itemUnitController =
-            TextEditingController(text: item['item_unit']?.toString() ?? '');
-        final quantityController =
-            TextEditingController(text: item['quantity']?.toString() ?? '');
-        final priceController =
-            TextEditingController(text: item['price']?.toString() ?? '');
-        final itemNoteController =
-            TextEditingController(text: item['note']?.toString() ?? '');
+      // 4. Rebuild the item list from the new transfer's items.
+      if (transfer.items != null) {
+        for (var item in transfer.items!) {
+          _editableItems.add(Map<String, dynamic>.from(item));
 
-        // Add controllers to lists
-        _itemNameControllers.add(itemNameController);
-        _itemUnitControllers.add(itemUnitController);
-        _quantityControllers.add(quantityController);
-        _priceControllers.add(priceController);
-        _itemNoteControllers.add(itemNoteController);
+          // Create controllers for this item
+          final itemNameController =
+              TextEditingController(text: item['item_name']?.toString() ?? '');
+          final itemUnitController =
+              TextEditingController(text: item['item_unit']?.toString() ?? '');
+          final quantityController =
+              TextEditingController(text: item['quantity']?.toString() ?? '');
+          final priceController =
+              TextEditingController(text: item['price']?.toString() ?? '');
+          final itemNoteController =
+              TextEditingController(text: item['note']?.toString() ?? '');
 
-        // Add focus nodes
-        final quantityFocusNode = FocusNode();
-        quantityFocusNode.addListener(() => _onQuantityFocusChange(
-            _quantityFocusNodes.indexOf(quantityFocusNode)));
-        _quantityFocusNodes.add(quantityFocusNode);
+          // Add controllers to lists
+          _itemNameControllers.add(itemNameController);
+          _itemUnitControllers.add(itemUnitController);
+          _quantityControllers.add(quantityController);
+          _priceControllers.add(priceController);
+          _itemNoteControllers.add(itemNoteController);
 
-        final itemNameFocusNode = FocusNode();
-        itemNameFocusNode.addListener(() => _onItemFocusNodeChange(
-            _itemNameFocusNodes.indexOf(itemNameFocusNode)));
-        _itemNameFocusNodes.add(itemNameFocusNode);
+          // Add focus nodes
+          final quantityFocusNode = FocusNode();
+          quantityFocusNode.addListener(() => _onQuantityFocusChange(
+              _quantityFocusNodes.indexOf(quantityFocusNode)));
+          _quantityFocusNodes.add(quantityFocusNode);
 
-        // Add listeners
-        quantityController.addListener(_updateTotals);
-        priceController.addListener(_updateTotals);
+          final itemNameFocusNode = FocusNode();
+          itemNameFocusNode.addListener(() => _onItemFocusNodeChange(
+              _itemNameFocusNodes.indexOf(itemNameFocusNode)));
+          _itemNameFocusNodes.add(itemNameFocusNode);
 
-        // Parse item details if available
-        ItemsModel? selectedItem;
-        if (item['item_details'] != null && item['item_details'] is Map) {
-          try {
-            selectedItem = ItemsModel.fromMap(
-                Map<String, dynamic>.from(item['item_details'] as Map));
-          } catch (e) {
-            debugPrint('Error parsing item_details: $e');
+          // Add listeners to update totals automatically
+          quantityController.addListener(_updateTotals);
+          priceController.addListener(_updateTotals);
+
+          // Parse item_details to get full item data for balances/prices
+          ItemsModel? selectedItem;
+          if (item['item_details'] != null && item['item_details'] is Map) {
+            try {
+              selectedItem = ItemsModel.fromMap(
+                  Map<String, dynamic>.from(item['item_details'] as Map));
+            } catch (e) {
+              debugPrint('Error parsing item_details: $e');
+            }
           }
+          _selectedItemData.add(selectedItem);
         }
-        _selectedItemData.add(selectedItem);
+      }
+    });
+  }
+
+  void _navigateToSalesInvoice() {
+    // 1. Collect the current items from the form.
+    // This ensures that any edits made on the screen are carried over.
+    List<Map<String, dynamic>> currentItems = [];
+    for (int i = 0; i < _editableItems.length; i++) {
+      final itemId = _selectedItemData[i]?.id ?? _editableItems[i]['item'];
+      final quantity =
+          double.tryParse(_quantityControllers[i].text.replaceAll(',', '')) ??
+              0;
+
+      // Only include items that have been selected and have a quantity
+      if (itemId != null && quantity > 0) {
+        currentItems.add({
+          'item': itemId,
+          'item_name': _itemNameControllers[i].text,
+          'item_unit': _itemUnitControllers[i].text,
+          'quantity': quantity,
+          'price':
+              double.tryParse(_priceControllers[i].text.replaceAll(',', '')) ??
+                  0,
+          'note': _itemNoteControllers[i].text,
+          // Pass the full item details so the new page can load all necessary info
+          'item_details': _selectedItemData[i]?.toMap(),
+        });
       }
     }
 
-    // Update UI
-    if (mounted) {
-      setState(() {});
-    }
+    // 2. Create the new TransferModel for the sales invoice page.
+    final salesInvoiceModel = TransferModel(
+      id: 0, // This is a new document, so it has no ID yet.
+      transfer_type: 102, // This is the type for "مبيعات" (Sales).
+      date: DateFormat('yyyy-MM-dd').format(
+          DateTime.now()), // Default to today's date for the new invoice.
+      note: _noteController.text, // Carry over the note.
+      from_warehouse: _selectedToWarehouseId,
+      from_warehouse_name: _toWarehouseController
+          .text, // The source warehouse becomes the sales warehouse.
+      to_warehouse: null, // Sales invoices don't have a destination warehouse.
+      to_warehouse_name: null,
+      items: currentItems, // Use the items collected from the current page.
+      serial: null, // This is a new document, so it has no serial yet.
+    );
+
+    // 3. Navigate to a new TransferPage instance configured as a sales invoice.
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TransferPage(
+          transfer_type: 102,
+          transferModel: salesInvoiceModel,
+        ),
+      ),
+    );
   }
 
   List<String>? groups;
@@ -1065,19 +802,22 @@ class _TransferPageChildState extends State<TransferPageChild> {
             _getTitleForTransferType(widget.transfer_type),
           ),
           actions: [
-            if (widget.transferModel != null)
+            // ADD THIS NEW WIDGET HERE
+            if (widget.transfer_type == 6 && widget.transferModel != null)
               IconButton(
-                onPressed: _printTransfer,
-                icon: const Icon(Icons.print),
+                icon: const Icon(Icons.receipt_long_outlined),
+                tooltip: 'تحويل إلى فاتورة مبيعات',
+                onPressed: _navigateToSalesInvoice,
               ),
+            // Your existing print button
           ],
         ),
         body: BlocConsumer<InventoryBloc, InventoryState>(
           listener: (context, state) {
             if (state is InventorySuccess<TransferModel>) {
-              if (state.result.serial.toString() == _serialController.text) {
-                _fillFormFromTransferModel(state.result);
-              } else {
+              if (_isSubmitting) {
+                // YES: Show success and navigate back.
+                _isSubmitting = false; // Reset the flag
                 showSnackBar(context: context, content: 'تم', failure: false);
                 Navigator.pop(context);
                 Navigator.pushReplacement(
@@ -1088,6 +828,12 @@ class _TransferPageChildState extends State<TransferPageChild> {
                     ),
                   ),
                 );
+              } else {
+                // NO: It was a fetch, so just update the form.
+                _fillFormFromTransferModel(state.result);
+                _serialController.text = state.result.serial.toString();
+                _previousSerial =
+                    _serialController.text; // Prevents re-fetching
               }
             } else if (state is InventorySuccess<bool>) {
               showSnackBar(
@@ -1154,16 +900,13 @@ class _TransferPageChildState extends State<TransferPageChild> {
                       (price) => price['list_name'] == 'A',
                       orElse: () => <String, dynamic>{},
                     );
-                    if (_priceControllers[_currentItemSearchIndex!]
-                        .text
-                        .isEmpty) {
-                      if (defaultPriceA.isNotEmpty &&
-                          defaultPriceA.containsKey('price')) {
-                        _priceControllers[_currentItemSearchIndex!].text =
-                            defaultPriceA['price'].toString();
-                      } else {
-                        _priceControllers[_currentItemSearchIndex!].clear();
-                      }
+                    if (defaultPriceA.isNotEmpty &&
+                        defaultPriceA.containsKey('price')) {
+                      _priceControllers[_currentItemSearchIndex!].text =
+                          defaultPriceA['price'].toString();
+                    } else {
+                      // If the new item has no default price, clear the field
+                      _priceControllers[_currentItemSearchIndex!].clear();
                     }
 
                     // Focus on quantity after single item is found
@@ -1235,7 +978,7 @@ class _TransferPageChildState extends State<TransferPageChild> {
                                 Row(
                                   children: [
                                     Expanded(
-                                      flex: 7,
+                                      flex: 10, // Adjusted flex for space
                                       child: MyTextField(
                                         readOnly: true,
                                         controller: _dateController,
@@ -1250,9 +993,9 @@ class _TransferPageChildState extends State<TransferPageChild> {
                                           );
                                           if (pickedDate != null) {
                                             setState(() {
-                                              _dateController.text = DateFormat(
-                                                'yyyy-MM-dd',
-                                              ).format(pickedDate);
+                                              _dateController.text =
+                                                  DateFormat('yyyy-MM-dd')
+                                                      .format(pickedDate);
                                             });
                                           }
                                         },
@@ -1264,8 +1007,55 @@ class _TransferPageChildState extends State<TransferPageChild> {
                                         },
                                       ),
                                     ),
-                                    const SizedBox(width: 7),
-                                    if (widget.transferModel != null)
+                                    const SizedBox(width: 8),
+                                    if (widget.transferModel?.serial !=
+                                        null) ...[
+                                      // NEW: First Button
+                                      Expanded(
+                                        flex: 1,
+                                        child: IconButton(
+                                          tooltip: 'الأول', // Tooltip: First
+                                          onPressed: () {
+                                            context.read<InventoryBloc>().add(
+                                                  TransfersNavigation(
+                                                    serial: int.parse(
+                                                        _serialController.text),
+                                                    transfer_type:
+                                                        widget.transfer_type,
+                                                    action: 'first',
+                                                  ),
+                                                );
+                                          },
+                                          icon: const FaIcon(
+                                              FontAwesomeIcons.anglesRight),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 4),
+
+                                      // Existing Previous Button
+                                      Expanded(
+                                        flex: 1,
+                                        child: IconButton(
+                                          tooltip:
+                                              'السابق', // Tooltip: Previous
+                                          onPressed: () {
+                                            context.read<InventoryBloc>().add(
+                                                  TransfersNavigation(
+                                                    serial: int.parse(
+                                                        _serialController.text),
+                                                    transfer_type:
+                                                        widget.transfer_type,
+                                                    action: 'previous',
+                                                  ),
+                                                );
+                                          },
+                                          icon: const FaIcon(
+                                              FontAwesomeIcons.angleRight),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+
+                                      // Serial TextField
                                       Expanded(
                                         flex: 3,
                                         child: MyTextField(
@@ -1285,104 +1075,297 @@ class _TransferPageChildState extends State<TransferPageChild> {
                                           },
                                         ),
                                       ),
+                                      const SizedBox(width: 8),
+
+                                      // Existing Next Button
+                                      Expanded(
+                                        flex: 1,
+                                        child: IconButton(
+                                          tooltip: 'التالي', // Tooltip: Next
+                                          onPressed: () {
+                                            context.read<InventoryBloc>().add(
+                                                  TransfersNavigation(
+                                                    serial: int.parse(
+                                                        _serialController.text),
+                                                    transfer_type:
+                                                        widget.transfer_type,
+                                                    action: 'next',
+                                                  ),
+                                                );
+                                          },
+                                          icon: const FaIcon(
+                                              FontAwesomeIcons.angleLeft),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 4),
+
+                                      // NEW: Last Button
+                                      Expanded(
+                                        flex: 1,
+                                        child: IconButton(
+                                          tooltip: 'الأخير', // Tooltip: Last
+                                          onPressed: () {
+                                            context.read<InventoryBloc>().add(
+                                                  TransfersNavigation(
+                                                    serial: int.parse(
+                                                        _serialController.text),
+                                                    transfer_type:
+                                                        widget.transfer_type,
+                                                    action: 'last',
+                                                  ),
+                                                );
+                                          },
+                                          icon: const FaIcon(
+                                              FontAwesomeIcons.anglesLeft),
+                                        ),
+                                      ),
+                                    ],
                                   ],
                                 ),
                                 const SizedBox(height: 7),
-                                if (widget.transfer_type < 100 ||
-                                    widget.transfer_type == 102)
-                                  MyTextField(
-                                    controller: _fromWarehouseController,
-                                    labelText: 'من المستودع',
-                                    focusNode: _fromWarehouseFocusNode,
-                                    suffixIcon: (_fromWarehouseController
-                                            .text.isNotEmpty
-                                        ? (state is InventoryLoading &&
-                                                _lastSearchField == 'from'
-                                            ? const Padding(
-                                                padding: EdgeInsets.all(10),
-                                                child: SizedBox(
-                                                  height: 20,
-                                                  width: 20,
-                                                  child:
-                                                      CircularProgressIndicator(
-                                                    strokeWidth: 2,
-                                                  ),
-                                                ),
-                                              )
-                                            : IconButton(
-                                                icon: const Icon(Icons.clear),
-                                                onPressed: () {
-                                                  setState(() {
-                                                    _fromWarehouseController
-                                                        .clear();
-                                                    _selectedFromWarehouseId =
-                                                        null;
-                                                  });
-                                                },
-                                              ))
-                                        : null),
-                                    validator: (value) {
+                                if (_isLandscape &&
+                                    (widget.transfer_type < 100 ||
+                                        widget.transfer_type == 101 ||
+                                        widget.transfer_type == 102))
+                                  Row(
+                                    children: [
+                                      if (widget.transfer_type < 100 ||
+                                          widget.transfer_type == 102)
+                                        Expanded(
+                                          child: MyTextField(
+                                            controller:
+                                                _fromWarehouseController,
+                                            labelText: 'من المستودع',
+                                            focusNode: _fromWarehouseFocusNode,
+                                            suffixIcon: (_fromWarehouseController
+                                                    .text.isNotEmpty
+                                                ? (state is InventoryLoading &&
+                                                        _lastSearchField ==
+                                                            'from'
+                                                    ? const Padding(
+                                                        padding:
+                                                            EdgeInsets.all(10),
+                                                        child: SizedBox(
+                                                          height: 20,
+                                                          width: 20,
+                                                          child:
+                                                              CircularProgressIndicator(
+                                                                  strokeWidth:
+                                                                      2),
+                                                        ),
+                                                      )
+                                                    : IconButton(
+                                                        icon: const Icon(
+                                                            Icons.clear),
+                                                        onPressed: () {
+                                                          setState(() {
+                                                            _fromWarehouseController
+                                                                .clear();
+                                                            _selectedFromWarehouseId =
+                                                                null;
+                                                          });
+                                                        },
+                                                      ))
+                                                : null),
+                                            validator: (value) {
+                                              if ((widget.transfer_type < 100 ||
+                                                      widget.transfer_type ==
+                                                          102) &&
+                                                  (value == null ||
+                                                      value.isEmpty)) {
+                                                return 'الرجاء اختيار المستودع المصدر';
+                                              }
+                                              if ((widget.transfer_type < 100 ||
+                                                      widget.transfer_type ==
+                                                          102) &&
+                                                  _selectedFromWarehouseId ==
+                                                      null) {
+                                                return 'الرجاء اختيار مستودع صحيح';
+                                              }
+                                              return null;
+                                            },
+                                          ),
+                                        ),
                                       if ((widget.transfer_type < 100 ||
                                               widget.transfer_type == 102) &&
-                                          (value == null || value.isEmpty)) {
-                                        return 'الرجاء اختيار المستودع المصدر';
-                                      }
-                                      if ((widget.transfer_type < 100 ||
-                                              widget.transfer_type == 102) &&
-                                          _selectedFromWarehouseId == null) {
-                                        return 'الرجاء اختيار مستودع صحيح';
-                                      }
-                                      return null;
-                                    },
+                                          (widget.transfer_type < 100 ||
+                                              widget.transfer_type == 101))
+                                        const SizedBox(width: 8),
+                                      if (widget.transfer_type < 100 ||
+                                          widget.transfer_type == 101)
+                                        Expanded(
+                                          child: MyTextField(
+                                            controller: _toWarehouseController,
+                                            labelText: 'إلى المستودع',
+                                            focusNode: _toWarehouseFocusNode,
+                                            suffixIcon: (_toWarehouseController
+                                                    .text.isNotEmpty
+                                                ? (state is InventoryLoading &&
+                                                        _lastSearchField == 'to'
+                                                    ? const Padding(
+                                                        padding:
+                                                            EdgeInsets.all(10),
+                                                        child: SizedBox(
+                                                          height: 20,
+                                                          width: 20,
+                                                          child:
+                                                              CircularProgressIndicator(
+                                                                  strokeWidth:
+                                                                      2),
+                                                        ),
+                                                      )
+                                                    : IconButton(
+                                                        icon: const Icon(
+                                                            Icons.clear),
+                                                        onPressed: () {
+                                                          setState(() {
+                                                            _toWarehouseController
+                                                                .clear();
+                                                            _selectedToWarehouseId =
+                                                                null;
+                                                          });
+                                                        },
+                                                      ))
+                                                : null),
+                                            validator: (value) {
+                                              if ((widget.transfer_type < 100 ||
+                                                      widget.transfer_type ==
+                                                          101) &&
+                                                  (value == null ||
+                                                      value.isEmpty)) {
+                                                return 'الرجاء اختيار المستودع الهدف';
+                                              }
+                                              if ((widget.transfer_type < 100 ||
+                                                      widget.transfer_type ==
+                                                          101) &&
+                                                  _selectedToWarehouseId ==
+                                                      null) {
+                                                return 'الرجاء اختيار مستودع صحيح';
+                                              }
+                                              return null;
+                                            },
+                                          ),
+                                        ),
+                                    ],
                                   ),
-                                const SizedBox(height: 7),
-                                if (widget.transfer_type < 100 ||
-                                    widget.transfer_type == 101)
-                                  MyTextField(
-                                    controller: _toWarehouseController,
-                                    labelText: 'إلى المستودع',
-                                    focusNode: _toWarehouseFocusNode,
-                                    suffixIcon: (_toWarehouseController
-                                            .text.isNotEmpty
-                                        ? (state is InventoryLoading &&
-                                                _lastSearchField == 'to'
-                                            ? const Padding(
-                                                padding: EdgeInsets.all(10),
-                                                child: SizedBox(
-                                                  height: 20,
-                                                  width: 20,
-                                                  child:
-                                                      CircularProgressIndicator(
-                                                    strokeWidth: 2,
-                                                  ),
-                                                ),
-                                              )
-                                            : IconButton(
-                                                icon: const Icon(Icons.clear),
-                                                onPressed: () {
-                                                  setState(() {
-                                                    _toWarehouseController
-                                                        .clear();
-                                                    _selectedToWarehouseId =
-                                                        null;
-                                                  });
-                                                },
-                                              ))
-                                        : null),
-                                    validator: (value) {
-                                      if ((widget.transfer_type < 100 ||
-                                              widget.transfer_type == 101) &&
-                                          (value == null || value.isEmpty)) {
-                                        return 'الرجاء اختيار المستودع الهدف';
-                                      }
-                                      if ((widget.transfer_type < 100 ||
-                                              widget.transfer_type == 101) &&
-                                          _selectedToWarehouseId == null) {
-                                        return 'الرجاء اختيار مستودع صحيح';
-                                      }
-                                      return null;
-                                    },
+
+                                // Warehouse fields in portrait mode
+                                if (!_isLandscape)
+                                  Column(
+                                    children: [
+                                      if (widget.transfer_type < 100 ||
+                                          widget.transfer_type == 102)
+                                        MyTextField(
+                                          controller: _fromWarehouseController,
+                                          labelText: 'من المستودع',
+                                          focusNode: _fromWarehouseFocusNode,
+                                          suffixIcon: (_fromWarehouseController
+                                                  .text.isNotEmpty
+                                              ? (state is InventoryLoading &&
+                                                      _lastSearchField == 'from'
+                                                  ? const Padding(
+                                                      padding:
+                                                          EdgeInsets.all(10),
+                                                      child: SizedBox(
+                                                        height: 20,
+                                                        width: 20,
+                                                        child:
+                                                            CircularProgressIndicator(
+                                                                strokeWidth: 2),
+                                                      ),
+                                                    )
+                                                  : IconButton(
+                                                      icon: const Icon(
+                                                          Icons.clear),
+                                                      onPressed: () {
+                                                        setState(() {
+                                                          _fromWarehouseController
+                                                              .clear();
+                                                          _selectedFromWarehouseId =
+                                                              null;
+                                                        });
+                                                      },
+                                                    ))
+                                              : null),
+                                          validator: (value) {
+                                            if ((widget.transfer_type < 100 ||
+                                                    widget.transfer_type ==
+                                                        102) &&
+                                                (value == null ||
+                                                    value.isEmpty)) {
+                                              return 'الرجاء اختيار المستودع المصدر';
+                                            }
+                                            if ((widget.transfer_type < 100 ||
+                                                    widget.transfer_type ==
+                                                        102) &&
+                                                _selectedFromWarehouseId ==
+                                                    null) {
+                                              return 'الرجاء اختيار مستودع صحيح';
+                                            }
+                                            return null;
+                                          },
+                                        ),
+                                      if (widget.transfer_type < 100 ||
+                                          widget.transfer_type == 102)
+                                        const SizedBox(height: 7),
+                                      if (widget.transfer_type < 100 ||
+                                          widget.transfer_type == 101)
+                                        MyTextField(
+                                          controller: _toWarehouseController,
+                                          labelText: 'إلى المستودع',
+                                          focusNode: _toWarehouseFocusNode,
+                                          suffixIcon: (_toWarehouseController
+                                                  .text.isNotEmpty
+                                              ? (state is InventoryLoading &&
+                                                      _lastSearchField == 'to'
+                                                  ? const Padding(
+                                                      padding:
+                                                          EdgeInsets.all(10),
+                                                      child: SizedBox(
+                                                        height: 20,
+                                                        width: 20,
+                                                        child:
+                                                            CircularProgressIndicator(
+                                                                strokeWidth: 2),
+                                                      ),
+                                                    )
+                                                  : IconButton(
+                                                      icon: const Icon(
+                                                          Icons.clear),
+                                                      onPressed: () {
+                                                        setState(() {
+                                                          _toWarehouseController
+                                                              .clear();
+                                                          _selectedToWarehouseId =
+                                                              null;
+                                                        });
+                                                      },
+                                                    ))
+                                              : null),
+                                          validator: (value) {
+                                            if ((widget.transfer_type < 100 ||
+                                                    widget.transfer_type ==
+                                                        101) &&
+                                                (value == null ||
+                                                    value.isEmpty)) {
+                                              return 'الرجاء اختيار المستودع الهدف';
+                                            }
+                                            if ((widget.transfer_type < 100 ||
+                                                    widget.transfer_type ==
+                                                        101) &&
+                                                _selectedToWarehouseId ==
+                                                    null) {
+                                              return 'الرجاء اختيار مستودع صحيح';
+                                            }
+                                            return null;
+                                          },
+                                        ),
+                                      if (widget.transfer_type < 100 ||
+                                          widget.transfer_type == 101)
+                                        const SizedBox(height: 7),
+                                    ],
                                   ),
+
                                 const SizedBox(height: 7),
                                 MyTextField(
                                   controller: _noteController,
@@ -1399,342 +1382,422 @@ class _TransferPageChildState extends State<TransferPageChild> {
                   Expanded(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: ListView(
-                        children: [
-                          ListView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: _editableItems.length,
-                            itemBuilder: (context, index) {
-                              return Card(
-                                margin: const EdgeInsets.symmetric(vertical: 8),
-                                elevation: 2,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(12),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      const SizedBox(height: 10),
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            flex: 1,
-                                            child: Text(' ${index + 1}'),
-                                          ),
-                                          Expanded(
-                                            flex: 12,
-                                            child: MyTextField(
-                                              suffixIcon: SizedBox(
-                                                width: 24,
-                                                height: 24,
-                                                child: _isSearchingItem &&
-                                                        _currentItemSearchIndex ==
-                                                            index
-                                                    ? const Center(
-                                                        child: SizedBox(
-                                                          width: 16,
-                                                          height: 16,
-                                                          child:
-                                                              CircularProgressIndicator(
-                                                            strokeWidth: 1.5,
-                                                          ),
-                                                        ),
-                                                      )
-                                                    : IconButton(
-                                                        icon: const Icon(
-                                                            Icons.warehouse,
-                                                            size: 18),
-                                                        padding:
-                                                            EdgeInsets.zero,
-                                                        constraints:
-                                                            const BoxConstraints(),
-                                                        tooltip: 'عرض الأرصدة',
-                                                        onPressed: () =>
-                                                            _showBalanceDialog(
-                                                                index),
-                                                      ),
-                                              ),
-                                              controller:
-                                                  _itemNameControllers[index],
-                                              labelText: 'المادة',
-                                              validator: (value) {
-                                                if (value == null ||
-                                                    value.isEmpty) {
-                                                  return 'الرجاء إدخال المادة';
-                                                }
-                                                return null;
-                                              },
-                                              focusNode:
-                                                  _itemNameFocusNodes[index],
-                                              onSubmitted: (value) {
-                                                _searchForItem(index);
-                                              },
-                                            ),
-                                          ),
-                                          const SizedBox(width: 10),
-                                          if (_editableItems.length > 1)
-                                            Expanded(
-                                              flex: 1,
-                                              child: IconButton(
-                                                icon: const Icon(
-                                                  Icons.remove_circle,
-                                                  color: Colors.red,
-                                                ),
-                                                onPressed: () =>
-                                                    _removeItem(index),
-                                              ),
-                                            ),
-                                        ],
+                      child: _isLandscape
+                          ? _buildGridView()
+                          : ListView(
+                              children: [
+                                // Portrait mode list view
+                                ListView.builder(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemCount: _editableItems.length,
+                                  itemBuilder: (context, index) {
+                                    return Card(
+                                      margin: const EdgeInsets.symmetric(
+                                          vertical: 8),
+                                      elevation: 2,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
                                       ),
-                                      const SizedBox(height: 10),
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            flex: 2,
-                                            child: MyTextField(
-                                              readOnly: true,
-                                              controller:
-                                                  _itemUnitControllers[index],
-                                              labelText: 'الوحدة',
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Expanded(
-                                            flex: 1,
-                                            child: MyTextField(
-                                              controller:
-                                                  _quantityControllers[index],
-                                              focusNode:
-                                                  _quantityFocusNodes[index],
-                                              labelText: 'الكمية',
-                                              keyboardType: const TextInputType
-                                                  .numberWithOptions(
-                                                decimal: true,
-                                              ),
-                                              validator: (value) {
-                                                if (value == null ||
-                                                    value.isEmpty) {
-                                                  return 'الرجاء إدخال الكمية';
-                                                }
-                                                if (double.tryParse(value
-                                                        .replaceAll(',', '')) ==
-                                                    null) {
-                                                  return 'الرجاء إدخال رقم صحيح';
-                                                }
-                                                return null;
-                                              },
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          if (groups != null &&
-                                              (groups!.contains(
-                                                      'accounting_price') ||
-                                                  groups!.contains('admins')))
-                                            Expanded(
-                                              flex: 2,
-                                              child: MyTextField(
-                                                controller:
-                                                    _priceControllers[index],
-                                                labelText: 'السعر',
-                                                keyboardType:
-                                                    const TextInputType
-                                                        .numberWithOptions(
-                                                        decimal: true),
-                                                suffixIcon: SizedBox(
-                                                  width: 24,
-                                                  height: 24,
-                                                  child: IconButton(
-                                                    icon: const Icon(
-                                                        Icons.price_change,
-                                                        size: 20),
-                                                    padding: EdgeInsets.zero,
-                                                    constraints:
-                                                        const BoxConstraints(),
-                                                    onPressed: () {
-                                                      _showPriceSelectionDialog(
-                                                          index);
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(12),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            const SizedBox(height: 10),
+                                            Row(
+                                              children: [
+                                                Expanded(
+                                                  flex: 1,
+                                                  child: Text(' ${index + 1}'),
+                                                ),
+                                                Expanded(
+                                                  flex: 12,
+                                                  child: MyTextField(
+                                                    suffixIcon: SizedBox(
+                                                      width: 24,
+                                                      height: 24,
+                                                      child: _isSearchingItem &&
+                                                              _currentItemSearchIndex ==
+                                                                  index
+                                                          ? const Center(
+                                                              child: SizedBox(
+                                                                width: 16,
+                                                                height: 16,
+                                                                child:
+                                                                    CircularProgressIndicator(
+                                                                  strokeWidth:
+                                                                      1.5,
+                                                                ),
+                                                              ),
+                                                            )
+                                                          : IconButton(
+                                                              icon: const Icon(
+                                                                  Icons
+                                                                      .warehouse,
+                                                                  size: 18),
+                                                              padding:
+                                                                  EdgeInsets
+                                                                      .zero,
+                                                              constraints:
+                                                                  const BoxConstraints(),
+                                                              tooltip:
+                                                                  'عرض الأرصدة',
+                                                              onPressed: () =>
+                                                                  _showBalanceDialog(
+                                                                      index),
+                                                            ),
+                                                    ),
+                                                    controller:
+                                                        _itemNameControllers[
+                                                            index],
+                                                    labelText: 'المادة',
+                                                    validator: (value) {
+                                                      if (index ==
+                                                              _editableItems
+                                                                      .length -
+                                                                  1 &&
+                                                          (value == null ||
+                                                              value.isEmpty)) {
+                                                        return null;
+                                                      }
+                                                      if (value == null ||
+                                                          value.isEmpty) {
+                                                        return 'الرجاء إدخال المادة';
+                                                      }
+
+                                                      return null;
+                                                    },
+                                                    focusNode:
+                                                        _itemNameFocusNodes[
+                                                            index],
+                                                    onSubmitted: (value) {
+                                                      _searchForItem(index);
                                                     },
                                                   ),
                                                 ),
-                                              ),
+                                                const SizedBox(width: 10),
+                                                if (_editableItems.length > 1)
+                                                  Expanded(
+                                                    flex: 1,
+                                                    child: IconButton(
+                                                      icon: const Icon(
+                                                        Icons.remove_circle,
+                                                        color: Colors.red,
+                                                      ),
+                                                      onPressed: () =>
+                                                          _removeItem(index),
+                                                    ),
+                                                  ),
+                                              ],
                                             ),
-                                        ],
+                                            const SizedBox(height: 10),
+                                            Row(
+                                              children: [
+                                                Expanded(
+                                                  flex: 1,
+                                                  child: MyTextField(
+                                                    readOnly: true,
+                                                    controller:
+                                                        _itemUnitControllers[
+                                                            index],
+                                                    labelText: 'الوحدة',
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 8),
+                                                Expanded(
+                                                  flex: 1,
+                                                  child: MyTextField(
+                                                    controller:
+                                                        _quantityControllers[
+                                                            index],
+                                                    focusNode:
+                                                        _quantityFocusNodes[
+                                                            index],
+                                                    labelText: 'الكمية',
+                                                    onSubmitted: (value) {
+                                                      // If this is the last item, add a new one and focus it.
+                                                      if (index ==
+                                                          _editableItems
+                                                                  .length -
+                                                              1) {
+                                                        _addNewItem();
+                                                        _focusOnNewItem();
+                                                      } else {
+                                                        // Otherwise, move focus to the next item's name field.
+                                                        FocusScope.of(context)
+                                                            .requestFocus(
+                                                                _itemNameFocusNodes[
+                                                                    index + 1]);
+                                                      }
+                                                    },
+                                                    keyboardType:
+                                                        const TextInputType
+                                                            .numberWithOptions(
+                                                      decimal: true,
+                                                    ),
+                                                    validator: (value) {
+                                                      if (_itemNameControllers[
+                                                              index]
+                                                          .text
+                                                          .isEmpty) {
+                                                        return null;
+                                                      }
+
+                                                      if (value == null ||
+                                                          value.isEmpty) {
+                                                        return 'الرجاء إدخال الكمية';
+                                                      }
+                                                      if (double.tryParse(
+                                                              value.replaceAll(
+                                                                  ',', '')) ==
+                                                          null) {
+                                                        return 'الرجاء إدخال رقم صحيح';
+                                                      }
+
+                                                      return null;
+                                                    },
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 8),
+                                                if (groups != null &&
+                                                    (groups!.contains(
+                                                            'accounting_price') ||
+                                                        groups!.contains(
+                                                            'admins') ||
+                                                        groups!.contains(
+                                                            'managers')))
+                                                  Expanded(
+                                                    flex: 2,
+                                                    child: MyTextField(
+                                                      controller:
+                                                          _priceControllers[
+                                                              index],
+                                                      labelText: 'السعر',
+                                                      keyboardType:
+                                                          const TextInputType
+                                                              .numberWithOptions(
+                                                        decimal: true,
+                                                      ),
+                                                      suffixIcon: SizedBox(
+                                                        width: 24,
+                                                        height: 24,
+                                                        child: IconButton(
+                                                          icon: const Icon(
+                                                              Icons
+                                                                  .price_change,
+                                                              size: 20),
+                                                          padding:
+                                                              EdgeInsets.zero,
+                                                          constraints:
+                                                              const BoxConstraints(),
+                                                          onPressed: () {
+                                                            _showPriceSelectionDialog(
+                                                                index);
+                                                          },
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 10),
+                                            Row(
+                                              children: [
+                                                Expanded(
+                                                  flex: 6,
+                                                  child: MyTextField(
+                                                    controller:
+                                                        _itemNoteControllers[
+                                                            index],
+                                                    labelText: 'البيان',
+                                                    maxLines: 2,
+                                                  ),
+                                                ),
+                                                if (groups != null &&
+                                                    (groups!.contains(
+                                                            'accounting_price') ||
+                                                        groups!.contains(
+                                                            'admins') ||
+                                                        groups!.contains(
+                                                            'managers')))
+                                                  Expanded(
+                                                    flex: 3,
+                                                    child: Text(
+                                                      'الإجمالي: ${_numberFormat.format(_getItemTotal(index))}',
+                                                      style: const TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                      textAlign:
+                                                          TextAlign.center,
+                                                    ),
+                                                  ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                      const SizedBox(height: 10),
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            flex: 6,
-                                            child: MyTextField(
-                                              controller:
-                                                  _itemNoteControllers[index],
-                                              labelText: 'البيان',
-                                              maxLines: 2,
-                                            ),
-                                          ),
-                                          Expanded(
-                                            flex: 3,
-                                            child: Text(
-                                              'الإجمالي: ${_numberFormat.format(_getItemTotal(index))}',
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                              textAlign: TextAlign.center,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
+                                    );
+                                  },
+                                ),
+                                const SizedBox(height: 10),
+                                Center(
+                                  child: OutlinedButton.icon(
+                                    onPressed: _addNewItem,
+                                    icon: const Icon(Icons.add_circle_outline),
+                                    label: const Text('إضافة مادة جديدة'),
                                   ),
                                 ),
-                              );
-                            },
-                          ),
-                          const SizedBox(height: 10),
-                          Center(
-                            child: OutlinedButton.icon(
-                              onPressed: _addNewItem,
-                              icon: const Icon(Icons.add_circle_outline),
-                              label: const Text('إضافة مادة جديدة'),
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          Text(
-                            'الإجمالي الكلي: ${_numberFormat.format(_grandTotal)}',
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 30),
-                          state is InventoryLoading
-                              ? const Loader()
-                              : Column(
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceAround,
-                                      children: [
-                                        Mybutton(
-                                          text: 'إضافة',
-                                          onPressed: _submitFormAdd,
-                                        ),
-                                        if (widget.transferModel != null)
-                                          Mybutton(
-                                            text: 'تعديل',
-                                            onPressed: _submitFormUpdate,
-                                          ),
-                                      ],
+                                const SizedBox(height: 20),
+                                if (groups != null &&
+                                    (groups!.contains('accounting_price') ||
+                                        groups!.contains('admins') ||
+                                        groups!.contains('managers')))
+                                  Text(
+                                    'الإجمالي الكلي: ${_numberFormat.format(_grandTotal)}',
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
                                     ),
-                                    if (widget.transferModel != null)
-                                      IconButton(
-                                        icon: Container(
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            color: Colors.red.withOpacity(0.2),
-                                            border: Border.all(
-                                                color:
-                                                    Colors.red.withOpacity(0.5),
-                                                width: 1),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                const SizedBox(height: 30),
+                                state is InventoryLoading
+                                    ? const Loader()
+                                    : Column(
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceAround,
+                                            children: [
+                                              Mybutton(
+                                                text: 'إضافة',
+                                                onPressed: _submitFormAdd,
+                                              ),
+                                              if (widget.transferModel !=
+                                                      null &&
+                                                  widget.transferModel!
+                                                          .serial !=
+                                                      null)
+                                                Mybutton(
+                                                  text: 'تعديل',
+                                                  onPressed: _submitFormUpdate,
+                                                ),
+                                            ],
                                           ),
-                                          padding: const EdgeInsets.all(8),
-                                          child: const FaIcon(
-                                            FontAwesomeIcons.trash,
-                                            color: Colors.red,
-                                            size: 20,
-                                          ),
-                                        ),
-                                        tooltip: 'حذف',
-                                        onPressed: () {
-                                          showModalBottomSheet(
-                                            context: context,
-                                            builder: (_) => Directionality(
-                                              textDirection:
-                                                  ui.TextDirection.rtl,
-                                              child: Padding(
+                                          if (widget.transferModel != null &&
+                                              widget.transferModel!.serial !=
+                                                  null)
+                                            IconButton(
+                                              icon: Container(
+                                                decoration: BoxDecoration(
+                                                  shape: BoxShape.circle,
+                                                  color: Colors.red
+                                                      .withOpacity(0.2),
+                                                  border: Border.all(
+                                                    color: Colors.red
+                                                        .withOpacity(0.5),
+                                                    width: 1,
+                                                  ),
+                                                ),
                                                 padding:
-                                                    const EdgeInsets.all(16.0),
-                                                child: Wrap(
-                                                  children: [
-                                                    const ListTile(
-                                                      title: Text('تأكيد الحذف',
-                                                          style: TextStyle(
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold)),
-                                                      subtitle:
-                                                          Text('هل انت متأكد؟'),
-                                                    ),
-                                                    Row(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment.end,
-                                                      children: [
-                                                        TextButton(
-                                                          onPressed: () =>
-                                                              Navigator.pop(
-                                                                  context),
-                                                          child: const Text(
-                                                              'إلغاء'),
-                                                        ),
-                                                        const SizedBox(
-                                                            width: 8),
-                                                        TextButton(
-                                                          style: TextButton
-                                                              .styleFrom(
-                                                            backgroundColor:
-                                                                Colors.red
-                                                                    .withOpacity(
-                                                                        0.1),
-                                                            shape:
-                                                                RoundedRectangleBorder(
-                                                              borderRadius:
-                                                                  BorderRadius
-                                                                      .circular(
-                                                                          8),
-                                                              side: BorderSide(
-                                                                  color: Colors
-                                                                      .red
-                                                                      .withOpacity(
-                                                                          0.3)),
-                                                            ),
-                                                          ),
-                                                          onPressed: () {
-                                                            Navigator.pop(
-                                                                context);
-                                                            context
-                                                                .read<
-                                                                    InventoryBloc>()
-                                                                .add(
-                                                                  DeleteOneTransfer(
-                                                                      id: widget
-                                                                          .transferModel!
-                                                                          .id),
-                                                                );
-                                                          },
-                                                          child: const Text(
-                                                              'حذف',
-                                                              style: TextStyle(
-                                                                  color: Colors
-                                                                      .red)),
-                                                        ),
-                                                      ],
-                                                    )
-                                                  ],
+                                                    const EdgeInsets.all(8),
+                                                child: const FaIcon(
+                                                  FontAwesomeIcons.trash,
+                                                  color: Colors.red,
+                                                  size: 20,
                                                 ),
                                               ),
-                                            ),
-                                          );
-                                        },
+                                              tooltip: 'حذف',
+                                              onPressed: () {
+                                                showModalBottomSheet(
+                                                  context: context,
+                                                  builder: (_) =>
+                                                      Directionality(
+                                                    textDirection:
+                                                        ui.TextDirection.rtl,
+                                                    child: Padding(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              16.0),
+                                                      child: Wrap(
+                                                        children: [
+                                                          const ListTile(
+                                                            title: Text(
+                                                              'تأكيد الحذف',
+                                                              style: TextStyle(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold),
+                                                            ),
+                                                            subtitle: Text(
+                                                                'هل انت متأكد؟'),
+                                                          ),
+                                                          Row(
+                                                            mainAxisAlignment:
+                                                                MainAxisAlignment
+                                                                    .end,
+                                                            children: [
+                                                              TextButton(
+                                                                onPressed: () =>
+                                                                    Navigator.pop(
+                                                                        context),
+                                                                child:
+                                                                    const Text(
+                                                                        'إلغاء'),
+                                                              ),
+                                                              const SizedBox(
+                                                                  width: 8),
+                                                              TextButton(
+                                                                style: TextButton
+                                                                    .styleFrom(
+                                                                  backgroundColor: Colors
+                                                                      .red
+                                                                      .withOpacity(
+                                                                          0.1),
+                                                                  shape:
+                                                                      RoundedRectangleBorder(
+                                                                    borderRadius:
+                                                                        BorderRadius
+                                                                            .circular(8),
+                                                                    side: BorderSide(
+                                                                        color: Colors
+                                                                            .red
+                                                                            .withOpacity(0.3)),
+                                                                  ),
+                                                                ),
+                                                                onPressed: () {
+                                                                  Navigator.pop(
+                                                                      context);
+                                                                  context
+                                                                      .read<
+                                                                          InventoryBloc>()
+                                                                      .add(
+                                                                        DeleteOneTransfer(
+                                                                            id: widget.transferModel!.id),
+                                                                      );
+                                                                },
+                                                                child: const Text(
+                                                                    'حذف',
+                                                                    style: TextStyle(
+                                                                        color: Colors
+                                                                            .red)),
+                                                              ),
+                                                            ],
+                                                          )
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                            )
+                                        ],
                                       )
-                                  ],
-                                )
-                        ],
-                      ),
+                              ],
+                            ),
                     ),
                   ),
                 ],
@@ -1748,6 +1811,7 @@ class _TransferPageChildState extends State<TransferPageChild> {
 
   void _submitFormAdd() {
     if (_formKey.currentState!.validate()) {
+      _isSubmitting = true;
       final model = _fillModelFromForm();
       context.read<InventoryBloc>().add(AddTransfer(transferModel: model));
     }
@@ -1755,10 +1819,11 @@ class _TransferPageChildState extends State<TransferPageChild> {
 
   void _submitFormUpdate() {
     if (_formKey.currentState!.validate()) {
+      _isSubmitting = true;
       final model = _fillModelFromForm();
       //print(model);
       context.read<InventoryBloc>().add(
-            UpdateTransfer(transferModel: model, id: widget.transferModel!.id),
+            UpdateTransfer(transferModel: model, id: _currentTransferId!),
           );
     }
   }
@@ -2096,37 +2161,50 @@ class _TransferPageChildState extends State<TransferPageChild> {
     );
   }
 
+// Helper to focus on the item name field of the newest row
+  void _focusOnNewItem() {
+    // Use a post frame callback to ensure the new field is in the widget tree.
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _itemNameFocusNodes.isNotEmpty) {
+        FocusScope.of(context).requestFocus(_itemNameFocusNodes.last);
+      }
+    });
+  }
+
+  // Replace your existing _fillModelFromForm method with this one
   TransferModel _fillModelFromForm() {
     List<Map<String, dynamic>> itemsData = [];
     for (int i = 0; i < _editableItems.length; i++) {
-      // Ensure 'item' ID is taken from _selectedItemData or _editableItems
+      // Get the item ID and quantity
       final itemId = _selectedItemData[i]?.id ?? _editableItems[i]['item'];
+      final quantity =
+          double.tryParse(_quantityControllers[i].text.replaceAll(',', '')) ??
+              0;
 
-      itemsData.add({
-        'item':
-            itemId, // Use the ID from the selected ItemsModel or existing item data
-        'quantity':
-            double.tryParse(_quantityControllers[i].text.replaceAll(',', '')) ??
-                0,
-        'price':
-            double.tryParse(_priceControllers[i].text.replaceAll(',', '')) ?? 0,
-        'note': _itemNoteControllers[i].text,
-        // No need to send item_name, item_unit, item_details back to API for submission if 'item' ID is enough
-      });
+      // Only include items that have an ID and a quantity greater than 0
+      if (itemId != null && quantity > 0) {
+        itemsData.add({
+          'item': itemId,
+          'quantity': quantity,
+          'price':
+              double.tryParse(_priceControllers[i].text.replaceAll(',', '')) ??
+                  0,
+          'note': _itemNoteControllers[i].text,
+        });
+      }
     }
 
     return TransferModel(
-      id: widget.transferModel?.id ?? 0, // Keep existing ID for update
+      id: widget.transferModel?.id ?? 0,
       transfer_type: widget.transfer_type,
       date: _dateController.text,
       note: _noteController.text,
-      items: itemsData,
+      items: itemsData, // This now contains only the valid items
       serial: widget.transferModel?.serial,
       from_warehouse:
           (widget.transfer_type < 100 || widget.transfer_type == 102)
               ? _selectedFromWarehouseId
               : null,
-
       to_warehouse: (widget.transfer_type < 100 || widget.transfer_type == 101)
           ? _selectedToWarehouseId
           : null,
@@ -2149,5 +2227,331 @@ class _TransferPageChildState extends State<TransferPageChild> {
       total += _getItemTotal(i);
     }
     return total;
+  }
+
+  Widget _buildGridView() {
+    return Column(
+      children: [
+        // Items list
+        Expanded(
+          child: ListView.builder(
+            itemCount: _editableItems.length,
+            itemBuilder: (context, index) {
+              return Card(
+                margin: const EdgeInsets.symmetric(vertical: 4),
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // Item number and remove button
+                      Column(
+                        children: [
+                          Text(
+                            '${index + 1}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                          if (_editableItems.length > 1)
+                            IconButton(
+                              icon: const Icon(Icons.remove_circle,
+                                  color: Colors.red, size: 18),
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                              onPressed: () => _removeItem(index),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(width: 8),
+
+                      // Item name field
+                      Expanded(
+                        flex: 3,
+                        child: MyTextField(
+                          suffixIcon: SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: _isSearchingItem &&
+                                    _currentItemSearchIndex == index
+                                ? const Center(
+                                    child: SizedBox(
+                                      width: 14,
+                                      height: 14,
+                                      child: CircularProgressIndicator(
+                                          strokeWidth: 1.5),
+                                    ),
+                                  )
+                                : IconButton(
+                                    icon: const Icon(Icons.warehouse, size: 16),
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                    tooltip: 'عرض الأرصدة',
+                                    onPressed: () => _showBalanceDialog(index),
+                                  ),
+                          ),
+                          controller: _itemNameControllers[index],
+                          labelText: 'المادة',
+                          validator: (value) {
+                            if (index == _editableItems.length - 1 &&
+                                (value == null || value.isEmpty)) {
+                              return null;
+                            }
+                            if (value == null || value.isEmpty) {
+                              return 'الرجاء إدخال المادة';
+                            }
+
+                            return null;
+                          },
+                          focusNode: _itemNameFocusNodes[index],
+                          onSubmitted: (value) => _searchForItem(index),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+
+                      // Unit field
+                      Expanded(
+                        flex: 1,
+                        child: MyTextField(
+                          readOnly: true,
+                          controller: _itemUnitControllers[index],
+                          labelText: 'الوحدة',
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+
+                      // Quantity field
+                      Expanded(
+                        flex: 1,
+                        child: MyTextField(
+                          controller: _quantityControllers[index],
+                          focusNode: _quantityFocusNodes[index],
+                          labelText: 'الكمية',
+                          onSubmitted: (value) {
+                            // If this is the last item, add a new one and focus it.
+                            if (index == _editableItems.length - 1) {
+                              _addNewItem();
+                              _focusOnNewItem();
+                            } else {
+                              // Otherwise, move focus to the next item's name field.
+                              FocusScope.of(context)
+                                  .requestFocus(_itemNameFocusNodes[index + 1]);
+                            }
+                          },
+                          keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true),
+                          validator: (value) {
+                            if (_itemNameControllers[index].text.isEmpty) {
+                              return null;
+                            }
+
+                            if (value == null || value.isEmpty) {
+                              return 'الرجاء إدخال الكمية';
+                            }
+                            if (double.tryParse(value.replaceAll(',', '')) ==
+                                null) {
+                              return 'الرجاء إدخال رقم صحيح';
+                            }
+
+                            return null;
+                          },
+                        ),
+                      ),
+                      const SizedBox(
+                        width: 8,
+                      ),
+                      // Price and total section (if user has permissions)
+                      if (groups != null &&
+                          (groups!.contains('accounting_price') ||
+                              groups!.contains('admins') ||
+                              groups!.contains('managers')))
+                        Expanded(
+                          flex: 2,
+                          child: MyTextField(
+                            controller: _priceControllers[index],
+                            labelText: 'السعر',
+                            keyboardType: const TextInputType.numberWithOptions(
+                                decimal: true),
+                            suffixIcon: SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: IconButton(
+                                icon: const Icon(Icons.price_change, size: 16),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                                onPressed: () =>
+                                    _showPriceSelectionDialog(index),
+                              ),
+                            ),
+                          ),
+                        ),
+
+                      const SizedBox(width: 8),
+
+                      // Note field
+                      Expanded(
+                        flex: 2,
+                        child: MyTextField(
+                          controller: _itemNoteControllers[index],
+                          labelText: 'البيان',
+                          maxLines: 2,
+                        ),
+                      ),
+                      const SizedBox(
+                        width: 8,
+                      ),
+                      if (groups != null &&
+                          (groups!.contains('accounting_price') ||
+                              groups!.contains('admins') ||
+                              groups!.contains('managers')))
+                        Column(
+                          children: [
+                            const Text(
+                              'الإجمالي',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                              ),
+                            ),
+                            Text(
+                              _numberFormat.format(_getItemTotal(index)),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+
+        // Add new item button
+        Center(
+          child: OutlinedButton.icon(
+            onPressed: _addNewItem,
+            icon: const Icon(Icons.add_circle_outline),
+            label: const Text('إضافة مادة جديدة'),
+          ),
+        ),
+        const SizedBox(height: 10),
+
+        // Grand total (if user has permissions)
+        if (groups != null &&
+            (groups!.contains('accounting_price') ||
+                groups!.contains('admins') ||
+                groups!.contains('managers')))
+          Text(
+            'الإجمالي الكلي: ${_numberFormat.format(_grandTotal)}',
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        const SizedBox(height: 10),
+
+        // Action buttons (Add, Edit, Delete)
+        Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                Mybutton(
+                  text: 'إضافة',
+                  onPressed: _submitFormAdd,
+                ),
+                if (widget.transferModel != null)
+                  Mybutton(
+                    text: 'تعديل',
+                    onPressed: _submitFormUpdate,
+                  ),
+              ],
+            ),
+            if (widget.transferModel != null)
+              IconButton(
+                icon: Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.red.withOpacity(0.2),
+                    border: Border.all(
+                      color: Colors.red.withOpacity(0.5),
+                      width: 1,
+                    ),
+                  ),
+                  padding: const EdgeInsets.all(8),
+                  child: const FaIcon(
+                    FontAwesomeIcons.trash,
+                    color: Colors.red,
+                    size: 20,
+                  ),
+                ),
+                tooltip: 'حذف',
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    builder: (_) => Directionality(
+                      textDirection: ui.TextDirection.rtl,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Wrap(
+                          children: [
+                            const ListTile(
+                              title: Text(
+                                'تأكيد الحذف',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              subtitle: Text('هل انت متأكد؟'),
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text('إلغاء'),
+                                ),
+                                const SizedBox(width: 8),
+                                TextButton(
+                                  style: TextButton.styleFrom(
+                                    backgroundColor:
+                                        Colors.red.withOpacity(0.1),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      side: BorderSide(
+                                          color: Colors.red.withOpacity(0.3)),
+                                    ),
+                                  ),
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                    context.read<InventoryBloc>().add(
+                                          DeleteOneTransfer(
+                                              id: widget.transferModel!.id),
+                                        );
+                                  },
+                                  child: const Text('حذف',
+                                      style: TextStyle(color: Colors.red)),
+                                ),
+                              ],
+                            )
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              )
+          ],
+        )
+      ],
+    );
   }
 }

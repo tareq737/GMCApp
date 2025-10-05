@@ -93,27 +93,19 @@ class _ProductionEmptyPackagingDataWidgetState
         widget.fullProductionModel.emptyPackaging.finish_time ?? '';
     completionDateController.text =
         widget.fullProductionModel.emptyPackaging.completion_date ?? '';
-    // if (startTimeController.text.isNotEmpty) {
-    //   DateTime parsedTime = DateFormat('HH:mm').parse(startTimeController.text);
-    //   String formattedTime = DateFormat('hh:mm').format(parsedTime);
-    //   startTimeController.text = formattedTime;
-    // }
-    // if (finishTimeController.text.isNotEmpty) {
-    //   DateTime parsedTime =
-    //       DateFormat('HH:mm').parse(finishTimeController.text);
-    //   String formattedTime = DateFormat('hh:mm').format(parsedTime);
-    //   finishTimeController.text = formattedTime;
-    // }
 
     _calculateDuration();
   }
 
   @override
   Widget build(BuildContext context) {
-    AppUserState state = context.watch<AppUserCubit>().state;
-    if (state is AppUserLoggedIn) {
-      groups = state.userEntity.groups;
+    AppUserState userState = context.watch<AppUserCubit>().state;
+    if (userState is AppUserLoggedIn) {
+      groups = userState.userEntity.groups;
     }
+    // Get the device orientation
+    final orientation = MediaQuery.of(context).orientation;
+
     return BlocProvider(
       create: (context) => ProductionBloc(
         ProductionServices(
@@ -164,207 +156,27 @@ class _ProductionEmptyPackagingDataWidgetState
               ),
               child: Padding(
                 padding: const EdgeInsets.all(8),
-                child: Column(
-                  children: [
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    const Text(
-                      'معلومات قسم الفوارغ',
-                      style: TextStyle(fontSize: 20),
-                    ),
-                    const SizedBox(
-                      height: 20,
-                    ),
-                    if (widget.type == 'Production') ...[
-                      CheckboxListTile(
-                        title: const Text(
-                          'جرد الفوارغ',
-                          style: TextStyle(fontSize: 12),
-                        ),
-                        value: emptyPackagingCheck_1,
-                        onChanged: (bool? value) {
-                          setState(() {
-                            emptyPackagingCheck_1 = value ?? false;
-                          });
-                        },
-                        controlAffinity: ListTileControlAffinity.leading,
+                // Use SingleChildScrollView to prevent overflow issues
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      const SizedBox(
+                        height: 10,
                       ),
-                      CheckboxListTile(
-                        title: const Text(
-                          'طبعت اللواصق',
-                          style: TextStyle(fontSize: 12),
-                        ),
-                        value: emptyPackagingCheck_2,
-                        onChanged: (bool? value) {
-                          setState(() {
-                            emptyPackagingCheck_2 = value ?? false;
-                          });
-                        },
-                        controlAffinity: ListTileControlAffinity.leading,
+                      const Text(
+                        'معلومات قسم الفوارغ',
+                        style: TextStyle(fontSize: 20),
                       ),
-                      CheckboxListTile(
-                        title: const Text(
-                          'لزقت الفوارغ',
-                          style: TextStyle(fontSize: 12),
-                        ),
-                        value: emptyPackagingCheck_3,
-                        onChanged: (bool? value) {
-                          setState(() {
-                            emptyPackagingCheck_3 = value ?? false;
-                          });
-                        },
-                        controlAffinity: ListTileControlAffinity.leading,
+                      const SizedBox(
+                        height: 20,
                       ),
-                      CheckboxListTile(
-                        title: const Text(
-                          'طبعت لواصق الكراتين ',
-                          style: TextStyle(fontSize: 12),
-                        ),
-                        value: emptyPackagingCheck_4,
-                        onChanged: (bool? value) {
-                          setState(() {
-                            emptyPackagingCheck_4 = value ?? false;
-                          });
-                        },
-                        controlAffinity: ListTileControlAffinity.leading,
-                      ),
-                      CheckboxListTile(
-                        title: const Text(
-                          'المعلومات جاهزة للأرشفة',
-                          style: TextStyle(fontSize: 12),
-                        ),
-                        value: emptyPackagingCheck_5,
-                        onChanged: (bool? value) {
-                          setState(() {
-                            emptyPackagingCheck_5 = value ?? false;
-                          });
-                        },
-                        controlAffinity: ListTileControlAffinity.leading,
-                      ),
+                      // Conditionally build the layout based on orientation
+                      if (orientation == Orientation.landscape)
+                        _buildLandscapeLayout(context)
+                      else
+                        _buildPortraitLayout(context),
                     ],
-                    MyTextField(
-                        controller: employeeController,
-                        labelText: 'موظف الفوارغ'),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: MyTextField(
-                            controller: startTimeController,
-                            labelText: 'وقت بدء الفوارغ',
-                            readOnly: true,
-                            onTap: () async {
-                              TimeOfDay? pickedTime = await showTimePicker(
-                                context: context,
-                                initialTime: TimeOfDay.now(),
-                              );
-                              if (pickedTime != null) {
-                                final now = DateTime.now();
-                                final formattedTime =
-                                    DateFormat('HH:mm').format(
-                                  DateTime(now.year, now.month, now.day,
-                                      pickedTime.hour, pickedTime.minute),
-                                );
-                                startTimeController.text = formattedTime;
-                                _calculateDuration();
-                              }
-                            },
-                          ),
-                        ),
-                        const SizedBox(
-                          width: 10,
-                        ),
-                        Expanded(
-                          child: MyTextField(
-                            controller: finishTimeController,
-                            labelText: 'وقت انتهاء الفوارغ',
-                            readOnly: true,
-                            onTap: () async {
-                              TimeOfDay? pickedTime = await showTimePicker(
-                                context: context,
-                                initialTime: TimeOfDay.now(),
-                              );
-                              if (pickedTime != null) {
-                                final now = DateTime.now();
-                                final formattedTime =
-                                    DateFormat('HH:mm').format(
-                                  DateTime(now.year, now.month, now.day,
-                                      pickedTime.hour, pickedTime.minute),
-                                );
-                                finishTimeController.text = formattedTime;
-                                _calculateDuration();
-                              }
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      'مدة العمل: $durationText',
-                      style: const TextStyle(
-                        fontSize: 14,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    MyTextField(
-                      readOnly: true,
-                      controller: completionDateController,
-                      labelText: 'تاريخ انتهاء الفوارغ',
-                      onTap: () async {
-                        DateTime? pickedDate = await showDatePicker(
-                          context: context,
-                          initialDate: DateTime.now(),
-                          firstDate: DateTime(2020),
-                          lastDate: DateTime(2100),
-                        );
-
-                        if (pickedDate != null) {
-                          setState(() {
-                            completionDateController.text =
-                                DateFormat('yyyy-MM-dd').format(pickedDate);
-                          });
-                        }
-                      },
-                    ),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    MyTextField(
-                        maxLines: 10,
-                        controller: notesController,
-                        labelText: 'ملاحظات الفوارغ'),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    MyTextField(
-                        maxLines: 10,
-                        controller: problemsController,
-                        labelText: 'مشاكل الفوارغ'),
-                    if ((groups!.contains('admins') ||
-                            groups!.contains('emptyPackaging_dep')) &&
-                        widget.type == 'Production')
-                      Mybutton(
-                        text: 'حفظ',
-                        onPressed: () {
-                          if (!_isDurationValid()) {
-                            showSnackBar(
-                              context: context,
-                              content: 'الوقت غير صحيح ⏳',
-                              failure: true,
-                            );
-                            return;
-                          }
-                          _fillEmptyPackagingModelFromFomr();
-                          print(_emptyPackagingModel);
-                          context.read<ProductionBloc>().add(SaveEmptyPackaging(
-                              emptyPackagingModel: _emptyPackagingModel));
-                        },
-                      ),
-                  ],
+                  ),
                 ),
               ),
             ),
@@ -374,26 +186,285 @@ class _ProductionEmptyPackagingDataWidgetState
     );
   }
 
+  /// Builds the UI for portrait mode (single column).
+  Widget _buildPortraitLayout(BuildContext context) {
+    return Column(
+      children: [
+        ..._buildCheckboxes(),
+        const SizedBox(height: 10),
+        MyTextField(controller: employeeController, labelText: 'موظف الفوارغ'),
+        const SizedBox(height: 10),
+        _buildTimeFields(context),
+        const SizedBox(height: 10),
+        Text(
+          'مدة العمل: $durationText',
+          style: const TextStyle(
+            fontSize: 14,
+          ),
+        ),
+        const SizedBox(height: 10),
+        _buildCompletionDateField(context),
+        const SizedBox(height: 10),
+        MyTextField(
+            maxLines: 10,
+            controller: notesController,
+            labelText: 'ملاحظات الفوارغ'),
+        const SizedBox(height: 10),
+        MyTextField(
+            maxLines: 10,
+            controller: problemsController,
+            labelText: 'مشاكل الفوارغ'),
+        const SizedBox(height: 10),
+        _buildSaveButton(context),
+      ],
+    );
+  }
+
+  /// Builds the UI for landscape mode (two columns).
+  Widget _buildLandscapeLayout(BuildContext context) {
+    return Column(
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ..._buildCheckboxes(),
+                  const SizedBox(height: 10),
+                  MyTextField(
+                      controller: employeeController,
+                      labelText: 'موظف الفوارغ'),
+                  const SizedBox(height: 10),
+                  _buildTimeFields(context),
+                  const SizedBox(height: 10),
+                  Text(
+                    'مدة العمل: $durationText',
+                    style: const TextStyle(
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _buildCompletionDateField(context),
+                  const SizedBox(height: 10),
+                  MyTextField(
+                      maxLines: 5, // Reduced maxLines for landscape
+                      controller: notesController,
+                      labelText: 'ملاحظات الفوارغ'),
+                  const SizedBox(height: 10),
+                  MyTextField(
+                      maxLines: 5, // Reduced maxLines for landscape
+                      controller: problemsController,
+                      labelText: 'مشاكل الفوارغ'),
+                  const SizedBox(height: 30),
+                ],
+              ),
+            ),
+          ],
+        ),
+        _buildSaveButton(context),
+      ],
+    );
+  }
+
+  /// Helper method to create the list of checkboxes.
+  List<Widget> _buildCheckboxes() {
+    if (widget.type != 'Production') return [];
+    return [
+      CheckboxListTile(
+        title: const Text('جرد الفوارغ', style: TextStyle(fontSize: 12)),
+        value: emptyPackagingCheck_1,
+        onChanged: (bool? value) {
+          setState(() {
+            emptyPackagingCheck_1 = value ?? false;
+          });
+        },
+        controlAffinity: ListTileControlAffinity.leading,
+      ),
+      CheckboxListTile(
+        title: const Text('طبعت اللواصق', style: TextStyle(fontSize: 12)),
+        value: emptyPackagingCheck_2,
+        onChanged: (bool? value) {
+          setState(() {
+            emptyPackagingCheck_2 = value ?? false;
+          });
+        },
+        controlAffinity: ListTileControlAffinity.leading,
+      ),
+      CheckboxListTile(
+        title: const Text('لزقت الفوارغ', style: TextStyle(fontSize: 12)),
+        value: emptyPackagingCheck_3,
+        onChanged: (bool? value) {
+          setState(() {
+            emptyPackagingCheck_3 = value ?? false;
+          });
+        },
+        controlAffinity: ListTileControlAffinity.leading,
+      ),
+      CheckboxListTile(
+        title:
+            const Text('طبعت لواصق الكراتين', style: TextStyle(fontSize: 12)),
+        value: emptyPackagingCheck_4,
+        onChanged: (bool? value) {
+          setState(() {
+            emptyPackagingCheck_4 = value ?? false;
+          });
+        },
+        controlAffinity: ListTileControlAffinity.leading,
+      ),
+      CheckboxListTile(
+        title: const Text('المعلومات جاهزة للأرشفة',
+            style: TextStyle(fontSize: 12)),
+        value: emptyPackagingCheck_5,
+        onChanged: (bool? value) {
+          setState(() {
+            emptyPackagingCheck_5 = value ?? false;
+          });
+        },
+        controlAffinity: ListTileControlAffinity.leading,
+      ),
+    ];
+  }
+
+  /// Helper method for the start and finish time fields.
+  Widget _buildTimeFields(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: MyTextField(
+            controller: startTimeController,
+            labelText: 'وقت بدء الفوارغ',
+            readOnly: true,
+            onTap: () async {
+              TimeOfDay? pickedTime = await showTimePicker(
+                context: context,
+                initialTime: TimeOfDay.now(),
+              );
+              if (pickedTime != null) {
+                final now = DateTime.now();
+                final formattedTime = DateFormat('HH:mm').format(
+                  DateTime(now.year, now.month, now.day, pickedTime.hour,
+                      pickedTime.minute),
+                );
+                startTimeController.text = formattedTime;
+                _calculateDuration();
+              }
+            },
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: MyTextField(
+            controller: finishTimeController,
+            labelText: 'وقت انتهاء الفوارغ',
+            readOnly: true,
+            onTap: () async {
+              TimeOfDay? pickedTime = await showTimePicker(
+                context: context,
+                initialTime: TimeOfDay.now(),
+              );
+              if (pickedTime != null) {
+                final now = DateTime.now();
+                final formattedTime = DateFormat('HH:mm').format(
+                  DateTime(now.year, now.month, now.day, pickedTime.hour,
+                      pickedTime.minute),
+                );
+                finishTimeController.text = formattedTime;
+                _calculateDuration();
+              }
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Helper method for the completion date field.
+  Widget _buildCompletionDateField(BuildContext context) {
+    return MyTextField(
+      readOnly: true,
+      controller: completionDateController,
+      labelText: 'تاريخ انتهاء الفوارغ',
+      onTap: () async {
+        DateTime? pickedDate = await showDatePicker(
+          context: context,
+          initialDate: DateTime.now(),
+          firstDate: DateTime(2020),
+          lastDate: DateTime(2100),
+        );
+        if (pickedDate != null) {
+          setState(() {
+            completionDateController.text =
+                DateFormat('yyyy-MM-dd').format(pickedDate);
+          });
+        }
+      },
+    );
+  }
+
+  /// Helper method to create the save button conditionally.
+  Widget _buildSaveButton(BuildContext context) {
+    // Safely check if groups is not null before accessing its methods
+    if (groups != null &&
+        (groups!.contains('admins') ||
+            groups!.contains('emptyPackaging_dep')) &&
+        widget.type == 'Production') {
+      return Mybutton(
+        text: 'حفظ',
+        onPressed: () {
+          if (!_isDurationValid()) {
+            showSnackBar(
+              context: context,
+              content: 'الوقت غير صحيح ⏳',
+              failure: true,
+            );
+            return;
+          }
+          _fillEmptyPackagingModelFromFomr();
+          print(_emptyPackagingModel);
+          context.read<ProductionBloc>().add(
+              SaveEmptyPackaging(emptyPackagingModel: _emptyPackagingModel));
+        },
+      );
+    }
+    // Return an empty widget if the conditions are not met
+    return const SizedBox.shrink();
+  }
+
   void _calculateDuration() {
     if (startTimeController.text.isNotEmpty &&
         finishTimeController.text.isNotEmpty) {
       final format = DateFormat('HH:mm');
+      try {
+        final DateTime startTime = format.parse(startTimeController.text);
+        final DateTime finishTime = format.parse(finishTimeController.text);
 
-      final DateTime startTime = format.parse(startTimeController.text);
-      final DateTime finishTime = format.parse(finishTimeController.text);
+        final Duration duration = finishTime.difference(startTime);
 
-      final Duration duration = finishTime.difference(startTime);
-
-      if (duration.isNegative) {
-        final nextDayFinishTime = finishTime.add(const Duration(days: 1));
-        final Duration nextDayDuration =
-            nextDayFinishTime.difference(startTime);
+        if (duration.isNegative) {
+          final nextDayFinishTime = finishTime.add(const Duration(days: 1));
+          final Duration nextDayDuration =
+              nextDayFinishTime.difference(startTime);
+          setState(() {
+            durationText = _formatDuration(nextDayDuration);
+          });
+        } else {
+          setState(() {
+            durationText = _formatDuration(duration);
+          });
+        }
+      } catch (e) {
+        // Handle potential format errors if the text is not a valid time
         setState(() {
-          durationText = _formatDuration(nextDayDuration);
-        });
-      } else {
-        setState(() {
-          durationText = _formatDuration(duration);
+          durationText = '';
         });
       }
     }
@@ -408,14 +479,17 @@ class _ProductionEmptyPackagingDataWidgetState
       final DateTime startTime = format.parse(startTimeController.text);
       final DateTime finishTime = format.parse(finishTimeController.text);
 
-      final Duration duration = finishTime.difference(startTime);
+      // Calculate duration, accounting for tasks that cross midnight
+      final Duration displayDuration = finishTime.isBefore(startTime)
+          ? finishTime.add(const Duration(days: 1)).difference(startTime)
+          : finishTime.difference(startTime);
 
-      // If finish time is before start time OR duration > 9 hours => invalid
-      if (duration.isNegative || duration > const Duration(hours: 9)) {
+      // Disallow durations longer than a reasonable shift (e.g., 9 hours)
+      if (displayDuration > const Duration(hours: 9)) {
         return false;
       }
     } catch (e) {
-      return false; // invalid parse means invalid duration
+      return false; // Invalid time format
     }
     return true;
   }

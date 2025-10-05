@@ -105,6 +105,7 @@ class OperationsServices {
         return null;
       }, (success) async {
         queryParams['page'] = queryParams['page'] ?? 1;
+        queryParams['page_size'] = 30;
 
         final response = await _apiClient.getPageinated(
           user: success,

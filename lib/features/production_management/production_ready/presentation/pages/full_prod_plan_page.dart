@@ -21,16 +21,12 @@ class FullProdPlanPage extends StatefulWidget {
 class _FullProdPlanPageState extends State<FullProdPlanPage> {
   late int userDepChoice;
   List<String>? groups;
-  @override
-  void initState() {
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
-    AppUserState state = context.watch<AppUserCubit>().state;
-    if (state is AppUserLoggedIn) {
-      groups = state.userEntity.groups;
+    AppUserState userState = context.watch<AppUserCubit>().state;
+    if (userState is AppUserLoggedIn) {
+      groups = userState.userEntity.groups;
     }
     List<ProdPlanViewModel> resultList = [];
     return BlocProvider(
@@ -45,9 +41,9 @@ class _FullProdPlanPageState extends State<FullProdPlanPage> {
                 actions: [
                   IconButton(
                     onPressed: () {
-                      BlocProvider.of<ProdPlanBloc>(context).add(
-                        ProdGetAll<ProdPlanViewModel>(),
-                      );
+                      context
+                          .read<ProdPlanBloc>()
+                          .add(ProdGetAll<ProdPlanViewModel>());
                     },
                     icon: const Icon(Icons.refresh),
                   )
@@ -64,9 +60,7 @@ class _FullProdPlanPageState extends State<FullProdPlanPage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) {
-                              return const AddProdPlanPage();
-                            },
+                            builder: (context) => const AddProdPlanPage(),
                           ),
                         );
                       },
@@ -78,21 +72,31 @@ class _FullProdPlanPageState extends State<FullProdPlanPage> {
                   : null,
               body: Column(
                 children: [
-                  BlocConsumer<ProdPlanBloc, ProdState>(
-                    listener: (context, state) {
-                      _handleState(context, state);
-                    },
-                    builder: (context, state) {
-                      if (state is ProdOpLoading) {
-                        return const Loader();
-                      } else if (state
-                          is ProdOpSuccess<List<ProdPlanViewModel>>) {
-                        resultList = state.opResult;
-                        return _buildProdPlanList(context, resultList);
-                      } else {
-                        return _buildProdPlanList(context, resultList);
-                      }
-                    },
+                  Expanded(
+                    // Make BlocConsumer fill the available space
+                    child: BlocConsumer<ProdPlanBloc, ProdState>(
+                      listener: (context, state) {
+                        _handleState(context, state);
+                      },
+                      builder: (context, state) {
+                        if (state is ProdOpLoading) {
+                          return const Loader();
+                        }
+                        if (state is ProdOpSuccess<List<ProdPlanViewModel>>) {
+                          resultList = state.opResult;
+                        }
+                        // Use OrientationBuilder to switch layouts
+                        return OrientationBuilder(
+                          builder: (context, orientation) {
+                            if (orientation == Orientation.landscape) {
+                              return _buildProdPlanGrid(context, resultList);
+                            } else {
+                              return _buildProdPlanList(context, resultList);
+                            }
+                          },
+                        );
+                      },
+                    ),
                   ),
                 ],
               ),
@@ -113,143 +117,272 @@ class _FullProdPlanPageState extends State<FullProdPlanPage> {
     }
   }
 
+  // --- PORTRAIT LAYOUT: Your original ListView ---
   Widget _buildProdPlanList(
       BuildContext context, List<ProdPlanViewModel> prodPlanList) {
-    return Expanded(
-      child: ListView.builder(
-        itemCount: prodPlanList.length,
-        itemBuilder: (context, index) {
-          final screenWidth = MediaQuery.of(context).size.width;
+    // This is your original ListView code, mostly unchanged.
+    return ListView.builder(
+      itemCount: prodPlanList.length,
+      itemBuilder: (context, index) {
+        final screenWidth = MediaQuery.of(context).size.width;
+        final plan = prodPlanList[index];
 
-          return Card(
-            child: ListTile(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (
-                      context,
-                    ) {
-                      return FullProPlanDetailsPage(
-                        prodPlanViewModel: prodPlanList[index],
-                      );
-                    },
-                  ),
-                );
-              },
-              title: Text(
-                "${prodPlanList[index].type} - ${prodPlanList[index].tier}",
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 14),
-              ),
-              subtitle: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    prodPlanList[index].color,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _buildDepIcon('rawMaterial',
-                          prodPlanList[index].depChecks['rawMaterial']),
-                      const SizedBox(width: 4),
-                      _buildDepIcon('manufacturing',
-                          prodPlanList[index].depChecks['manufacturing']),
-                      const SizedBox(width: 4),
-                      _buildDepIcon(
-                          'lab', prodPlanList[index].depChecks['lab']),
-                      const SizedBox(width: 4),
-                      _buildDepIcon('emptyPackaging',
-                          prodPlanList[index].depChecks['emptyPackaging']),
-                      const SizedBox(width: 4),
-                      _buildDepIcon('packaging',
-                          prodPlanList[index].depChecks['packaging']),
-                      const SizedBox(width: 4),
-                      _buildDepIcon('finishedGoods',
-                          prodPlanList[index].depChecks['finishedGoods']),
-                    ],
-                  )
-                ],
-              ),
-              trailing: SizedBox(
-                width: screenWidth * 0.20,
-                child: Column(
-                  children: [
-                    Text(
-                      prodPlanList[index].totalWeight != null
-                          ? '${prodPlanList[index].totalWeight!.toStringAsFixed(2)} KG'
-                          : '',
-                    ),
-                    Text(
-                      prodPlanList[index].totalVolume != null
-                          ? '${prodPlanList[index].totalVolume!.toStringAsFixed(2)} L'
-                          : '',
-                    ),
-                  ],
+        return Card(
+          child: ListTile(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      FullProPlanDetailsPage(prodPlanViewModel: plan),
                 ),
-              ),
-              leading: SizedBox(
-                width: screenWidth * 0.13,
-                child: Column(
+              );
+            },
+            title: Text(
+              "${plan.type} - ${plan.tier}",
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            ),
+            subtitle: Column(
+              children: [
+                Text(plan.color, textAlign: TextAlign.center),
+                const SizedBox(height: 10),
+                Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    CircleAvatar(
-                      radius: 10,
-                      child: Text(
-                        prodPlanList[index].id.toString(),
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(fontSize: 8),
-                      ),
-                    ),
-                    Text(
-                      prodPlanList[index].insertDate ?? '',
-                      style: const TextStyle(fontSize: 8),
-                      textAlign: TextAlign.center,
-                    )
+                    _buildDepIcon('rawMaterial', plan.depChecks['rawMaterial']),
+                    const SizedBox(width: 4),
+                    _buildDepIcon(
+                        'manufacturing', plan.depChecks['manufacturing']),
+                    const SizedBox(width: 4),
+                    _buildDepIcon('lab', plan.depChecks['lab']),
+                    const SizedBox(width: 4),
+                    _buildDepIcon(
+                        'emptyPackaging', plan.depChecks['emptyPackaging']),
+                    const SizedBox(width: 4),
+                    _buildDepIcon('packaging', plan.depChecks['packaging']),
+                    const SizedBox(width: 4),
+                    _buildDepIcon(
+                        'finishedGoods', plan.depChecks['finishedGoods']),
                   ],
-                ),
+                )
+              ],
+            ),
+            trailing: SizedBox(
+              width: screenWidth * 0.20,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(plan.totalWeight != null
+                      ? '${plan.totalWeight!.toStringAsFixed(2)} KG'
+                      : ''),
+                  Text(plan.totalVolume != null
+                      ? '${plan.totalVolume!.toStringAsFixed(2)} L'
+                      : ''),
+                ],
               ),
             ),
-          );
-        },
-      ),
+            leading: SizedBox(
+              width: screenWidth * 0.13,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircleAvatar(
+                    radius: 10,
+                    child: Text(plan.id.toString(),
+                        style: const TextStyle(fontSize: 8)),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(plan.insertDate ?? '',
+                      style: const TextStyle(fontSize: 8)),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildDepIcon(String department, bool? checkValue) {
-    IconData icon;
+  // --- LANDSCAPE LAYOUT: New GridView ---
+  Widget _buildProdPlanGrid(
+      BuildContext context, List<ProdPlanViewModel> prodPlanList) {
+    return GridView.builder(
+      padding: const EdgeInsets.all(8.0),
+      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+        maxCrossAxisExtent: 300, // Max width for each grid item
+        mainAxisSpacing: 8,
+        crossAxisSpacing: 8,
+        childAspectRatio: 1.8, // Adjust the shape of the cards
+      ),
+      itemCount: prodPlanList.length,
+      itemBuilder: (context, index) {
+        return _ProdPlanGridItem(
+          plan: prodPlanList[index],
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => FullProPlanDetailsPage(
+                  prodPlanViewModel: prodPlanList[index],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
 
+  // --- Reusable Icon Helper ---
+  Widget _buildDepIcon(String department, bool? checkValue,
+      {double size = 14}) {
+    IconData icon;
     switch (department) {
       case 'rawMaterial':
-        icon = FontAwesomeIcons.boxesStacked; // مواد أولية
+        icon = FontAwesomeIcons.boxesStacked;
         break;
       case 'manufacturing':
-        icon = FontAwesomeIcons.industry; // تصنيع
+        icon = FontAwesomeIcons.industry;
         break;
       case 'lab':
-        icon = FontAwesomeIcons.flaskVial; // مخبر
+        icon = FontAwesomeIcons.flaskVial;
         break;
       case 'emptyPackaging':
-        icon = FontAwesomeIcons.boxOpen; // فوارغ
+        icon = FontAwesomeIcons.boxOpen;
         break;
       case 'packaging':
-        icon = FontAwesomeIcons.boxesPacking; // تعبئة
+        icon = FontAwesomeIcons.boxesPacking;
         break;
       case 'finishedGoods':
-        icon = FontAwesomeIcons.cubes; // مواد جاهزة
+        icon = FontAwesomeIcons.cubes;
         break;
       default:
         icon = FontAwesomeIcons.circleQuestion;
     }
-
     return FaIcon(
       icon,
-      size: 14, // uniform size for all
+      size: size,
+      color: checkValue == true ? Colors.green : Colors.red,
+    );
+  }
+}
+
+// --- NEW WIDGET: Custom card for the GridView ---
+class _ProdPlanGridItem extends StatelessWidget {
+  final ProdPlanViewModel plan;
+  final VoidCallback onTap;
+
+  const _ProdPlanGridItem({required this.plan, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            children: [
+              // Top Row: ID and Weight
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  CircleAvatar(
+                    radius: 12,
+                    child: Text(plan.id.toString(),
+                        style: const TextStyle(fontSize: 10)),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        plan.totalWeight != null
+                            ? '${plan.totalWeight!.toStringAsFixed(1)} KG'
+                            : '',
+                        style: const TextStyle(
+                            fontSize: 12, fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        plan.totalVolume != null
+                            ? '${plan.totalVolume!.toStringAsFixed(1)} L'
+                            : '',
+                        style: const TextStyle(
+                            fontSize: 12, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const Spacer(),
+              // Middle: Title and Color
+              Text(
+                "${plan.type} - ${plan.tier}",
+                style: const TextStyle(fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+              Text(plan.color,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 12)),
+              const Spacer(),
+              // Bottom: Status Icons
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                spacing: 8,
+                children: [
+                  _buildDepIcon('rawMaterial', plan.depChecks['rawMaterial'],
+                      size: 16),
+                  _buildDepIcon(
+                      'manufacturing', plan.depChecks['manufacturing'],
+                      size: 16),
+                  _buildDepIcon('lab', plan.depChecks['lab'], size: 16),
+                  _buildDepIcon(
+                      'emptyPackaging', plan.depChecks['emptyPackaging'],
+                      size: 16),
+                  _buildDepIcon('packaging', plan.depChecks['packaging'],
+                      size: 16),
+                  _buildDepIcon(
+                      'finishedGoods', plan.depChecks['finishedGoods'],
+                      size: 16),
+                ],
+              ),
+              const Spacer(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Duplicating this helper here for encapsulation, or you can pass it as a parameter
+  Widget _buildDepIcon(String department, bool? checkValue,
+      {double size = 14}) {
+    IconData icon;
+    switch (department) {
+      case 'rawMaterial':
+        icon = FontAwesomeIcons.boxesStacked;
+        break;
+      case 'manufacturing':
+        icon = FontAwesomeIcons.industry;
+        break;
+      case 'lab':
+        icon = FontAwesomeIcons.flaskVial;
+        break;
+      case 'emptyPackaging':
+        icon = FontAwesomeIcons.boxOpen;
+        break;
+      case 'packaging':
+        icon = FontAwesomeIcons.boxesPacking;
+        break;
+      case 'finishedGoods':
+        icon = FontAwesomeIcons.cubes;
+        break;
+      default:
+        icon = FontAwesomeIcons.circleQuestion;
+    }
+    return FaIcon(
+      icon,
+      size: size,
       color: checkValue == true ? Colors.green : Colors.red,
     );
   }

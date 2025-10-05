@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gmcappclean/core/common/widgets/my_dropdown_button_widget.dart';
 import 'package:gmcappclean/core/common/widgets/mytextfield.dart';
-import 'package:gmcappclean/core/common/widgets/text_field_with_suggestions.dart';
 import 'package:gmcappclean/core/utils/show_snackbar.dart';
 import 'package:gmcappclean/features/production_management/production_ready/presentation/bloc/production_bloc.dart';
 import 'package:gmcappclean/features/production_management/production_ready/presentation/pages/full_prod_plan_page.dart';
@@ -111,6 +110,8 @@ class _AddProdPlanPageState extends State<AddProdPlanPage> {
       'أندركوت اقتصادي',
       'أندركوت لميع',
       'ايكو لميع',
+      'ايكو نص لمعة',
+      'ايكو اندركوت',
     ],
     'معجونة': [
       'كلاسيك ',

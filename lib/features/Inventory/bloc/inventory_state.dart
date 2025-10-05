@@ -19,6 +19,12 @@ class InventorySuccess<T> extends InventoryState {
   InventorySuccess({required this.result});
 }
 
+class InventorySuccessDeleted<T> extends InventoryState {
+  final T result;
+
+  InventorySuccessDeleted({required this.result});
+}
+
 class InventorySuccessAddManufacturing<T> extends InventoryState {
   final T result;
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gmcappclean/core/common/api/api.dart';
 import 'package:gmcappclean/core/common/widgets/loader.dart';
 import 'package:gmcappclean/core/common/widgets/search_row.dart';
@@ -109,7 +110,24 @@ class _ItemsTreePageChildState extends State<ItemsTreePageChild> {
                   const SizedBox(height: 8),
                   Expanded(
                     child: _filteredItemsTree.isEmpty
-                        ? const Center(child: Text('لا توجد بيانات مطابقة'))
+                        ? const Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  FontAwesomeIcons.solidClipboard,
+                                  size: 50,
+                                  color: Colors.grey,
+                                ),
+                                SizedBox(height: 10),
+                                Text(
+                                  'لا توجد بيانات لعرضها.',
+                                  style: TextStyle(
+                                      fontSize: 18, color: Colors.grey),
+                                ),
+                              ],
+                            ),
+                          )
                         : ListView.builder(
                             itemCount: _filteredItemsTree.length,
                             itemBuilder: (context, index) {

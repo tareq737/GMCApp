@@ -28,6 +28,8 @@ class ProductionMainDataWidget extends StatefulWidget {
 }
 
 class _ProductionMainDataWidgetState extends State<ProductionMainDataWidget> {
+  List<String>? groups;
+
   Widget _buildDetailsLayout(BuildContext context) {
     final items = [
       _buildDetailCard(
@@ -66,7 +68,139 @@ class _ProductionMainDataWidgetState extends State<ProductionMainDataWidget> {
     }
   }
 
-  List<String>? groups;
+  // ✨ NEW: Helper method to build the checks layout based on orientation
+  Widget _buildChecksLayout(BuildContext context) {
+    final orientation = MediaQuery.of(context).orientation;
+
+    final checkSections = [
+      CheckSection(
+        onTap: () => widget.moveToTab!(1),
+        title: 'الأولية',
+        checks: [
+          widget.fullProductionModel.rawMaterials.raw_material_check_1 ?? false,
+          widget.fullProductionModel.rawMaterials.raw_material_check_2 ?? false,
+          widget.fullProductionModel.rawMaterials.raw_material_check_3 ?? false,
+          widget.fullProductionModel.rawMaterials.raw_material_check_4 ?? false,
+        ],
+      ),
+      CheckSection(
+        onTap: () => widget.moveToTab!(2),
+        title: 'التصنيع',
+        checks: [
+          widget.fullProductionModel.manufacturing.manufacturing_check_1 ??
+              false,
+          widget.fullProductionModel.manufacturing.manufacturing_check_2 ??
+              false,
+          widget.fullProductionModel.manufacturing.manufacturing_check_3 ??
+              false,
+          widget.fullProductionModel.manufacturing.manufacturing_check_4 ??
+              false,
+          widget.fullProductionModel.manufacturing.manufacturing_check_5 ??
+              false,
+          widget.fullProductionModel.manufacturing.manufacturing_check_6 ??
+              false,
+        ],
+      ),
+      CheckSection(
+        onTap: () => widget.moveToTab!(3),
+        title: 'المخبر',
+        checks: [
+          widget.fullProductionModel.lab.lab_check_1 ?? false,
+          widget.fullProductionModel.lab.lab_check_2 ?? false,
+          widget.fullProductionModel.lab.lab_check_3 ?? false,
+          widget.fullProductionModel.lab.lab_check_4 ?? false,
+          widget.fullProductionModel.lab.lab_check_5 ?? false,
+          widget.fullProductionModel.lab.lab_check_6 ?? false,
+        ],
+      ),
+      CheckSection(
+        onTap: () => widget.moveToTab!(4),
+        title: 'الفوارغ',
+        checks: [
+          widget.fullProductionModel.emptyPackaging.empty_packaging_check_1 ??
+              false,
+          widget.fullProductionModel.emptyPackaging.empty_packaging_check_2 ??
+              false,
+          widget.fullProductionModel.emptyPackaging.empty_packaging_check_3 ??
+              false,
+          widget.fullProductionModel.emptyPackaging.empty_packaging_check_4 ??
+              false,
+          widget.fullProductionModel.emptyPackaging.empty_packaging_check_5 ??
+              false,
+        ],
+      ),
+      CheckSection(
+        onTap: () => widget.moveToTab!(5),
+        title: 'التعبئة',
+        checks: [
+          widget.fullProductionModel.packaging.packaging_check_1 ?? false,
+          widget.fullProductionModel.packaging.packaging_check_2 ?? false,
+          widget.fullProductionModel.packaging.packaging_check_3 ?? false,
+          widget.fullProductionModel.packaging.packaging_check_4 ?? false,
+          widget.fullProductionModel.packaging.packaging_check_5 ?? false,
+          widget.fullProductionModel.packaging.packaging_check_6 ?? false,
+        ],
+      ),
+      CheckSection(
+        onTap: () => widget.moveToTab!(6),
+        title: 'الجاهزة',
+        checks: [
+          widget.fullProductionModel.finishedGoods.finished_goods_check_1 ??
+              false,
+          widget.fullProductionModel.finishedGoods.finished_goods_check_2 ??
+              false,
+          widget.fullProductionModel.finishedGoods.finished_goods_check_3 ??
+              false,
+        ],
+      ),
+    ];
+
+    if (orientation == Orientation.landscape) {
+      // Landscape: Display all checks in a single, wrapping row.
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        spacing: 16.0,
+        children: checkSections,
+      );
+    } else {
+      // Portrait: Use the original 3-column layout for better readability.
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              children: [
+                checkSections[0], // الأولية
+                const SizedBox(height: 10),
+                checkSections[1], // الفوارغ
+              ],
+            ),
+          ),
+          const SizedBox(width: 4),
+          Expanded(
+            child: Column(
+              children: [
+                checkSections[2], // التصنيع
+                const SizedBox(height: 10),
+                checkSections[3], // التعبئة
+              ],
+            ),
+          ),
+          const SizedBox(width: 4),
+          Expanded(
+            child: Column(
+              children: [
+                checkSections[4], // المخبر
+                const SizedBox(height: 10),
+                checkSections[5], // الجاهزة
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+  }
 
   List<Map<String, String>> _generateRows() {
     return List.generate(
@@ -195,200 +329,11 @@ class _ProductionMainDataWidgetState extends State<ProductionMainDataWidget> {
                             height: 10,
                           ),
                           if (widget.type == 'Production') ...[
-                            const Text('تشطيب الأقسام'),
+                            const Text('تشطيب الأقسام:'),
                             const SizedBox(
-                              height: 10,
+                              height: 20,
                             ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Column(
-                                  children: [
-                                    CheckSection(
-                                      onTap: () {
-                                        widget.moveToTab!(1);
-                                      },
-                                      title: 'الأولية',
-                                      checks: [
-                                        widget.fullProductionModel.rawMaterials
-                                                .raw_material_check_1 ??
-                                            false,
-                                        widget.fullProductionModel.rawMaterials
-                                                .raw_material_check_2 ??
-                                            false,
-                                        widget.fullProductionModel.rawMaterials
-                                                .raw_material_check_3 ??
-                                            false,
-                                        widget.fullProductionModel.rawMaterials
-                                                .raw_material_check_4 ??
-                                            false,
-                                      ],
-                                    ),
-                                    const SizedBox(
-                                      height: 10,
-                                    ),
-                                    CheckSection(
-                                      onTap: () {
-                                        widget.moveToTab!(4);
-                                      },
-                                      title: 'الفوارغ',
-                                      checks: [
-                                        widget
-                                                .fullProductionModel
-                                                .emptyPackaging
-                                                .empty_packaging_check_1 ??
-                                            false,
-                                        widget
-                                                .fullProductionModel
-                                                .emptyPackaging
-                                                .empty_packaging_check_2 ??
-                                            false,
-                                        widget
-                                                .fullProductionModel
-                                                .emptyPackaging
-                                                .empty_packaging_check_3 ??
-                                            false,
-                                        widget
-                                                .fullProductionModel
-                                                .emptyPackaging
-                                                .empty_packaging_check_4 ??
-                                            false,
-                                        widget
-                                                .fullProductionModel
-                                                .emptyPackaging
-                                                .empty_packaging_check_5 ??
-                                            false,
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(
-                                  width: 10,
-                                ),
-                                Column(
-                                  children: [
-                                    CheckSection(
-                                      onTap: () {
-                                        widget.moveToTab!(2);
-                                      },
-                                      title: 'التصنيع',
-                                      checks: [
-                                        widget.fullProductionModel.manufacturing
-                                                .manufacturing_check_1 ??
-                                            false,
-                                        widget.fullProductionModel.manufacturing
-                                                .manufacturing_check_2 ??
-                                            false,
-                                        widget.fullProductionModel.manufacturing
-                                                .manufacturing_check_3 ??
-                                            false,
-                                        widget.fullProductionModel.manufacturing
-                                                .manufacturing_check_4 ??
-                                            false,
-                                        widget.fullProductionModel.manufacturing
-                                                .manufacturing_check_5 ??
-                                            false,
-                                        widget.fullProductionModel.manufacturing
-                                                .manufacturing_check_6 ??
-                                            false,
-                                      ],
-                                    ),
-                                    const SizedBox(
-                                      height: 10,
-                                    ),
-                                    CheckSection(
-                                      onTap: () {
-                                        widget.moveToTab!(5);
-                                      },
-                                      title: 'التعبئة',
-                                      checks: [
-                                        widget.fullProductionModel.packaging
-                                                .packaging_check_1 ??
-                                            false,
-                                        widget.fullProductionModel.packaging
-                                                .packaging_check_2 ??
-                                            false,
-                                        widget.fullProductionModel.packaging
-                                                .packaging_check_3 ??
-                                            false,
-                                        widget.fullProductionModel.packaging
-                                                .packaging_check_4 ??
-                                            false,
-                                        widget.fullProductionModel.packaging
-                                                .packaging_check_5 ??
-                                            false,
-                                        widget.fullProductionModel.packaging
-                                                .packaging_check_6 ??
-                                            false,
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(
-                                  width: 10,
-                                ),
-                                Column(
-                                  children: [
-                                    CheckSection(
-                                      onTap: () {
-                                        widget.moveToTab!(3);
-                                      },
-                                      title: 'المخبر',
-                                      checks: [
-                                        widget.fullProductionModel.lab
-                                                .lab_check_1 ??
-                                            false,
-                                        widget.fullProductionModel.lab
-                                                .lab_check_2 ??
-                                            false,
-                                        widget.fullProductionModel.lab
-                                                .lab_check_3 ??
-                                            false,
-                                        widget.fullProductionModel.lab
-                                                .lab_check_4 ??
-                                            false,
-                                        widget.fullProductionModel.lab
-                                                .lab_check_5 ??
-                                            false,
-                                        widget.fullProductionModel.lab
-                                                .lab_check_6 ??
-                                            false,
-                                      ],
-                                    ),
-                                    const SizedBox(
-                                      height: 10,
-                                    ),
-                                    Row(
-                                      children: [
-                                        CheckSection(
-                                          onTap: () {
-                                            widget.moveToTab!(6);
-                                          },
-                                          title: 'الجاهزة',
-                                          checks: [
-                                            widget
-                                                    .fullProductionModel
-                                                    .finishedGoods
-                                                    .finished_goods_check_1 ??
-                                                false,
-                                            widget
-                                                    .fullProductionModel
-                                                    .finishedGoods
-                                                    .finished_goods_check_2 ??
-                                                false,
-                                            widget
-                                                    .fullProductionModel
-                                                    .finishedGoods
-                                                    .finished_goods_check_3 ??
-                                                false,
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
+                            _buildChecksLayout(context),
                           ]
                         ],
                       ),
@@ -417,68 +362,158 @@ class _ProductionMainDataWidgetState extends State<ProductionMainDataWidget> {
                     ],
                   ),
                   const SizedBox(height: 10),
-                  Column(
-                    children: rows.asMap().entries.map((entry) {
-                      Map<String, String> row = entry.value;
-                      final theme = Theme.of(context);
-                      final bool isDarkMode =
-                          theme.brightness == Brightness.dark;
-
-                      return Container(
-                        margin: const EdgeInsets.symmetric(
-                            vertical: 4, horizontal: 4),
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: theme.cardColor,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: isDarkMode
-                                ? Colors.grey.shade700
-                                : Colors.grey.shade300,
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final orientation = MediaQuery.of(context).orientation;
+                      // Use a GridView if the orientation is landscape
+                      if (orientation == Orientation.landscape) {
+                        return GridView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: rows.length,
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 3,
+                            crossAxisSpacing: 8,
+                            mainAxisSpacing: 8,
+                            childAspectRatio: 5,
                           ),
-                        ),
-                        child: Column(
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                _thinItemRow(context, "الصنف: ", row["الصنف"]!),
-                                const SizedBox(width: 12),
-                                _thinItemRow(
-                                    context, "العبوة: ", row["العبوة"]!),
-                                const SizedBox(width: 12),
-                                _thinItemRow(context, "العدد: ", row["العدد"]!),
-                              ],
-                            ),
-                            const SizedBox(height: 6),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                _thinItemColumn(
-                                    context, "الوزن", row["الوزن"]!),
-                                _thinItemColumn(
-                                    context, "الحجم", row["الحجم"]!),
-                                _thinItemColumn(
-                                  context,
-                                  "مجموع الوزن",
-                                  double.parse(row["مجموع الوزن"]!)
-                                      .toStringAsFixed(2),
-                                  isBold: true,
+                          itemBuilder: (context, index) {
+                            final row = rows[index];
+                            final theme = Theme.of(context);
+                            final bool isDarkMode =
+                                theme.brightness == Brightness.dark;
+
+                            // This is the same widget for a single item
+                            return Container(
+                              margin: const EdgeInsets.symmetric(
+                                  vertical: 4, horizontal: 4),
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: theme.cardColor,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: isDarkMode
+                                      ? Colors.grey.shade700
+                                      : Colors.grey.shade300,
                                 ),
-                                _thinItemColumn(
-                                  context,
-                                  "مجموع الحجم",
-                                  double.parse(row["مجموع الحجم"]!)
-                                      .toStringAsFixed(2),
-                                  isBold: true,
+                              ),
+                              child: Column(
+                                children: [
+                                  // ✨ FIXED: Replaced Row with Wrap for correct spacing
+                                  Wrap(
+                                    spacing: 12.0,
+                                    runSpacing: 4.0,
+                                    alignment: WrapAlignment.center,
+                                    children: [
+                                      _thinItemRow(
+                                          context, "الصنف: ", row["الصنف"]!),
+                                      _thinItemRow(
+                                          context, "العبوة: ", row["العبوة"]!),
+                                      _thinItemRow(
+                                          context, "العدد: ", row["العدد"]!),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      _thinItemColumn(
+                                          context, "الوزن", row["الوزن"]!),
+                                      _thinItemColumn(
+                                          context, "الحجم", row["الحجم"]!),
+                                      _thinItemColumn(
+                                        context,
+                                        "مجموع الوزن",
+                                        double.parse(row["مجموع الوزن"]!)
+                                            .toStringAsFixed(2),
+                                        isBold: true,
+                                      ),
+                                      _thinItemColumn(
+                                        context,
+                                        "مجموع الحجم",
+                                        double.parse(row["مجموع الحجم"]!)
+                                            .toStringAsFixed(2),
+                                        isBold: true,
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        );
+                      } else {
+                        // Use the original Column for portrait orientation
+                        return Column(
+                          children: rows.map((row) {
+                            final theme = Theme.of(context);
+                            final bool isDarkMode =
+                                theme.brightness == Brightness.dark;
+
+                            return Container(
+                              margin: const EdgeInsets.symmetric(
+                                  vertical: 4, horizontal: 4),
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: theme.cardColor,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: isDarkMode
+                                      ? Colors.grey.shade700
+                                      : Colors.grey.shade300,
                                 ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      );
-                    }).toList(),
-                  )
+                              ),
+                              child: Column(
+                                children: [
+                                  // ✨ FIXED: Replaced Row with Wrap for correct spacing
+                                  Wrap(
+                                    spacing: 12.0,
+                                    runSpacing: 4.0,
+                                    alignment: WrapAlignment.center,
+                                    children: [
+                                      _thinItemRow(
+                                          context, "الصنف: ", row["الصنف"]!),
+                                      _thinItemRow(
+                                          context, "العبوة: ", row["العبوة"]!),
+                                      _thinItemRow(
+                                          context, "العدد: ", row["العدد"]!),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      _thinItemColumn(
+                                          context, "الوزن", row["الوزن"]!),
+                                      _thinItemColumn(
+                                          context, "الحجم", row["الحجم"]!),
+                                      _thinItemColumn(
+                                        context,
+                                        "مجموع الوزن",
+                                        double.parse(row["مجموع الوزن"]!)
+                                            .toStringAsFixed(2),
+                                        isBold: true,
+                                      ),
+                                      _thinItemColumn(
+                                        context,
+                                        "مجموع الحجم",
+                                        double.parse(row["مجموع الحجم"]!)
+                                            .toStringAsFixed(2),
+                                        isBold: true,
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                        );
+                      }
+                    },
+                  ),
                 ],
               ),
             ),
@@ -497,6 +532,7 @@ class CheckIconRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: checks.map((check) {
         return Icon(
           check ? Icons.check : Icons.close,
@@ -593,27 +629,25 @@ Widget _thinItemRow(
   bool isBold = false,
 }) {
   final theme = Theme.of(context);
-  return Flexible(
-    child: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          label,
-          style: theme.textTheme.bodySmall?.copyWith(
-            fontSize: 10,
-            color: theme.colorScheme.onSurface.withOpacity(0.6),
-          ),
+  return Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Text(
+        label,
+        style: theme.textTheme.bodySmall?.copyWith(
+          fontSize: 12,
+          color: theme.colorScheme.onSurface.withOpacity(0.6),
         ),
-        Text(
-          value,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            fontSize: 12,
-            fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-          ),
-          overflow: TextOverflow.ellipsis,
+      ),
+      Text(
+        value,
+        style: theme.textTheme.bodyMedium?.copyWith(
+          fontSize: 12,
+          fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
         ),
-      ],
-    ),
+        overflow: TextOverflow.ellipsis,
+      ),
+    ],
   );
 }
 
@@ -624,26 +658,24 @@ Widget _thinItemColumn(
   bool isBold = false,
 }) {
   final theme = Theme.of(context);
-  return Flexible(
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: theme.textTheme.bodySmall?.copyWith(
-            fontSize: 10,
-            color: theme.colorScheme.onSurface.withOpacity(0.6),
-          ),
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.center,
+    children: [
+      Text(
+        label,
+        style: theme.textTheme.bodySmall?.copyWith(
+          fontSize: 12,
+          color: theme.colorScheme.onSurface.withOpacity(0.6),
         ),
-        Text(
-          value,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            fontSize: 12,
-            fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-          ),
-          overflow: TextOverflow.ellipsis,
+      ),
+      Text(
+        value,
+        style: theme.textTheme.bodyMedium?.copyWith(
+          fontSize: 12,
+          fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
         ),
-      ],
-    ),
+        overflow: TextOverflow.ellipsis,
+      ),
+    ],
   );
 }

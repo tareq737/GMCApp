@@ -60,7 +60,7 @@ class ProductionServices {
           user: success,
           endPoint: 'briefproduction',
           queryParams: {
-            'page_size': 15,
+            'page_size': 50,
             'page': page,
           },
         );
@@ -114,7 +114,7 @@ class ProductionServices {
           endPoint: 'production/briefarchive',
           queryParams: {
             'search': search,
-            'page_size': 15,
+            'page_size': 40,
             'page': page,
           },
         );
@@ -315,7 +315,7 @@ class ProductionServices {
           endPoint: 'Allproduction',
           queryParams: {
             'search': search,
-            'page_size': 15,
+            'page_size': 20,
             'page': page,
           },
         );
@@ -346,7 +346,7 @@ class ProductionServices {
           user: success,
           endPoint: 'production_filter',
           queryParams: {
-            'page_size': 15,
+            'page_size': 20,
             'page': page,
             'status': status,
             'type': type,

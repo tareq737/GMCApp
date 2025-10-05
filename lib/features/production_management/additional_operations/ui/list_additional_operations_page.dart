@@ -2,12 +2,13 @@ import 'dart:ui' as ui;
 
 import 'package:floating_draggable_widget/floating_draggable_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart'; // Added for animations
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gmcappclean/core/common/api/api.dart';
 import 'package:gmcappclean/core/common/cubits/app_user/app_user_cubit.dart';
 import 'package:gmcappclean/core/common/widgets/loader.dart';
 import 'package:gmcappclean/core/common/widgets/my_dropdown_button_widget.dart';
-
 import 'package:gmcappclean/core/services/auth_interactor.dart';
 import 'package:gmcappclean/core/utils/show_snackbar.dart';
 import 'package:gmcappclean/features/production_management/additional_operations/bloc/additional_operations_bloc.dart';
@@ -67,7 +68,6 @@ class _ListAdditionalOperationsChildState
   List<AdditionalOperationsModel> resultList = [];
   bool? done = false;
 
-  // Declare isAdminOrProductionManager as a state variable
   bool _isAdminOrProductionManager = false;
 
   void _initializeDepartmentAndFetchData() {
@@ -75,9 +75,6 @@ class _ListAdditionalOperationsChildState
     List<String>? userGroups;
     if (appUserState is AppUserLoggedIn) {
       userGroups = appUserState.userEntity.groups;
-
-      // Debug print: show all user groups
-      print('User Groups: $userGroups');
     }
 
     setState(() {
@@ -88,9 +85,6 @@ class _ListAdditionalOperationsChildState
 
     List<String> departmentListToShow =
         _getDepartmentsBasedOnUserGroups(userGroups);
-
-    // Debug print: show departments allowed on this page
-    print('Allowed Departments on Page: $departmentListToShow');
 
     setState(() {
       if (departmentListToShow.isNotEmpty) {
@@ -132,13 +126,13 @@ class _ListAdditionalOperationsChildState
   String _getExpectedGroupForDepartment(String englishDepartmentCode) {
     switch (englishDepartmentCode) {
       case 'RawMaterials':
-        return 'raw_material_dep'; // camelCase to match user group
+        return 'raw_material_dep';
       case 'Manufacturing':
         return 'manufacturing_dep';
       case 'Lab':
         return 'lab_dep';
       case 'EmptyPackaging':
-        return 'emptyPackaging_dep'; // camelCase fixed here
+        return 'emptyPackaging_dep';
       case 'Packaging':
         return 'packaging_dep';
       case 'FinishedGoods':
@@ -158,8 +152,6 @@ class _ListAdditionalOperationsChildState
     List<String> departmentListToShow =
         _getDepartmentsBasedOnUserGroups(groups);
 
-    // This section is now largely handled by _initializeDepartmentAndFetchData
-    // but kept for ensuring UI consistency if build is called independently of initState
     if (departmentListToShow.isNotEmpty) {
       if (selectedDepartment == null ||
           !departmentListToShow.contains(selectedDepartment)) {
@@ -210,60 +202,56 @@ class _ListAdditionalOperationsChildState
               padding: const EdgeInsets.all(8.0),
               child: Column(
                 children: [
-                  SizedBox(
-                    height: 100,
-                    child: Row(
-                      children: [
-                        Expanded(
-                          flex: 5,
-                          child: MyDropdownButton(
-                            value: selectedDepartment,
-                            items: departmentListToShow.map((type) {
-                              return DropdownMenuItem<String>(
-                                value: type,
-                                child: Text(type),
-                              );
-                            }).toList(),
-                            onChanged: (String? newValue) {
-                              setState(
-                                () {
-                                  selectedDepartment = newValue;
-                                },
-                              );
-                              resultList = [];
-                              currentPage = 1;
-                              runBloc();
-                            },
-                            labelText: 'القسم',
-                            // Enable the dropdown if there's more than one department or if admin
-                            isEnabled: departmentListToShow.length > 1 ||
-                                _isAdminOrProductionManager,
-                            // Show clear button only for admins/production managers
-                            showClearButton: false,
-                          ),
+                  Row(
+                    children: [
+                      Expanded(
+                        flex: 5,
+                        child: MyDropdownButton(
+                          value: selectedDepartment,
+                          items: departmentListToShow.map((type) {
+                            return DropdownMenuItem<String>(
+                              value: type,
+                              child: Text(type),
+                            );
+                          }).toList(),
+                          onChanged: (String? newValue) {
+                            setState(
+                              () {
+                                selectedDepartment = newValue;
+                              },
+                            );
+                            resultList = [];
+                            currentPage = 1;
+                            runBloc();
+                          },
+                          labelText: 'القسم',
+                          isEnabled: departmentListToShow.length > 1 ||
+                              _isAdminOrProductionManager,
+                          showClearButton: false,
                         ),
-                        Expanded(
-                          flex: 5,
-                          child: CheckboxListTile(
-                            title: Text(
-                              (done ?? false) ? 'منهي' : 'غير منهي',
-                              style: const TextStyle(fontSize: 12),
-                            ),
-                            value: done,
-                            onChanged: (bool? value) {
-                              setState(() {
-                                done = value;
-                              });
-                              resultList = [];
-                              currentPage = 1;
-                              runBloc();
-                            },
-                            controlAffinity: ListTileControlAffinity.leading,
+                      ),
+                      Expanded(
+                        flex: 5,
+                        child: CheckboxListTile(
+                          title: Text(
+                            (done ?? false) ? 'منهي' : 'غير منهي',
+                            style: const TextStyle(fontSize: 12),
                           ),
+                          value: done,
+                          onChanged: (bool? value) {
+                            setState(() {
+                              done = value;
+                            });
+                            resultList = [];
+                            currentPage = 1;
+                            runBloc();
+                          },
+                          controlAffinity: ListTileControlAffinity.leading,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
+                  const SizedBox(height: 8),
                   Expanded(
                     child: BlocConsumer<AdditionalOperationsBloc,
                         AdditionalOperationsState>(
@@ -301,13 +289,52 @@ class _ListAdditionalOperationsChildState
                             resultList.addAll(state.result);
                           }
                           isLoadingMore = false;
-
-                          return _buildAdditionalOperationsList(
-                              context, state.result);
-                        } else {
-                          return _buildAdditionalOperationsList(
-                              context, resultList);
                         }
+
+                        if (resultList.isEmpty && !isLoadingMore) {
+                          return const Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  FontAwesomeIcons.solidClipboard,
+                                  size: 50,
+                                  color: Colors.grey,
+                                ),
+                                SizedBox(height: 10),
+                                Text(
+                                  'لا توجد بيانات لعرضها.',
+                                  style: TextStyle(
+                                      fontSize: 18, color: Colors.grey),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+
+                        return OrientationBuilder(
+                          builder: (context, orientation) {
+                            return ListView.builder(
+                              controller: _scrollController,
+                              itemCount: resultList.length + 1,
+                              itemBuilder: (context, index) {
+                                if (index == resultList.length) {
+                                  return isLoadingMore
+                                      ? const Padding(
+                                          padding: EdgeInsets.all(16.0),
+                                          child: Center(child: Loader()),
+                                        )
+                                      : const SizedBox.shrink();
+                                }
+                                if (orientation == Orientation.landscape) {
+                                  return _buildLandscapeItem(index);
+                                } else {
+                                  return _buildPortraitItem(index);
+                                }
+                              },
+                            );
+                          },
+                        );
                       },
                     ),
                   )
@@ -320,85 +347,145 @@ class _ListAdditionalOperationsChildState
     });
   }
 
-  Widget _buildAdditionalOperationsList(BuildContext context,
-      List<AdditionalOperationsModel> additionalOperationsModel) {
-    return ListView.builder(
-      controller: _scrollController,
-      itemCount: resultList.length + 1,
-      itemBuilder: (context, index) {
-        if (index == resultList.length) {
-          // Show loading indicator at the bottom if more data is being loaded
-          return isLoadingMore
-              ? const Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Center(child: Loader()),
-                )
-              : const SizedBox
-                  .shrink(); // Empty space when not loading more data
-        }
-
-        final screenWidth = MediaQuery.of(context).size.width;
-
-        return Card(
-          child: ListTile(
-            onTap: () {
-              context.read<AdditionalOperationsBloc>().add(
-                    GetOneAdditionalOperations(id: resultList[index].id!),
-                  );
-            },
-            leading: SizedBox(
-              width: screenWidth * 0.1,
-              child: Text(
-                reverseDepartmentMapping[resultList[index].department] ?? '',
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 8),
-              ),
+  Widget _buildPortraitItem(int index) {
+    final item = resultList[index];
+    return Card(
+      child: ListTile(
+        onTap: () {
+          context.read<AdditionalOperationsBloc>().add(
+                GetOneAdditionalOperations(id: item.id!),
+              );
+        },
+        leading: Text(
+          reverseDepartmentMapping[item.department] ?? '',
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontSize: 10),
+        ),
+        title: Text(item.operation ?? ''),
+        subtitle: Text(item.notes ?? ''),
+        trailing: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              (item.done == true) ? Icons.check : Icons.close,
+              color: (item.done == true) ? Colors.green : Colors.red,
+              size: 18,
             ),
-            title: SizedBox(
-              width: screenWidth * 0.8,
-              child: Text(
-                resultList[index].operation ?? '',
-                textAlign: TextAlign.center,
-              ),
+            Text(
+              item.completion_date != null
+                  ? DateFormat('dd/MM')
+                      .format(DateTime.parse(item.completion_date!))
+                  : '',
+              style: const TextStyle(fontSize: 10),
             ),
-            subtitle: SizedBox(
-              width: screenWidth * 0.8,
-              child: Text(
-                resultList[index].notes ?? '',
-                textAlign: TextAlign.center,
-              ),
-            ),
-            trailing: SizedBox(
-              width: screenWidth * 0.12,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    (resultList[index].done == true)
-                        ? Icons.check
-                        : Icons.close,
-                    color: (resultList[index].done == true)
-                        ? Colors.green
-                        : Colors.red,
-                    size: 15,
-                  ),
-                  Text(
-                    // Parse the string into a DateTime object first
-                    resultList[index].completion_date != null
-                        ? DateFormat('dd/MM').format(
-                            DateTime.parse(resultList[index].completion_date!))
-                        : '', // Handle null case for completion_date
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                    style: const TextStyle(fontSize: 8),
-                  ),
-                ],
-              ),
-            ),
-          ),
+          ],
+        ),
+      ),
+    ).animate().fade(duration: 400.ms).slideY(
+          begin: 0.5,
+          duration: 400.ms,
+          curve: Curves.easeOutCubic,
         );
-      },
-    );
+  }
+
+  Widget _buildLandscapeItem(int index) {
+    final item = resultList[index];
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final noteColor = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      child: InkWell(
+        onTap: () {
+          context.read<AdditionalOperationsBloc>().add(
+                GetOneAdditionalOperations(id: item.id!),
+              );
+        },
+        borderRadius:
+            BorderRadius.circular(12), // Match card's default border radius
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(
+                width: 100,
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .primaryContainer
+                        .withOpacity(0.3),
+                    borderRadius: const BorderRadius.only(
+                        topRight: Radius.circular(12),
+                        bottomRight: Radius.circular(12))),
+                child: Center(
+                  child: Text(
+                    reverseDepartmentMapping[item.department] ?? 'N/A',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.primary),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        item.operation ?? 'No Operation',
+                        style: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w500),
+                      ),
+                      if (item.notes != null && item.notes!.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          item.notes!,
+                          style: TextStyle(fontSize: 13, color: noteColor),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ]
+                    ],
+                  ),
+                ),
+              ),
+              const VerticalDivider(width: 1, indent: 8, endIndent: 8),
+              Container(
+                width: 90,
+                padding: const EdgeInsets.all(8),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      (item.done == true) ? Icons.check_circle : Icons.cancel,
+                      color: (item.done == true) ? Colors.green : Colors.red,
+                      size: 28,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      item.completion_date != null
+                          ? DateFormat('dd/MM/yyyy')
+                              .format(DateTime.parse(item.completion_date!))
+                          : 'N/A',
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ).animate().fade(duration: 400.ms).slideX(
+          begin: 0.5,
+          duration: 400.ms,
+          curve: Curves.easeOutCubic,
+        );
   }
 
   void _onScroll() {
@@ -418,7 +505,6 @@ class _ListAdditionalOperationsChildState
   }
 
   void runBloc() {
-    // Pass null for department when the selectedDepartment is null (cleared by 'X' button)
     context.read<AdditionalOperationsBloc>().add(
           GetAdditionalOperationsPagainted(
             page: currentPage,

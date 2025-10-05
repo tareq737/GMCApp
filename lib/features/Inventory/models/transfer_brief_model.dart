@@ -8,6 +8,7 @@ class TransferBriefModel {
   String? note;
   String? date;
   int? serial;
+  String? account_name;
   TransferBriefModel({
     required this.id,
     this.from_warehouse_name,
@@ -15,6 +16,7 @@ class TransferBriefModel {
     this.note,
     this.date,
     this.serial,
+    this.account_name,
   });
 
   TransferBriefModel copyWith({
@@ -24,6 +26,7 @@ class TransferBriefModel {
     String? note,
     String? date,
     int? serial,
+    String? account_name,
   }) {
     return TransferBriefModel(
       id: id ?? this.id,
@@ -32,6 +35,7 @@ class TransferBriefModel {
       note: note ?? this.note,
       date: date ?? this.date,
       serial: serial ?? this.serial,
+      account_name: account_name ?? this.account_name,
     );
   }
 
@@ -43,6 +47,7 @@ class TransferBriefModel {
       'note': note,
       'date': date,
       'serial': serial,
+      'account_name': account_name,
     };
   }
 
@@ -58,6 +63,8 @@ class TransferBriefModel {
       note: map['note'] != null ? map['note'] as String : null,
       date: map['date'] != null ? map['date'] as String : null,
       serial: map['serial'] != null ? map['serial'] as int : null,
+      account_name:
+          map['account_name'] != null ? map['account_name'] as String : null,
     );
   }
 
@@ -68,7 +75,7 @@ class TransferBriefModel {
 
   @override
   String toString() {
-    return 'TransferBriefModel(id: $id, from_warehouse_name: $from_warehouse_name, to_warehouse_name: $to_warehouse_name, note: $note, date: $date, serial: $serial)';
+    return 'TransferBriefModel(id: $id, from_warehouse_name: $from_warehouse_name, to_warehouse_name: $to_warehouse_name, note: $note, date: $date, serial: $serial, account_name: $account_name)';
   }
 
   @override
@@ -80,7 +87,8 @@ class TransferBriefModel {
         other.to_warehouse_name == to_warehouse_name &&
         other.note == note &&
         other.date == date &&
-        other.serial == serial;
+        other.serial == serial &&
+        other.account_name == account_name;
   }
 
   @override
@@ -90,6 +98,7 @@ class TransferBriefModel {
         to_warehouse_name.hashCode ^
         note.hashCode ^
         date.hashCode ^
-        serial.hashCode;
+        serial.hashCode ^
+        account_name.hashCode;
   }
 }

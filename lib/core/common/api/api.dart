@@ -145,16 +145,26 @@ class ApiClient {
     required int id,
   }) async {
     try {
-      final response = await dio.put('$baseURL/$endPoint/$id',
-          options: Options(
-            headers: {'Authorization': 'Bearer ${user.accessToken}'},
-          ),
-          data: data);
-      if (response.statusCode == 200) {
+      final response = await dio.put(
+        '$baseURL/$endPoint/$id',
+        options: Options(
+          headers: {'Authorization': 'Bearer ${user.accessToken}'},
+          validateStatus: (status) => status != null,
+        ),
+        data: data,
+      );
+
+      if (response.statusCode! >= 200 && response.statusCode! < 300) {
         return response.data;
       } else {
-        return {};
+        throw DioException(
+          requestOptions: response.requestOptions,
+          response: response,
+          message: 'API Error: ${response.statusCode}',
+        );
       }
+    } on DioException {
+      rethrow;
     } catch (e) {
       rethrow;
     }
@@ -167,16 +177,26 @@ class ApiClient {
     required int id,
   }) async {
     try {
-      final response = await dio.patch('$baseURL/$endPoint/$id',
-          options: Options(
-            headers: {'Authorization': 'Bearer ${user.accessToken}'},
-          ),
-          data: data);
-      if (response.statusCode == 200) {
+      final response = await dio.patch(
+        '$baseURL/$endPoint/$id',
+        options: Options(
+          headers: {'Authorization': 'Bearer ${user.accessToken}'},
+          validateStatus: (status) => status != null, // allow handling manually
+        ),
+        data: data,
+      );
+
+      if (response.statusCode! >= 200 && response.statusCode! < 300) {
         return response.data;
       } else {
-        return {};
+        throw DioException(
+          requestOptions: response.requestOptions,
+          response: response,
+          message: 'API Error: ${response.statusCode}',
+        );
       }
+    } on DioException {
+      rethrow;
     } catch (e) {
       rethrow;
     }

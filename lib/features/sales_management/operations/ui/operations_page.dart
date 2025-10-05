@@ -32,8 +32,126 @@ class _OperationsPageState extends State<OperationsPage> {
     super.dispose();
   }
 
+  // Helper method to get the correct icon for an operation type
+  IconData _getOperationIcon(String type) {
+    switch (type) {
+      case 'visit':
+        return Icons.work_history_outlined;
+      case 'call':
+        return Icons.call;
+      default:
+        return Icons.error;
+    }
+  }
+
+  // NEW: Helper method to get the correct color for an operation type icon
+  Color _getOperationIconColor(String type) {
+    switch (type) {
+      case 'visit':
+        return Colors.blue.shade700;
+      case 'call':
+        return Colors.green.shade700;
+      default:
+        return Colors.red.shade700;
+    }
+  }
+
+  // Helper method to navigate to the details page of an operation
+  void _navigateToOperationDetails(
+      BuildContext context, OperationsModel operation) {
+    if (operation.type == 'visit') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => NewVisitPage(operationsModel: operation),
+        ),
+      );
+    } else if (operation.type == 'call') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => NewCallPage(operationsModel: operation),
+        ),
+      );
+    }
+  }
+
+  // Builds the ListView for portrait mode
+  Widget _buildOperationsList(
+      BuildContext context, List<OperationsModel> operations) {
+    return ListView.builder(
+      itemCount: operations.length,
+      itemBuilder: (context, index) {
+        final operation = operations[index];
+        return Card(
+          child: ListTile(
+            leading: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  _getOperationIcon(operation.type!),
+                  color: _getOperationIconColor(operation.type!), // Apply color
+                ),
+                Text(operation.id.toString()),
+              ],
+            ),
+            title: Center(child: Text(operation.date!)),
+            trailing: Text("${operation.duration}"),
+            onTap: () => _navigateToOperationDetails(context, operation),
+          ),
+        );
+      },
+    );
+  }
+
+  // Builds the GridView for landscape mode
+  Widget _buildOperationsGrid(
+      BuildContext context, List<OperationsModel> operations) {
+    return GridView.builder(
+      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+        maxCrossAxisExtent: 250, // Each item will have a max width of 250
+        mainAxisSpacing: 8,
+        crossAxisSpacing: 8,
+        childAspectRatio: 4 / 3, // Adjust aspect ratio as needed
+      ),
+      itemCount: operations.length,
+      itemBuilder: (context, index) {
+        final operation = operations[index];
+        return Card(
+          child: InkWell(
+            onTap: () => _navigateToOperationDetails(context, operation),
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    _getOperationIcon(operation.type!),
+                    size: 30,
+                    color:
+                        _getOperationIconColor(operation.type!), // Apply color
+                  ),
+                  const SizedBox(height: 8),
+                  Text(operation.date!,
+                      style: const TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  Text("المدة: ${operation.duration}"),
+                  const SizedBox(height: 4),
+                  Text("المعرف: ${operation.id}"),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+
     return MultiBlocProvider(
       providers: [
         BlocProvider(
@@ -53,9 +171,7 @@ class _OperationsPageState extends State<OperationsPage> {
               title: const Row(
                 children: [
                   Text('عمليات زبون'),
-                  SizedBox(
-                    width: 10,
-                  ),
+                  SizedBox(width: 10),
                   Icon(Icons.info_outline),
                 ],
               ),
@@ -137,7 +253,7 @@ class _OperationsPageState extends State<OperationsPage> {
                                       ),
                                     ],
                                   ),
-                                  const SizedBox(width: 20),
+                                  const Spacer(),
                                   IconButton(
                                     icon: const Icon(Icons.clear,
                                         color: Colors.red),
@@ -161,68 +277,11 @@ class _OperationsPageState extends State<OperationsPage> {
                             } else if (state
                                 is OperationsSuccess<List<OperationsModel>>) {
                               return Expanded(
-                                child: ListView.builder(
-                                  itemCount: state.result.length,
-                                  itemBuilder: (context, index) {
-                                    return Card(
-                                      child: ListTile(
-                                        leading: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Icon(
-                                              state.result[index].type ==
-                                                      'visit'
-                                                  ? Icons.work_history_outlined
-                                                  : state.result[index].type ==
-                                                          'call'
-                                                      ? Icons.call
-                                                      : Icons.error,
-                                            ),
-                                            Text(state.result[index].id
-                                                .toString()),
-                                          ],
-                                        ),
-                                        title: Center(
-                                          child:
-                                              Text(state.result[index].date!),
-                                        ),
-                                        trailing: Text(
-                                            "${state.result[index].duration}"),
-                                        onTap: () {
-                                          if (state.result[index].type ==
-                                              'visit') {
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) {
-                                                  return NewVisitPage(
-                                                    operationsModel:
-                                                        state.result[index],
-                                                  );
-                                                },
-                                              ),
-                                            );
-                                          }
-                                          if (state.result[index].type ==
-                                              'call') {
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) {
-                                                  return NewCallPage(
-                                                    operationsModel:
-                                                        state.result[index],
-                                                  );
-                                                },
-                                              ),
-                                            );
-                                          }
-                                        },
-                                      ),
-                                    );
-                                  },
-                                ),
+                                child: isLandscape
+                                    ? _buildOperationsGrid(
+                                        context, state.result)
+                                    : _buildOperationsList(
+                                        context, state.result),
                               );
                             } else if (state is OperationsError) {
                               showSnackBar(
