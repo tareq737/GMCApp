@@ -6,10 +6,9 @@ class Loader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color =
-        Theme.of(context).brightness == Brightness.dark
-            ? Colors.blue
-            : Colors.orange;
+    final color = Theme.of(context).brightness == Brightness.dark
+        ? Colors.blue
+        : Colors.orange;
     return Center(child: SpinKitChasingDots(color: color, size: 50.0));
   }
 }

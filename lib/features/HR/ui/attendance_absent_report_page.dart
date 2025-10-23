@@ -10,15 +10,15 @@ import 'package:gmcappclean/core/services/auth_interactor.dart';
 import 'package:gmcappclean/core/utils/show_snackbar.dart';
 import 'package:gmcappclean/features/HR/bloc/hr_bloc.dart';
 import 'package:gmcappclean/features/HR/models/attendance_absent_report_model.dart';
+import 'package:gmcappclean/features/HR/models/employee_absent_model.dart';
 import 'package:gmcappclean/features/HR/models/employee_model.dart';
 import 'package:gmcappclean/features/HR/services/hr_services.dart';
+import 'package:gmcappclean/features/HR/ui/employees/employee_page.dart';
 import 'package:gmcappclean/init_dependencies.dart';
 import 'package:intl/intl.dart';
 
-// No changes needed in this widget
 class AttendanceAbsentReportPage extends StatelessWidget {
   const AttendanceAbsentReportPage({super.key});
-
   @override
   Widget build(BuildContext context) {
     final today = DateTime.now();
@@ -41,7 +41,6 @@ class AttendanceAbsentReportPage extends StatelessWidget {
   }
 }
 
-// FINAL WIDGET with UI improvements, animations, and Font Awesome Icons
 class AttendanceAbsentReportPageChild extends StatefulWidget {
   const AttendanceAbsentReportPageChild({super.key});
 
@@ -53,6 +52,8 @@ class AttendanceAbsentReportPageChild extends StatefulWidget {
 class _AttendanceAbsentReportPageChildState
     extends State<AttendanceAbsentReportPageChild> {
   final _dateController = TextEditingController();
+
+  AttendanceAbsentReportModel? _cachedReport;
 
   @override
   void initState() {
@@ -66,13 +67,11 @@ class _AttendanceAbsentReportPageChildState
     super.dispose();
   }
 
-  /// Changes the date by the given number of days and fetches the report.
   void _changeDate(int days) {
     try {
       final currentDate = DateFormat('yyyy-MM-dd').parse(_dateController.text);
       final newDate = currentDate.add(Duration(days: days));
 
-      // Prevent navigating to a future date
       if (newDate.isAfter(DateTime.now())) {
         return;
       }
@@ -82,24 +81,20 @@ class _AttendanceAbsentReportPageChildState
       context
           .read<HrBloc>()
           .add(GetAttendanceAbsentReport(date: formattedDate));
-      // Call setState to rebuild the widget and update the button state
+
       setState(() {});
     } catch (e) {
-      // Handle potential date parsing errors
       debugPrint("Error changing date: $e");
     }
   }
 
-  /// Helper widget for the refined summary info cards with icons.
   Widget _buildInfoCard(BuildContext context,
       {required String title,
       required String value,
       required Color color,
       required IconData icon}) {
-    // Get the current orientation
     final orientation = MediaQuery.of(context).orientation;
 
-    // Define the widgets to avoid repetition
     final iconWidget = FaIcon(icon, size: 22, color: color);
     final valueText = Text(
       value,
@@ -126,20 +121,18 @@ class _AttendanceAbsentReportPageChildState
         ),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 8.0),
-          // Use a conditional layout based on orientation
           child: orientation == Orientation.landscape
-              // ↔️ Landscape layout: Use a Row
               ? Row(
-                  spacing: 20,
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     iconWidget,
+                    const SizedBox(width: 20),
                     titleText,
+                    const SizedBox(width: 20),
                     valueText,
                   ],
                 )
-              // ↕️ Portrait layout: Use a Column
               : Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -156,7 +149,7 @@ class _AttendanceAbsentReportPageChildState
   }
 
   Widget _buildEmployeeItem(BuildContext context,
-      {required EmployeeModel employee}) {
+      {required EmployeeAbsentModel employee}) {
     return TweenAnimationBuilder<double>(
       duration: const Duration(milliseconds: 500),
       curve: Curves.easeIn,
@@ -165,31 +158,38 @@ class _AttendanceAbsentReportPageChildState
         return Opacity(
           opacity: value,
           child: Transform.translate(
-            offset: Offset(0, 20 * (1 - value)), // slide up effect
+            offset: Offset(0, 20 * (1 - value)),
             child: child,
           ),
         );
       },
-      child: Card(
-        elevation: 1,
-        child: Center(
-          child: ListTile(
-            visualDensity: VisualDensity.compact,
-            leading: CircleAvatar(
-              radius: 16,
-              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-              child: Text(
-                employee.id.toString(),
-                style: const TextStyle(fontSize: 12),
+      child: InkWell(
+        onTap: () {
+          context.read<HrBloc>().add(
+                GetOnEemployee(id: employee.id),
+              );
+        },
+        child: Card(
+          elevation: 1,
+          child: Center(
+            child: ListTile(
+              visualDensity: VisualDensity.compact,
+              leading: CircleAvatar(
+                radius: 16,
+                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                child: Text(
+                  employee.id.toString(),
+                  style: const TextStyle(fontSize: 12),
+                ),
               ),
-            ),
-            title: AutoSizeText(
-              '${employee.name ?? ''} - ${employee.department ?? ''}',
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 14),
-              minFontSize: 8,
-              maxLines: 1,
-              overflow: TextOverflow.visible,
+              title: AutoSizeText(
+                '${employee.name ?? ''} - ${employee.department ?? ''}',
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 14),
+                minFontSize: 8,
+                maxLines: 1,
+                overflow: TextOverflow.visible,
+              ),
             ),
           ),
         ),
@@ -213,25 +213,45 @@ class _AttendanceAbsentReportPageChildState
         ),
         body: BlocConsumer<HrBloc, HrState>(
           listener: (context, state) {
-            if (state is ErrorHR) {
+            if (state is HRError) {
               showSnackBar(
                 context: context,
                 content: 'حدث خطأ ما: ${state.errorMessage}',
                 failure: true,
               );
+            } else if (state is HRSuccess<AttendanceAbsentReportModel>) {
+              setState(() {
+                _cachedReport = state.result;
+              });
+            } else if (state is HRSuccess<EmployeeModel>) {
+              setState(() {});
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) {
+                    return EmployeePage(
+                      employeeModel: state.result,
+                    );
+                  },
+                ),
+              );
             }
           },
           builder: (context, state) {
-            if (state is LoadingHR) {
+            if (state is HRLoading) {
               return const Loader();
-            } else if (state is SuccessHR<AttendanceAbsentReportModel>) {
-              final report = state.result;
+            }
+
+            final report = (state is HRSuccess<AttendanceAbsentReportModel>)
+                ? state.result
+                : _cachedReport;
+
+            if (report != null) {
               return Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // --- Date Picker TextField ---
                       Row(
                         children: [
                           IconButton(
@@ -264,13 +284,11 @@ class _AttendanceAbsentReportPageChildState
                                 }
                               },
                               labelText: 'اختر التاريخ',
-                              // ✨ ICON ADDED HERE
                               prefixIcon:
                                   const Icon(FontAwesomeIcons.calendarDay),
                             ),
                           ),
                           IconButton(
-                            // ✨ ICON UPDATED (RTL friendly)
                             icon: const FaIcon(FontAwesomeIcons.chevronLeft),
                             onPressed:
                                 isNextDayDisabled ? null : () => _changeDate(1),
@@ -279,8 +297,6 @@ class _AttendanceAbsentReportPageChildState
                         ],
                       ),
                       const SizedBox(height: 10),
-
-                      // --- Summary Cards ---
                       Row(
                         children: [
                           _buildInfoCard(
@@ -310,8 +326,6 @@ class _AttendanceAbsentReportPageChildState
                       ),
                       const SizedBox(height: 10),
                       const Divider(),
-
-                      // --- Absent Employees List Header ---
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 8.0),
                         child: Text(
@@ -319,7 +333,6 @@ class _AttendanceAbsentReportPageChildState
                           style: Theme.of(context).textTheme.titleLarge,
                         ),
                       ),
-
                       Expanded(
                         child: report.absent_employees.isEmpty
                             ? Center(
@@ -344,7 +357,6 @@ class _AttendanceAbsentReportPageChildState
                                   const double mobileBreakpoint = 600.0;
 
                                   if (constraints.maxWidth < mobileBreakpoint) {
-                                    // 📱 MOBILE: Use ListView for narrow screens
                                     return ListView.builder(
                                       itemCount: report.absent_employees.length,
                                       itemBuilder: (context, index) {
@@ -359,7 +371,6 @@ class _AttendanceAbsentReportPageChildState
                                       },
                                     );
                                   } else {
-                                    // 💻 PC: Use GridView for wider screens
                                     return GridView.builder(
                                       gridDelegate:
                                           const SliverGridDelegateWithMaxCrossAxisExtent(
@@ -383,7 +394,6 @@ class _AttendanceAbsentReportPageChildState
                     ],
                   ));
             } else {
-              // Fallback for initial or error states
               return const Center(
                   child: Text('الرجاء اختيار تاريخ لعرض التقرير.'));
             }

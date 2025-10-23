@@ -36,6 +36,9 @@ class _NewCallPageState extends State<NewCallPage> {
   final _callDateController = TextEditingController();
   final _summaryController = TextEditingController();
   CustomerBriefViewModel? _selectedCustomer;
+
+  bool _isReset = false; // <--- NEW FLAG
+
   int callDuration = 0;
   String? processKind = "";
   String? connectionType = "";
@@ -67,6 +70,7 @@ class _NewCallPageState extends State<NewCallPage> {
     'مغلق',
     'لا يرد',
   ];
+
   @override
   void dispose() {
     super.dispose();
@@ -117,8 +121,7 @@ class _NewCallPageState extends State<NewCallPage> {
     _callModel.id = 0;
     if (_selectedCustomer != null) {
       _callModel.customer = _selectedCustomer!.id;
-    }
-    if (widget.operationsModel != null) {
+    } else if (widget.operationsModel != null) {
       _callModel.customer = widget.operationsModel!.customer;
     }
     _callModel.duration = callDuration;
@@ -137,9 +140,7 @@ class _NewCallPageState extends State<NewCallPage> {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(
-          create: (context) => getIt<SalesBloc>(),
-        ),
+        BlocProvider(create: (context) => getIt<SalesBloc>()),
         BlocProvider(
           create: (context) => OperationsBloc(OperationsServices(
               apiClient: getIt<ApiClient>(),
@@ -152,21 +153,21 @@ class _NewCallPageState extends State<NewCallPage> {
             textDirection: ui.TextDirection.rtl,
             child: Scaffold(
               appBar: AppBar(
-                title: widget.operationsModel == null
-                    ? const Row(
-                        children: [
-                          Text('اتصال جديد'),
-                          SizedBox(width: 10),
-                          Icon(Icons.add_call),
-                        ],
-                      )
-                    : const Row(
-                        children: [
-                          Text('معلومات الاتصال'),
-                          SizedBox(width: 10),
-                          Icon(Icons.call),
-                        ],
-                      ),
+                title: Row(
+                  children: [
+                    Text(
+                      widget.operationsModel == null
+                          ? 'اتصال جديد'
+                          : 'معلومات الاتصال ${widget.operationsModel?.id ?? ''}',
+                    ),
+                    const SizedBox(width: 10),
+                    Icon(
+                      widget.operationsModel == null
+                          ? Icons.add_call
+                          : Icons.call,
+                    ),
+                  ],
+                ),
               ),
               body: SingleChildScrollView(
                 child: Padding(
@@ -174,29 +175,17 @@ class _NewCallPageState extends State<NewCallPage> {
                   child: BlocConsumer<OperationsBloc, OperationsState>(
                     listener: (context, state) {
                       if (state is OperationsSuccess) {
-                        if (widget.operationsModel == null) {
-                          showSnackBar(
-                            context: context,
-                            content: 'تمت الإضافة بنجاح',
-                            failure: false,
-                          );
-                        }
-                        if (widget.operationsModel != null) {
-                          showSnackBar(
-                            context: context,
-                            content: 'تمت التعديل بنجاح',
-                            failure: false,
-                          );
-                        }
-
+                        showSnackBar(
+                          context: context,
+                          content: widget.operationsModel == null
+                              ? 'تمت الإضافة بنجاح'
+                              : 'تم التعديل بنجاح',
+                          failure: false,
+                        );
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
-                            builder: (
-                              context,
-                            ) {
-                              return const NewCallPage();
-                            },
+                            builder: (context) => const NewCallPage(),
                           ),
                         );
                       } else if (state is OperationsError) {
@@ -213,8 +202,10 @@ class _NewCallPageState extends State<NewCallPage> {
                       } else {
                         return Column(
                           children: [
-                            (_selectedCustomer?.id == null &&
-                                    widget.operationsModel == null)
+                            // ---- FIXED LOGIC ----
+                            (_selectedCustomer == null &&
+                                    (widget.operationsModel == null ||
+                                        _isReset))
                                 ? Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
@@ -247,32 +238,27 @@ class _NewCallPageState extends State<NewCallPage> {
                                               CrossAxisAlignment.start,
                                           children: [
                                             const Text('اسم الزبون:'),
-                                            const SizedBox(
-                                              height: 10,
-                                            ),
+                                            const SizedBox(height: 10),
                                             Row(
                                               mainAxisAlignment:
                                                   MainAxisAlignment.center,
                                               children: [
                                                 CircleAvatar(
-                                                    radius: 12,
-                                                    child: Text(
-                                                      _selectedCustomer == null
-                                                          ? widget
-                                                              .operationsModel!
-                                                              .customer
-                                                              .toString()
-                                                          : _selectedCustomer!
-                                                              .id
-                                                              .toString(),
-                                                      textAlign:
-                                                          TextAlign.center,
-                                                      style: const TextStyle(
-                                                          fontSize: 8),
-                                                    )),
-                                                const SizedBox(
-                                                  width: 10,
+                                                  radius: 12,
+                                                  child: Text(
+                                                    _selectedCustomer == null
+                                                        ? widget
+                                                            .operationsModel!
+                                                            .customer
+                                                            .toString()
+                                                        : _selectedCustomer!.id
+                                                            .toString(),
+                                                    textAlign: TextAlign.center,
+                                                    style: const TextStyle(
+                                                        fontSize: 8),
+                                                  ),
                                                 ),
+                                                const SizedBox(width: 10),
                                                 Column(
                                                   children: [
                                                     Text(
@@ -299,48 +285,26 @@ class _NewCallPageState extends State<NewCallPage> {
                                                     ),
                                                   ],
                                                 ),
-                                                const SizedBox(
-                                                  width: 20,
+                                                const SizedBox(width: 20),
+                                                IconButton(
+                                                  icon: const Icon(
+                                                      Icons.change_circle,
+                                                      color: Colors.orange),
+                                                  tooltip: 'تغيير الزبون',
+                                                  onPressed: () {
+                                                    setState(() {
+                                                      _selectedCustomer = null;
+                                                      _searchController.clear();
+                                                      _isReset = true;
+                                                    });
+                                                  },
                                                 ),
-                                                (widget.operationsModel == null)
-                                                    ? IconButton(
-                                                        icon: const Icon(
-                                                          Icons.clear,
-                                                          color: Colors.red,
-                                                        ),
-                                                        onPressed: () {
-                                                          setState(() {
-                                                            _callDateController
-                                                                .clear();
-                                                            _searchController
-                                                                .clear();
-                                                            _summaryController
-                                                                .clear();
-                                                            callDuration = 0;
-                                                            salesRep = "";
-
-                                                            processKind = "";
-
-                                                            discussion = "";
-                                                            socialTalk = false;
-
-                                                            bill = false;
-                                                            complaints = false;
-
-                                                            _selectedCustomer =
-                                                                null;
-                                                          });
-                                                        },
-                                                      )
-                                                    : const SizedBox()
                                               ],
                                             ),
                                           ],
                                         ),
                                       ),
-                                      const SizedBox(
-                                        height: 10,
-                                      ),
+                                      const SizedBox(height: 10),
                                       Row(
                                         spacing: 5,
                                         children: [
@@ -357,7 +321,6 @@ class _NewCallPageState extends State<NewCallPage> {
                                                   firstDate: DateTime(2000),
                                                   lastDate: DateTime(2100),
                                                 );
-
                                                 if (pickedDate != null) {
                                                   setState(() {
                                                     _callDateController.text =
@@ -388,9 +351,7 @@ class _NewCallPageState extends State<NewCallPage> {
                                           ),
                                         ],
                                       ),
-                                      const SizedBox(
-                                        height: 10,
-                                      ),
+                                      const SizedBox(height: 10),
                                       MyDropdownButton(
                                         value: connectionType,
                                         items: connectionTypeList.map((type) {
@@ -406,9 +367,7 @@ class _NewCallPageState extends State<NewCallPage> {
                                         },
                                         labelText: 'نوع بالاتصال',
                                       ),
-                                      const SizedBox(
-                                        height: 10,
-                                      ),
+                                      const SizedBox(height: 10),
                                       MyDropdownButton(
                                         value: salesRep,
                                         items: responsible.map((type) {
@@ -424,9 +383,7 @@ class _NewCallPageState extends State<NewCallPage> {
                                         },
                                         labelText: 'القائم بالاتصال',
                                       ),
-                                      const SizedBox(
-                                        height: 10,
-                                      ),
+                                      const SizedBox(height: 10),
                                       Row(
                                         spacing: 5,
                                         children: [
@@ -467,9 +424,7 @@ class _NewCallPageState extends State<NewCallPage> {
                                           ),
                                         ],
                                       ),
-                                      const SizedBox(
-                                        height: 10,
-                                      ),
+                                      const SizedBox(height: 10),
                                       if (discussion != 'مغلق' &&
                                           discussion != 'لا يرد')
                                         Container(
@@ -488,11 +443,10 @@ class _NewCallPageState extends State<NewCallPage> {
                                             children: [
                                               CheckboxListTile(
                                                 title: const Text(
-                                                  'حديث اجتماعي',
-                                                  textAlign: TextAlign.center,
-                                                  style:
-                                                      TextStyle(fontSize: 12),
-                                                ),
+                                                    'حديث اجتماعي',
+                                                    textAlign: TextAlign.center,
+                                                    style: TextStyle(
+                                                        fontSize: 12)),
                                                 value: socialTalk,
                                                 onChanged: (bool? value) {
                                                   setState(() {
@@ -505,11 +459,10 @@ class _NewCallPageState extends State<NewCallPage> {
                                               ),
                                               CheckboxListTile(
                                                 title: const Text(
-                                                  'تسجيل فاتورة',
-                                                  textAlign: TextAlign.center,
-                                                  style:
-                                                      TextStyle(fontSize: 12),
-                                                ),
+                                                    'تسجيل فاتورة',
+                                                    textAlign: TextAlign.center,
+                                                    style: TextStyle(
+                                                        fontSize: 12)),
                                                 value: bill,
                                                 onChanged: (bool? value) {
                                                   setState(() {
@@ -521,12 +474,10 @@ class _NewCallPageState extends State<NewCallPage> {
                                                         .leading,
                                               ),
                                               CheckboxListTile(
-                                                title: const Text(
-                                                  'تسجيل شكوى',
-                                                  textAlign: TextAlign.center,
-                                                  style:
-                                                      TextStyle(fontSize: 12),
-                                                ),
+                                                title: const Text('تسجيل شكوى',
+                                                    textAlign: TextAlign.center,
+                                                    style: TextStyle(
+                                                        fontSize: 12)),
                                                 value: complaints,
                                                 onChanged: (bool? value) {
                                                   setState(() {
@@ -540,18 +491,14 @@ class _NewCallPageState extends State<NewCallPage> {
                                             ],
                                           ),
                                         ),
-                                      const SizedBox(
-                                        height: 10,
-                                      ),
+                                      const SizedBox(height: 10),
                                       if (discussion != 'مغلق' &&
                                           discussion != 'لا يرد')
                                         MyTextField(
-                                            maxLines: 10,
+                                            maxLines: 100,
                                             controller: _summaryController,
                                             labelText: 'الملخص'),
-                                      const SizedBox(
-                                        height: 10,
-                                      ),
+                                      const SizedBox(height: 10),
                                       Row(
                                         mainAxisAlignment:
                                             MainAxisAlignment.spaceAround,
@@ -570,28 +517,21 @@ class _NewCallPageState extends State<NewCallPage> {
                                           ),
                                           IconButton(
                                             onPressed: () {
+                                              _fillCallModelfromForm();
                                               if (widget.operationsModel ==
                                                   null) {
-                                                _fillCallModelfromForm();
                                                 context
                                                     .read<OperationsBloc>()
-                                                    .add(
-                                                      AddNewCall(
-                                                          callModel:
-                                                              _callModel),
-                                                    );
+                                                    .add(AddNewCall(
+                                                        callModel: _callModel));
                                               } else {
-                                                //Edit call
-                                                _fillCallModelfromForm();
                                                 context
                                                     .read<OperationsBloc>()
-                                                    .add(
-                                                      EditCall(
-                                                          callModel: _callModel,
-                                                          id: widget
-                                                              .operationsModel!
-                                                              .id!),
-                                                    );
+                                                    .add(EditCall(
+                                                        callModel: _callModel,
+                                                        id: widget
+                                                            .operationsModel!
+                                                            .id!));
                                               }
                                             },
                                             icon: Icon(
@@ -610,17 +550,16 @@ class _NewCallPageState extends State<NewCallPage> {
                                             ),
                                           )
                                         ],
-                                      )
+                                      ),
                                     ],
                                   ),
                             BlocConsumer<SalesBloc, SalesState>(
                               listener: (context, state) {
                                 if (state is SalesOpFailure) {
                                   showSnackBar(
-                                    context: context,
-                                    content: 'حدث خطأ ما',
-                                    failure: true,
-                                  );
+                                      context: context,
+                                      content: 'حدث خطأ ما',
+                                      failure: true);
                                 } else if (state is SalesOpSuccess<
                                     List<CustomerBriefViewModel>>) {
                                   _showCustomerDialog(context, state.opResult);
@@ -650,8 +589,7 @@ class _NewCallPageState extends State<NewCallPage> {
 
   void _searchCustomer(BuildContext context) {
     context.read<SalesBloc>().add(
-          SalesSearch<CustomerBriefViewModel>(lexum: _searchController.text),
-        );
+        SalesSearch<CustomerBriefViewModel>(lexum: _searchController.text));
   }
 
   void _showCustomerDialog(
@@ -698,6 +636,7 @@ class _NewCallPageState extends State<NewCallPage> {
                     onTap: () {
                       setState(() {
                         _selectedCustomer = customers[index];
+                        _isReset = false; // hide search again
                       });
                       Navigator.of(context).pop();
                     },

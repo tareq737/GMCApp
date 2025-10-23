@@ -837,7 +837,7 @@ class _FullCustomerDataPageState extends State<FullCustomerDataPage> {
                     children: [
                       Expanded(
                         child: CounterRow(
-                          label: 'عدد الأطفال',
+                          label: 'عدد الأولاد',
                           value:
                               _customerdata.personalInfo.clientNumberOfChildren,
                           onIncrement: () => setState(() {

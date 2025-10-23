@@ -7,6 +7,7 @@ class MyDropdownButton extends StatefulWidget {
   final ValueChanged<String?>? onChanged;
   final bool isEnabled;
   final bool showClearButton;
+  final FormFieldValidator<String?>? validator;
 
   const MyDropdownButton({
     super.key,
@@ -16,6 +17,7 @@ class MyDropdownButton extends StatefulWidget {
     this.onChanged,
     this.isEnabled = true,
     this.showClearButton = true,
+    this.validator,
   });
 
   @override
@@ -58,71 +60,97 @@ class MyDropdownButtonState extends State<MyDropdownButton> {
     final theme = Theme.of(context);
     final isDarkMode = theme.brightness == Brightness.dark;
 
-    return SizedBox(
-      height: 48,
-      child: InputDecorator(
-        decoration: InputDecoration(
-          labelText: widget.labelText,
-          border: const OutlineInputBorder(
-            borderSide: BorderSide(width: 2.0, color: Colors.grey),
-          ),
-          enabledBorder: const OutlineInputBorder(
-            borderSide: BorderSide(width: 2.0, color: Colors.grey),
-          ),
-          focusedBorder: const OutlineInputBorder(
-            borderSide: BorderSide(width: 2.0, color: Colors.grey),
-          ),
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
-          suffixIcon: widget.isEnabled &&
-                  widget.showClearButton &&
-                  currentValue != null // Only show clear button if allowed
-              ? IconButton(
-                  icon: const Icon(Icons.clear),
-                  onPressed: () {
-                    _handleChange(null);
-                  },
-                )
-              : null,
-        ),
-        child: DropdownButtonHideUnderline(
-          child: DropdownButton<String>(
-            value: currentValue,
-            items: widget.items.map((item) {
-              return DropdownMenuItem<String>(
-                value: item.value,
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: item.child is Text
-                      ? Text(
-                          (item.child as Text).data ?? '',
-                          style: const TextStyle(
-                            fontFamily: 'CustomFont',
-                            fontSize: 12,
-                          ),
-                        )
-                      : item.child,
+    return FormField<String>(
+      initialValue: currentValue,
+      validator: widget.validator,
+      builder: (FormFieldState<String> state) {
+        currentValue = state.value;
+        return Directionality(
+          textDirection: TextDirection.rtl,
+          child: SizedBox(
+            height: 48,
+            child: InputDecorator(
+              decoration: InputDecoration(
+                labelText: widget.labelText,
+                errorText: state.errorText,
+                border: const OutlineInputBorder(
+                  borderSide: BorderSide(width: 2.0, color: Colors.grey),
                 ),
-              );
-            }).toList(),
-            onChanged: widget.isEnabled ? _handleChange : null,
-            isExpanded: true,
-            iconSize: 24,
-            disabledHint: Text(
-              currentValue ?? '',
-              style: TextStyle(
-                color: isDarkMode ? Colors.white54 : Colors.black54,
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(
+                      width: 2.0,
+                      color: state.hasError ? Colors.red : Colors.grey),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(
+                      width: 2.0,
+                      color: state.hasError
+                          ? Colors.red
+                          : Theme.of(context).primaryColor),
+                ),
+                labelStyle: TextStyle(
+                    fontSize: 12,
+                    color: isDarkMode ? Colors.white54 : Colors.grey),
+                contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12.0, vertical: 12.0),
+                suffixIcon: widget.isEnabled &&
+                        widget.showClearButton &&
+                        currentValue != null
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          _handleChange(null);
+                          state.didChange(null);
+                        },
+                      )
+                    : null,
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: currentValue,
+                  items: widget.items.map((item) {
+                    return DropdownMenuItem<String>(
+                      value: item.value,
+                      child: Align(
+                        alignment: Alignment.centerRight,
+                        child: item.child is Text
+                            ? Text(
+                                (item.child as Text).data ?? '',
+                                style: const TextStyle(
+                                  fontFamily: 'CustomFont',
+                                  fontSize: 12,
+                                ),
+                              )
+                            : item.child,
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: widget.isEnabled
+                      ? (newValue) {
+                          _handleChange(newValue);
+                          state.didChange(newValue); // Notify FormField
+                        }
+                      : null,
+                  isExpanded: true,
+                  iconSize: 24,
+                  disabledHint: Text(
+                    currentValue ?? '',
+                    style: TextStyle(
+                      color: isDarkMode ? Colors.white54 : Colors.black54,
+                    ),
+                  ),
+                  style: TextStyle(
+                    fontWeight: FontWeight.normal,
+                    color: widget.isEnabled
+                        ? (isDarkMode ? Colors.white : Colors.black)
+                        : Colors.grey,
+                  ),
+                ),
               ),
             ),
-            style: TextStyle(
-              fontWeight: FontWeight.normal,
-              color: widget.isEnabled
-                  ? (isDarkMode ? Colors.white : Colors.black)
-                  : Colors.grey,
-            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

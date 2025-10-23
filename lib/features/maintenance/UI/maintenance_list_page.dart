@@ -1,7 +1,9 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gmcappclean/core/common/api/api.dart';
 import 'package:gmcappclean/core/common/widgets/loader.dart';
+import 'package:gmcappclean/core/common/widgets/search_row.dart';
 import 'package:gmcappclean/core/services/auth_interactor.dart';
 import 'package:gmcappclean/core/theme/app_colors.dart';
 import 'package:gmcappclean/core/utils/show_snackbar.dart';
@@ -78,7 +80,7 @@ class _MaintenanceListChildState extends State<MaintenanceListChild> {
   late String _selectedStatus;
   String? _selectedItemDepartment;
   List<String>? groups;
-
+  final TextEditingController _searchController = TextEditingController();
   @override
   void initState() {
     super.initState();
@@ -121,22 +123,6 @@ class _MaintenanceListChildState extends State<MaintenanceListChild> {
                   },
                   icon: const Icon(
                     Icons.add,
-                    color: Colors.white,
-                  ),
-                ),
-                IconButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) {
-                          return const MachineMaintenanceLogPage();
-                        },
-                      ),
-                    );
-                  },
-                  icon: const Icon(
-                    Icons.list_alt,
                     color: Colors.white,
                   ),
                 ),
@@ -282,6 +268,12 @@ class _MaintenanceListChildState extends State<MaintenanceListChild> {
                           ],
                         ),
                       ),
+                      SearchRow(
+                          textEditingController: _searchController,
+                          onSearch: () {
+                            _briefMaintenance = [];
+                            runBlocSearch();
+                          })
                     ],
                   ),
                 ),
@@ -483,22 +475,26 @@ class _MaintenanceListChildState extends State<MaintenanceListChild> {
                                         children: [
                                           CircleAvatar(
                                             backgroundColor: Colors.teal,
-                                            radius: 11,
+                                            radius: 14,
                                             child: Text(
                                               _briefMaintenance[index]
                                                   .id
                                                   .toString(),
                                               style: const TextStyle(
                                                   color: Colors.white,
-                                                  fontSize: 8),
+                                                  fontSize: 10),
                                             ),
                                           ),
-                                          Text(
+                                          AutoSizeText(
+                                            minFontSize: 8,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.visible,
                                             textAlign: TextAlign.center,
                                             _briefMaintenance[index]
                                                     .department ??
                                                 "",
-                                            style: const TextStyle(fontSize: 8),
+                                            style:
+                                                const TextStyle(fontSize: 10),
                                           ),
                                         ],
                                       ),
@@ -578,6 +574,12 @@ class _MaintenanceListChildState extends State<MaintenanceListChild> {
               page: currentPage,
               status: statusID,
               department: _selectedItemDepartment ?? ''),
+        );
+  }
+
+  void runBlocSearch() {
+    context.read<MaintenanceBloc>().add(
+          SearchMaintenance(page: currentPage, search: _searchController.text),
         );
   }
 }

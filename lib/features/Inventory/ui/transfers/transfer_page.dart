@@ -11,10 +11,12 @@ import 'package:gmcappclean/core/common/widgets/mytextfield.dart';
 import 'package:gmcappclean/core/services/auth_interactor.dart';
 import 'package:gmcappclean/core/utils/show_snackbar.dart';
 import 'package:gmcappclean/features/Inventory/bloc/inventory_bloc.dart';
+import 'package:gmcappclean/features/Inventory/models/bill_model.dart';
 import 'package:gmcappclean/features/Inventory/models/items_model.dart';
 import 'package:gmcappclean/features/Inventory/models/transfer_model.dart';
 import 'package:gmcappclean/features/Inventory/models/warehouses_model.dart';
 import 'package:gmcappclean/features/Inventory/services/inventory_services.dart';
+import 'package:gmcappclean/features/Inventory/ui/bills/bills_page.dart';
 import 'package:gmcappclean/features/Inventory/ui/transfers/transfers_list_page.dart';
 import 'package:gmcappclean/init_dependencies.dart';
 import 'package:intl/intl.dart';
@@ -733,7 +735,6 @@ class _TransferPageChildState extends State<TransferPageChild> {
 
   void _navigateToSalesInvoice() {
     // 1. Collect the current items from the form.
-    // This ensures that any edits made on the screen are carried over.
     List<Map<String, dynamic>> currentItems = [];
     for (int i = 0; i < _editableItems.length; i++) {
       final itemId = _selectedItemData[i]?.id ?? _editableItems[i]['item'];
@@ -741,7 +742,7 @@ class _TransferPageChildState extends State<TransferPageChild> {
           double.tryParse(_quantityControllers[i].text.replaceAll(',', '')) ??
               0;
 
-      // Only include items that have been selected and have a quantity
+      // Only include valid items with quantities
       if (itemId != null && quantity > 0) {
         currentItems.add({
           'item': itemId,
@@ -752,35 +753,41 @@ class _TransferPageChildState extends State<TransferPageChild> {
               double.tryParse(_priceControllers[i].text.replaceAll(',', '')) ??
                   0,
           'note': _itemNoteControllers[i].text,
-          // Pass the full item details so the new page can load all necessary info
           'item_details': _selectedItemData[i]?.toMap(),
         });
       }
     }
 
-    // 2. Create the new TransferModel for the sales invoice page.
-    final salesInvoiceModel = TransferModel(
-      id: 0, // This is a new document, so it has no ID yet.
-      transfer_type: 102, // This is the type for "مبيعات" (Sales).
-      date: DateFormat('yyyy-MM-dd').format(
-          DateTime.now()), // Default to today's date for the new invoice.
-      note: _noteController.text, // Carry over the note.
+    // 2. Create the TransferModel (the actual document details).
+    final transferModel = TransferModel(
+      id: 0, // new document, no ID yet
+      from_warehouse_name: _toWarehouseController.text,
       from_warehouse: _selectedToWarehouseId,
-      from_warehouse_name: _toWarehouseController
-          .text, // The source warehouse becomes the sales warehouse.
-      to_warehouse: null, // Sales invoices don't have a destination warehouse.
       to_warehouse_name: null,
-      items: currentItems, // Use the items collected from the current page.
-      serial: null, // This is a new document, so it has no serial yet.
+      to_warehouse: null,
+      note: _noteController.text,
+      date: DateFormat('yyyy-MM-dd').format(DateTime.now()),
+      transfer_type: 102, // 102 for "مبيعات" (Sales)
+      serial: null,
+      items: currentItems,
     );
 
-    // 3. Navigate to a new TransferPage instance configured as a sales invoice.
+    // 3. Create the BillModel containing the transfer.
+    final salesInvoiceModel = BillModel(
+      id: 0,
+      transfer: transferModel,
+      bill_type: 'sales',
+      discount_rate: 0,
+    );
+
+    // 4. Navigate to the new sales invoice page.
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (context) => TransferPage(
+        builder: (context) => BillsPage(
           transfer_type: 102,
-          transferModel: salesInvoiceModel,
+          billModel: salesInvoiceModel,
+          bill_type: 'sales',
         ),
       ),
     );

@@ -268,7 +268,6 @@ class ProductionServices {
   }
 
   Future<Either<Failure, String>> archive(int id) async {
-    // Change return type to String for the success message
     try {
       final userEntityResult = await getCredentials();
 
@@ -285,10 +284,73 @@ class ProductionServices {
             );
             // Assuming 'response' is a Map<String, dynamic>
             if (response.containsKey('detail')) {
-              return right(
-                  response['detail'] as String); // Return the success message
+              return right(response['detail'] as String);
             } else {
-              // Handle unexpected response format if 'detail' is not present
+              return left(
+                  Failure(message: 'Unexpected success response format.'));
+            }
+          } catch (e) {
+            return left(Failure(message: e.toString()));
+          }
+        },
+      );
+    } catch (e) {
+      print('Error in archive method: $e');
+      return left(Failure(message: e.toString()));
+    }
+  }
+
+  Future<Either<Failure, String>> unArchive(int id) async {
+    try {
+      final userEntityResult = await getCredentials();
+
+      return userEntityResult.fold(
+        (failure) {
+          return Left(failure);
+        },
+        (userEntity) async {
+          try {
+            final response = await _apiClient.addById(
+              endPoint: 'production/unarchive',
+              id: id,
+              userTokens: userEntity,
+            );
+            // Assuming 'response' is a Map<String, dynamic>
+            if (response.containsKey('detail')) {
+              return right(response['detail'] as String);
+            } else {
+              return left(
+                  Failure(message: 'Unexpected success response format.'));
+            }
+          } catch (e) {
+            return left(Failure(message: e.toString()));
+          }
+        },
+      );
+    } catch (e) {
+      print('Error in archive method: $e');
+      return left(Failure(message: e.toString()));
+    }
+  }
+
+  Future<Either<Failure, String>> revertToProdplanning(int id) async {
+    try {
+      final userEntityResult = await getCredentials();
+
+      return userEntityResult.fold(
+        (failure) {
+          return Left(failure);
+        },
+        (userEntity) async {
+          try {
+            final response = await _apiClient.addById(
+              endPoint: 'revert_to_prodplanning',
+              id: id,
+              userTokens: userEntity,
+            );
+            if (response.containsKey('detail')) {
+              return right(response['detail'] as String);
+            } else {
               return left(
                   Failure(message: 'Unexpected success response format.'));
             }

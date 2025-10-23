@@ -319,8 +319,7 @@ class _FullProdPageChildState extends State<FullProdPageChild> {
             ),
             subtitle: Column(
               children: [
-                Text(item.color ?? 'No Color',
-                    style: const TextStyle(fontSize: 12)),
+                Text(item.color ?? '', style: const TextStyle(fontSize: 12)),
                 const SizedBox(height: 5),
                 if (widget.type == 'Production')
                   Wrap(

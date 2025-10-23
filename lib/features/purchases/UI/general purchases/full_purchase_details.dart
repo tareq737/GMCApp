@@ -17,7 +17,7 @@ import 'package:gmcappclean/features/purchases/Bloc/purchase_bloc.dart';
 import 'package:gmcappclean/features/purchases/Models/purchases_model.dart';
 import 'package:gmcappclean/features/purchases/Services/purchase_service.dart';
 import 'package:gmcappclean/features/purchases/UI/general%20purchases/purchases_list.dart';
-import 'package:gmcappclean/features/purchases/UI/general%20purchases/view_image_page.dart';
+import 'package:gmcappclean/core/Pages/view_image_page.dart';
 import 'package:gmcappclean/init_dependencies.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -231,7 +231,10 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
   Widget build(BuildContext context) {
     bool isDark = Theme.of(context).brightness == Brightness.dark;
     AppUserState state = context.read<AppUserCubit>().state;
-
+    bool _canEdit = groups != null &&
+        (groups!.contains('purchase_admins') ||
+            groups!.contains('managers') ||
+            groups!.contains('admins'));
     if (state is AppUserLoggedIn) {
       groups = state.userEntity.groups;
     }
@@ -677,136 +680,148 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
                                         width: 5,
                                       ),
                                       //data sheet + offer image 1
-                                      if (groups != null &&
-                                          (groups!.contains(
-                                                  'purchase_admins') ||
-                                              groups!.contains('managers') ||
-                                              groups!.contains('admins')))
-                                        Column(
-                                          children: [
-                                            // Offer Image
-                                            (widget.purchasesModel
-                                                            .offer_1_image ==
-                                                        null ||
-                                                    widget.purchasesModel
-                                                            .offer_1_image ==
-                                                        "")
-                                                ? _buildAddButton(
-                                                    label: 'صورة',
-                                                    onAdd: (source) async {
-                                                      await _pickImage(source);
-                                                      if (_image != null) {
-                                                        context
-                                                            .read<
-                                                                PurchaseBloc>()
-                                                            .add(
-                                                              AddPurchaseOffer1Image(
-                                                                image: _image!,
-                                                                id: widget
-                                                                    .purchasesModel
-                                                                    .id!,
-                                                              ),
-                                                            );
-                                                      }
-                                                    },
-                                                  )
-                                                : _buildImageOptionsButton(
-                                                    label: 'صورة',
-                                                    onView: () {
-                                                      context
-                                                          .read<PurchaseBloc>()
-                                                          .add(
-                                                            GetPurchaseOffer1Image(
-                                                                id: widget
-                                                                    .purchasesModel
-                                                                    .id!),
-                                                          );
-                                                    },
-                                                    onDelete: () async {
-                                                      bool confirmDelete =
-                                                          await _showDeleteConfirmation(
-                                                        context,
-                                                        message:
-                                                            'هل أنت متأكد أنك تريد حذف صورة عرض السعر الأول',
-                                                      );
-                                                      if (confirmDelete) {
-                                                        context
-                                                            .read<
-                                                                PurchaseBloc>()
-                                                            .add(
-                                                              DeletePurchaceOffer1Image(
-                                                                  id: widget
-                                                                      .purchasesModel
-                                                                      .id!),
-                                                            );
-                                                      }
-                                                    },
-                                                  ),
 
-                                            // Datasheet
-                                            (widget.purchasesModel
-                                                            .datasheet_1 ==
-                                                        null ||
-                                                    widget.purchasesModel
-                                                            .datasheet_1 ==
-                                                        "")
-                                                ? _buildAddButton(
-                                                    label: 'نشرة',
-                                                    onAdd: (source) async {
-                                                      await _pickImage(source);
-                                                      if (_image != null) {
-                                                        context
-                                                            .read<
-                                                                PurchaseBloc>()
-                                                            .add(
-                                                              AddPurchaseDatasheet1Image(
-                                                                image: _image!,
-                                                                id: widget
-                                                                    .purchasesModel
-                                                                    .id!,
-                                                              ),
-                                                            );
-                                                      }
-                                                    },
-                                                  )
-                                                : _buildImageOptionsButton(
-                                                    label: 'نشرة',
-                                                    onView: () {
+                                      Column(
+                                        children: [
+                                          // Offer Image (offer_1_image)
+                                          (widget.purchasesModel
+                                                          .offer_1_image ==
+                                                      null ||
+                                                  widget.purchasesModel
+                                                          .offer_1_image ==
+                                                      "")
+                                              ? _canEdit // Check permission to ADD (only if empty)
+                                                  ? _buildAddButton(
+                                                      label: 'صورة',
+                                                      onAdd: (source) async {
+                                                        await _pickImage(
+                                                            source);
+                                                        if (_image != null) {
+                                                          context
+                                                              .read<
+                                                                  PurchaseBloc>()
+                                                              .add(
+                                                                AddPurchaseOffer1Image(
+                                                                  image:
+                                                                      _image!,
+                                                                  id: widget
+                                                                      .purchasesModel
+                                                                      .id!,
+                                                                ),
+                                                              );
+                                                        }
+                                                      },
+                                                    )
+                                                  // If empty but no permission, show nothing
+                                                  : const SizedBox.shrink()
+                                              : _buildImageOptionsButton(
+                                                  // If image exists, show options button
+                                                  label: 'صورة',
+                                                  onView: () {
+                                                    context
+                                                        .read<PurchaseBloc>()
+                                                        .add(
+                                                          GetPurchaseOffer1Image(
+                                                            id: widget
+                                                                .purchasesModel
+                                                                .id!,
+                                                          ),
+                                                        );
+                                                  },
+                                                  onDelete: () async {
+                                                    bool confirmDelete =
+                                                        await _showDeleteConfirmation(
+                                                      context,
+                                                      message:
+                                                          'هل أنت متأكد أنك تريد حذف صورة عرض السعر الأول',
+                                                    );
+                                                    if (confirmDelete) {
                                                       context
                                                           .read<PurchaseBloc>()
                                                           .add(
-                                                            GetPurchaseDatasheet1Image(
-                                                                id: widget
-                                                                    .purchasesModel
-                                                                    .id!),
+                                                            DeletePurchaceOffer1Image(
+                                                              id: widget
+                                                                  .purchasesModel
+                                                                  .id!,
+                                                            ),
                                                           );
-                                                    },
-                                                    onDelete: () async {
-                                                      bool confirmDelete =
-                                                          await _showDeleteConfirmation(
-                                                        context,
-                                                        message:
-                                                            'هل أنت متأكد أنك تريد حذف النشرة الفنية الأول',
-                                                      );
-                                                      if (confirmDelete) {
-                                                        context
-                                                            .read<
-                                                                PurchaseBloc>()
-                                                            .add(
-                                                              DeletePurchaceDatasheet1Image(
+                                                    }
+                                                  },
+                                                  canDelete:
+                                                      _canEdit, // Pass permission flag for DELETE
+                                                ),
+
+                                          // Datasheet (datasheet_1)
+                                          (widget.purchasesModel.datasheet_1 ==
+                                                      null ||
+                                                  widget.purchasesModel
+                                                          .datasheet_1 ==
+                                                      "")
+                                              ? _canEdit // Check permission to ADD (only if empty)
+                                                  ? _buildAddButton(
+                                                      label: 'نشرة',
+                                                      onAdd: (source) async {
+                                                        await _pickImage(
+                                                            source);
+                                                        if (_image != null) {
+                                                          context
+                                                              .read<
+                                                                  PurchaseBloc>()
+                                                              .add(
+                                                                AddPurchaseDatasheet1Image(
+                                                                  image:
+                                                                      _image!,
                                                                   id: widget
                                                                       .purchasesModel
-                                                                      .id!),
-                                                            );
-                                                      }
-                                                    },
-                                                  ),
-                                          ],
-                                        ),
+                                                                      .id!,
+                                                                ),
+                                                              );
+                                                        }
+                                                      },
+                                                    )
+                                                  // If empty but no permission, show nothing
+                                                  : const SizedBox.shrink()
+                                              : _buildImageOptionsButton(
+                                                  // If datasheet exists, show options button
+                                                  label: 'نشرة',
+                                                  onView: () {
+                                                    context
+                                                        .read<PurchaseBloc>()
+                                                        .add(
+                                                          GetPurchaseDatasheet1Image(
+                                                            id: widget
+                                                                .purchasesModel
+                                                                .id!,
+                                                          ),
+                                                        );
+                                                  },
+                                                  onDelete: () async {
+                                                    bool confirmDelete =
+                                                        await _showDeleteConfirmation(
+                                                      context,
+                                                      message:
+                                                          'هل أنت متأكد أنك تريد حذف النشرة الفنية الأول',
+                                                    );
+                                                    if (confirmDelete) {
+                                                      context
+                                                          .read<PurchaseBloc>()
+                                                          .add(
+                                                            DeletePurchaceDatasheet1Image(
+                                                              id: widget
+                                                                  .purchasesModel
+                                                                  .id!,
+                                                            ),
+                                                          );
+                                                    }
+                                                  },
+                                                  canDelete:
+                                                      _canEdit, // Pass permission flag for DELETE
+                                                ),
+                                        ],
+                                      ),
                                     ],
                                   ),
                                   // Offer 1 Row
-
                                   Row(
                                     children: [
                                       Radio<int>(
@@ -847,132 +862,145 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
                                         width: 5,
                                       ),
                                       //data sheet + offer image 2
-                                      if (groups != null &&
-                                          (groups!.contains(
-                                                  'purchase_admins') ||
-                                              groups!.contains('managers') ||
-                                              groups!.contains('admins')))
-                                        Column(
-                                          children: [
-                                            // Offer 2 Image
-                                            (widget.purchasesModel
-                                                            .offer_2_image ==
-                                                        null ||
-                                                    widget.purchasesModel
-                                                            .offer_2_image ==
-                                                        "")
-                                                ? _buildAddButton(
-                                                    label: 'صورة',
-                                                    onAdd: (source) async {
-                                                      await _pickImage(source);
-                                                      if (_image != null) {
-                                                        context
-                                                            .read<
-                                                                PurchaseBloc>()
-                                                            .add(
-                                                              AddPurchaseOffer2Image(
-                                                                image: _image!,
-                                                                id: widget
-                                                                    .purchasesModel
-                                                                    .id!,
-                                                              ),
-                                                            );
-                                                      }
-                                                    },
-                                                  )
-                                                : _buildImageOptionsButton(
-                                                    label: 'صورة',
-                                                    onView: () {
-                                                      context
-                                                          .read<PurchaseBloc>()
-                                                          .add(
-                                                            GetPurchaseOffer2Image(
-                                                                id: widget
-                                                                    .purchasesModel
-                                                                    .id!),
-                                                          );
-                                                    },
-                                                    onDelete: () async {
-                                                      bool confirmDelete =
-                                                          await _showDeleteConfirmation(
-                                                        context,
-                                                        message:
-                                                            'هل أنت متأكد أنك تريد حذف صورة عرض السعر الثاني',
-                                                      );
-                                                      if (confirmDelete) {
-                                                        context
-                                                            .read<
-                                                                PurchaseBloc>()
-                                                            .add(
-                                                              DeletePurchaceOffer2Image(
-                                                                  id: widget
-                                                                      .purchasesModel
-                                                                      .id!),
-                                                            );
-                                                      }
-                                                    },
-                                                  ),
 
-                                            // Datasheet 2
-                                            (widget.purchasesModel
-                                                            .datasheet_2 ==
-                                                        null ||
-                                                    widget.purchasesModel
-                                                            .datasheet_2 ==
-                                                        "")
-                                                ? _buildAddButton(
-                                                    label: 'نشرة',
-                                                    onAdd: (source) async {
-                                                      await _pickImage(source);
-                                                      if (_image != null) {
-                                                        context
-                                                            .read<
-                                                                PurchaseBloc>()
-                                                            .add(
-                                                              AddPurchaseDatasheet2Image(
-                                                                image: _image!,
-                                                                id: widget
-                                                                    .purchasesModel
-                                                                    .id!,
-                                                              ),
-                                                            );
-                                                      }
-                                                    },
-                                                  )
-                                                : _buildImageOptionsButton(
-                                                    label: 'نشرة',
-                                                    onView: () {
+                                      Column(
+                                        children: [
+                                          // Offer 2 Image
+                                          (widget.purchasesModel
+                                                          .offer_2_image ==
+                                                      null ||
+                                                  widget.purchasesModel
+                                                          .offer_2_image ==
+                                                      "")
+                                              ? _canEdit // Check permission to ADD (only if empty)
+                                                  ? _buildAddButton(
+                                                      label: 'صورة',
+                                                      onAdd: (source) async {
+                                                        await _pickImage(
+                                                            source);
+                                                        if (_image != null) {
+                                                          context
+                                                              .read<
+                                                                  PurchaseBloc>()
+                                                              .add(
+                                                                AddPurchaseOffer2Image(
+                                                                  image:
+                                                                      _image!,
+                                                                  id: widget
+                                                                      .purchasesModel
+                                                                      .id!,
+                                                                ),
+                                                              );
+                                                        }
+                                                      },
+                                                    )
+                                                  // If empty but no permission, show nothing
+                                                  : const SizedBox.shrink()
+                                              : _buildImageOptionsButton(
+                                                  // If image exists, show options button
+                                                  label: 'صورة',
+                                                  onView: () {
+                                                    context
+                                                        .read<PurchaseBloc>()
+                                                        .add(
+                                                          GetPurchaseOffer2Image(
+                                                            id: widget
+                                                                .purchasesModel
+                                                                .id!,
+                                                          ),
+                                                        );
+                                                  },
+                                                  onDelete: () async {
+                                                    bool confirmDelete =
+                                                        await _showDeleteConfirmation(
+                                                      context,
+                                                      message:
+                                                          'هل أنت متأكد أنك تريد حذف صورة عرض السعر الثاني',
+                                                    );
+                                                    if (confirmDelete) {
                                                       context
                                                           .read<PurchaseBloc>()
                                                           .add(
-                                                            GetPurchaseDatasheet2Image(
-                                                                id: widget
-                                                                    .purchasesModel
-                                                                    .id!),
+                                                            DeletePurchaceOffer2Image(
+                                                              id: widget
+                                                                  .purchasesModel
+                                                                  .id!,
+                                                            ),
                                                           );
-                                                    },
-                                                    onDelete: () async {
-                                                      bool confirmDelete =
-                                                          await _showDeleteConfirmation(
-                                                        context,
-                                                        message:
-                                                            'هل أنت متأكد أنك تريد حذف النشرة الفنية الثانية',
-                                                      );
-                                                      if (confirmDelete) {
-                                                        context
-                                                            .read<
-                                                                PurchaseBloc>()
-                                                            .add(
-                                                              DeletePurchaceDatasheet2Image(
+                                                    }
+                                                  },
+                                                  canDelete:
+                                                      _canEdit, // Pass permission flag for DELETE
+                                                ),
+
+                                          // Datasheet 2
+                                          (widget.purchasesModel.datasheet_2 ==
+                                                      null ||
+                                                  widget.purchasesModel
+                                                          .datasheet_2 ==
+                                                      "")
+                                              ? _canEdit // Check permission to ADD (only if empty)
+                                                  ? _buildAddButton(
+                                                      label: 'نشرة',
+                                                      onAdd: (source) async {
+                                                        await _pickImage(
+                                                            source);
+                                                        if (_image != null) {
+                                                          context
+                                                              .read<
+                                                                  PurchaseBloc>()
+                                                              .add(
+                                                                AddPurchaseDatasheet2Image(
+                                                                  image:
+                                                                      _image!,
                                                                   id: widget
                                                                       .purchasesModel
-                                                                      .id!),
-                                                            );
-                                                      }
-                                                    },
-                                                  ),
-                                          ],
-                                        ),
+                                                                      .id!,
+                                                                ),
+                                                              );
+                                                        }
+                                                      },
+                                                    )
+                                                  // If empty but no permission, show nothing
+                                                  : const SizedBox.shrink()
+                                              : _buildImageOptionsButton(
+                                                  // If datasheet exists, show options button
+                                                  label: 'نشرة',
+                                                  onView: () {
+                                                    context
+                                                        .read<PurchaseBloc>()
+                                                        .add(
+                                                          GetPurchaseDatasheet2Image(
+                                                            id: widget
+                                                                .purchasesModel
+                                                                .id!,
+                                                          ),
+                                                        );
+                                                  },
+                                                  onDelete: () async {
+                                                    bool confirmDelete =
+                                                        await _showDeleteConfirmation(
+                                                      context,
+                                                      message:
+                                                          'هل أنت متأكد أنك تريد حذف النشرة الفنية الثانية',
+                                                    );
+                                                    if (confirmDelete) {
+                                                      context
+                                                          .read<PurchaseBloc>()
+                                                          .add(
+                                                            DeletePurchaceDatasheet2Image(
+                                                              id: widget
+                                                                  .purchasesModel
+                                                                  .id!,
+                                                            ),
+                                                          );
+                                                    }
+                                                  },
+                                                  canDelete:
+                                                      _canEdit, // Pass permission flag for DELETE
+                                                ),
+                                        ],
+                                      ),
                                     ],
                                   ),
                                   // Offer 2 Row
@@ -1016,132 +1044,146 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
                                         width: 5,
                                       ),
                                       //data sheet + offer image 3
-                                      if (groups != null &&
-                                          (groups!.contains(
-                                                  'purchase_admins') ||
-                                              groups!.contains('managers') ||
-                                              groups!.contains('admins')))
-                                        Column(
-                                          children: [
-                                            // Offer 3 Image
-                                            (widget.purchasesModel
-                                                            .offer_3_image ==
-                                                        null ||
-                                                    widget.purchasesModel
-                                                            .offer_3_image ==
-                                                        "")
-                                                ? _buildAddButton(
-                                                    label: 'صورة',
-                                                    onAdd: (source) async {
-                                                      await _pickImage(source);
-                                                      if (_image != null) {
-                                                        context
-                                                            .read<
-                                                                PurchaseBloc>()
-                                                            .add(
-                                                              AddPurchaseOffer3Image(
-                                                                image: _image!,
-                                                                id: widget
-                                                                    .purchasesModel
-                                                                    .id!,
-                                                              ),
-                                                            );
-                                                      }
-                                                    },
-                                                  )
-                                                : _buildImageOptionsButton(
-                                                    label: 'صورة',
-                                                    onView: () {
-                                                      context
-                                                          .read<PurchaseBloc>()
-                                                          .add(
-                                                            GetPurchaseOffer3Image(
-                                                                id: widget
-                                                                    .purchasesModel
-                                                                    .id!),
-                                                          );
-                                                    },
-                                                    onDelete: () async {
-                                                      bool confirmDelete =
-                                                          await _showDeleteConfirmation(
-                                                        context,
-                                                        message:
-                                                            'هل أنت متأكد أنك تريد حذف صورة عرض السعر الثالث',
-                                                      );
-                                                      if (confirmDelete) {
-                                                        context
-                                                            .read<
-                                                                PurchaseBloc>()
-                                                            .add(
-                                                              DeletePurchaceOffer3Image(
-                                                                  id: widget
-                                                                      .purchasesModel
-                                                                      .id!),
-                                                            );
-                                                      }
-                                                    },
-                                                  ),
 
-                                            // Datasheet 3
-                                            (widget.purchasesModel
-                                                            .datasheet_3 ==
-                                                        null ||
-                                                    widget.purchasesModel
-                                                            .datasheet_3 ==
-                                                        "")
-                                                ? _buildAddButton(
-                                                    label: 'نشرة',
-                                                    onAdd: (source) async {
-                                                      await _pickImage(source);
-                                                      if (_image != null) {
-                                                        context
-                                                            .read<
-                                                                PurchaseBloc>()
-                                                            .add(
-                                                              AddPurchaseDatasheet3Image(
-                                                                image: _image!,
-                                                                id: widget
-                                                                    .purchasesModel
-                                                                    .id!,
-                                                              ),
-                                                            );
-                                                      }
-                                                    },
-                                                  )
-                                                : _buildImageOptionsButton(
-                                                    label: 'نشرة',
-                                                    onView: () {
+                                      Column(
+                                        children: [
+                                          // Offer 3 Image
+                                          // Check if the field is null/empty AND if the user has permission to ADD
+                                          (widget.purchasesModel
+                                                          .offer_3_image ==
+                                                      null ||
+                                                  widget.purchasesModel
+                                                          .offer_3_image ==
+                                                      "")
+                                              ? _canEdit // ⬅️ Check permission to ADD
+                                                  ? _buildAddButton(
+                                                      label: 'صورة',
+                                                      onAdd: (source) async {
+                                                        await _pickImage(
+                                                            source);
+                                                        if (_image != null) {
+                                                          context
+                                                              .read<
+                                                                  PurchaseBloc>()
+                                                              .add(
+                                                                AddPurchaseOffer3Image(
+                                                                  image:
+                                                                      _image!,
+                                                                  id: widget
+                                                                      .purchasesModel
+                                                                      .id!,
+                                                                ),
+                                                              );
+                                                        }
+                                                      },
+                                                    )
+                                                  // If field is empty but user CAN'T edit, show nothing or a placeholder
+                                                  : const SizedBox.shrink()
+                                              // If field HAS a value, show the options button, which handles delete permission internally
+                                              : _buildImageOptionsButton(
+                                                  label: 'صورة',
+                                                  onView: () {
+                                                    context
+                                                        .read<PurchaseBloc>()
+                                                        .add(
+                                                          GetPurchaseOffer3Image(
+                                                            id: widget
+                                                                .purchasesModel
+                                                                .id!,
+                                                          ),
+                                                        );
+                                                  },
+                                                  onDelete: () async {
+                                                    // The onDelete logic remains the same, but the button itself is restricted below
+                                                    bool confirmDelete =
+                                                        await _showDeleteConfirmation(
+                                                      context,
+                                                      message:
+                                                          'هل أنت متأكد أنك تريد حذف صورة عرض السعر الثالث',
+                                                    );
+                                                    if (confirmDelete) {
                                                       context
                                                           .read<PurchaseBloc>()
                                                           .add(
-                                                            GetPurchaseDatasheet3Image(
-                                                                id: widget
-                                                                    .purchasesModel
-                                                                    .id!),
+                                                            DeletePurchaceOffer3Image(
+                                                              id: widget
+                                                                  .purchasesModel
+                                                                  .id!,
+                                                            ),
                                                           );
-                                                    },
-                                                    onDelete: () async {
-                                                      bool confirmDelete =
-                                                          await _showDeleteConfirmation(
-                                                        context,
-                                                        message:
-                                                            'هل أنت متأكد أنك تريد حذف النشرة الفنية الثالثة',
-                                                      );
-                                                      if (confirmDelete) {
-                                                        context
-                                                            .read<
-                                                                PurchaseBloc>()
-                                                            .add(
-                                                              DeletePurchaceDatasheet3Image(
+                                                    }
+                                                  },
+                                                  canDelete:
+                                                      _canEdit, // ⬅️ Pass the permission flag to the options button
+                                                ),
+
+                                          // Datasheet 3
+                                          // Apply the same logic for Datasheet 3
+                                          (widget.purchasesModel.datasheet_3 ==
+                                                      null ||
+                                                  widget.purchasesModel
+                                                          .datasheet_3 ==
+                                                      "")
+                                              ? _canEdit // ⬅️ Check permission to ADD
+                                                  ? _buildAddButton(
+                                                      label: 'نشرة',
+                                                      onAdd: (source) async {
+                                                        await _pickImage(
+                                                            source);
+                                                        if (_image != null) {
+                                                          context
+                                                              .read<
+                                                                  PurchaseBloc>()
+                                                              .add(
+                                                                AddPurchaseDatasheet3Image(
+                                                                  image:
+                                                                      _image!,
                                                                   id: widget
                                                                       .purchasesModel
-                                                                      .id!),
-                                                            );
-                                                      }
-                                                    },
-                                                  ),
-                                          ],
-                                        ),
+                                                                      .id!,
+                                                                ),
+                                                              );
+                                                        }
+                                                      },
+                                                    )
+                                                  : const SizedBox.shrink()
+                                              : _buildImageOptionsButton(
+                                                  label: 'نشرة',
+                                                  onView: () {
+                                                    context
+                                                        .read<PurchaseBloc>()
+                                                        .add(
+                                                          GetPurchaseDatasheet3Image(
+                                                            id: widget
+                                                                .purchasesModel
+                                                                .id!,
+                                                          ),
+                                                        );
+                                                  },
+                                                  onDelete: () async {
+                                                    bool confirmDelete =
+                                                        await _showDeleteConfirmation(
+                                                      context,
+                                                      message:
+                                                          'هل أنت متأكد أنك تريد حذف النشرة الفنية الثالثة',
+                                                    );
+                                                    if (confirmDelete) {
+                                                      context
+                                                          .read<PurchaseBloc>()
+                                                          .add(
+                                                            DeletePurchaceDatasheet3Image(
+                                                              id: widget
+                                                                  .purchasesModel
+                                                                  .id!,
+                                                            ),
+                                                          );
+                                                    }
+                                                  },
+                                                  canDelete:
+                                                      _canEdit, // ⬅️ Pass the permission flag to the options button
+                                                ),
+                                        ],
+                                      ),
                                     ],
                                   ),
                                   // Offer 3 Row
@@ -1440,11 +1482,14 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
                                               groups!.contains('admins')))
                                         Mybutton(
                                           onPressed: () {
-                                            if (purchasesModel!.manager_check ==
+                                            if (purchasesModel!
+                                                        .manager_check ==
                                                     null &&
                                                 purchasesModel!
                                                         .applicant_approve !=
-                                                    null) {
+                                                    null &&
+                                                purchasesModel!.department !=
+                                                    'مواد أولية') {
                                               showSnackBar(
                                                 context: context,
                                                 content:
@@ -1798,66 +1843,64 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
                         ),
                       ),
                     ),
-                    if (groups != null &&
-                        (groups!.contains('purchase_admins') ||
-                            groups!.contains('managers') ||
-                            groups!.contains('admins')))
-                      Center(
-                        child: Column(
-                          spacing: 10,
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            BlocBuilder<PurchaseBloc, PurchaseState>(
-                              builder: (context, state) {
-                                if (state is PurchaseImageLoading) {
-                                  return const Loader();
-                                } else if (state
-                                    is PurchaseSuccess<Uint8List>) {
-                                  // Navigate to new page after the current frame
-                                  WidgetsBinding.instance
-                                      .addPostFrameCallback((_) {
-                                    // Navigate first
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => ViewImagePage(
-                                            imageData: state.result),
-                                      ),
-                                    ).then((_) {
-                                      // After navigation completes, reset the state
-                                      context
-                                          .read<PurchaseBloc>()
-                                          .add(ResetPurchaseState());
-                                    });
+                    Center(
+                      child: Column(
+                        spacing: 10,
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          BlocBuilder<PurchaseBloc, PurchaseState>(
+                            builder: (context, state) {
+                              if (state is PurchaseImageLoading) {
+                                return const Loader();
+                              } else if (state is PurchaseSuccess<Uint8List>) {
+                                // Navigate to new page after the current frame
+                                WidgetsBinding.instance
+                                    .addPostFrameCallback((_) {
+                                  // Navigate first
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => ViewImagePage(
+                                          imageData: state.result),
+                                    ),
+                                  ).then((_) {
+                                    // After navigation completes, reset the state
+                                    context
+                                        .read<PurchaseBloc>()
+                                        .add(ResetPurchaseState());
                                   });
-                                  return const SizedBox();
-                                } else if (state is PurchaseError) {
-                                  return Text(
-                                    state.errorMessage,
-                                    style: const TextStyle(color: Colors.red),
-                                  );
-                                } else {
-                                  return const SizedBox();
-                                }
-                              },
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: [
+                                });
+                                return const SizedBox();
+                              } else if (state is PurchaseError) {
+                                return Text(
+                                  state.errorMessage,
+                                  style: const TextStyle(color: Colors.red),
+                                );
+                              } else {
+                                return const SizedBox();
+                              }
+                            },
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              if (widget.purchasesModel.bill != null &&
+                                  widget.purchasesModel.bill!.isNotEmpty)
+                                Mybutton(
+                                  text: 'عرض الفاتورة',
+                                  onPressed: () {
+                                    context.read<PurchaseBloc>().add(
+                                          GetPurchaseImage(
+                                              id: widget.purchasesModel.id!),
+                                        );
+                                  },
+                                ),
+                              if (widget.status != 100)
                                 if (widget.purchasesModel.bill != null &&
                                     widget.purchasesModel.bill!.isNotEmpty)
-                                  Mybutton(
-                                    text: 'عرض الفاتورة',
-                                    onPressed: () {
-                                      context.read<PurchaseBloc>().add(
-                                            GetPurchaseImage(
-                                                id: widget.purchasesModel.id!),
-                                          );
-                                    },
-                                  ),
-                                if (widget.status != 100)
-                                  if (widget.purchasesModel.bill != null &&
-                                      widget.purchasesModel.bill!.isNotEmpty)
+                                  if (groups != null &&
+                                      (groups!.contains('purchase_admins') ||
+                                          groups!.contains('admins')))
                                     Mybutton(
                                       text: 'حذف الفاتورة',
                                       onPressed: () async {
@@ -1897,10 +1940,13 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
                                         }
                                       },
                                     ),
-                                if (widget.status != 100)
-                                  if ((widget.purchasesModel.bill == null ||
-                                          widget.purchasesModel.bill == "") &&
-                                      Platform.isAndroid)
+                              if (widget.status != 100)
+                                if ((widget.purchasesModel.bill == null ||
+                                        widget.purchasesModel.bill == "") &&
+                                    Platform.isAndroid)
+                                  if (groups != null &&
+                                      (groups!.contains('purchase_admins') ||
+                                          groups!.contains('admins')))
                                     Mybutton(
                                       text: 'تصوير الفاتورة',
                                       onPressed: () async {
@@ -1914,30 +1960,32 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
                                         }
                                       },
                                     ),
-                                if (widget.status != 100)
-                                  if (widget.purchasesModel.bill == null &&
-                                      widget.purchasesModel.bill != "")
-                                    Mybutton(
-                                      text: 'اختيار الفاتورة',
-                                      onPressed: () async {
-                                        await _pickImage(ImageSource.gallery);
-                                        if (_image != null) {
-                                          context.read<PurchaseBloc>().add(
-                                              AddPurchaseImage(
-                                                  image: _image!,
-                                                  id: widget
-                                                      .purchasesModel.id!));
-                                        }
-                                      },
-                                    ),
-                              ],
-                            ),
-                            const SizedBox(
-                              height: 10,
-                            )
-                          ],
-                        ),
-                      )
+                              if (widget.status != 100 &&
+                                  widget.purchasesModel.bill == null &&
+                                  widget.purchasesModel.bill != "" &&
+                                  groups != null &&
+                                  (groups!.contains('purchase_admins') ||
+                                      groups!.contains('admins')))
+                                Mybutton(
+                                  text: 'اختيار الفاتورة',
+                                  onPressed: () async {
+                                    await _pickImage(ImageSource.gallery);
+                                    if (_image != null) {
+                                      context.read<PurchaseBloc>().add(
+                                          AddPurchaseImage(
+                                              image: _image!,
+                                              id: widget.purchasesModel.id!));
+                                    }
+                                  },
+                                ),
+                            ],
+                          ),
+                          const SizedBox(
+                            height: 10,
+                          )
+                        ],
+                      ),
+                    )
                   ],
                 ),
                 bottomNavigationBar: BottomNavigationBar(
@@ -1956,31 +2004,27 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
                   unselectedItemColor:
                       Colors.grey, // Color for unselected items
                   backgroundColor: Colors.white, // Background color for the bar
-                  items: [
-                    const BottomNavigationBarItem(
+                  items: const [
+                    BottomNavigationBarItem(
                       icon: Icon(Icons.info_outline),
                       label: 'معلومات',
                     ),
-                    const BottomNavigationBarItem(
+                    BottomNavigationBarItem(
                       icon: Icon(Icons.shopping_cart_checkout),
                       label: 'المشتريات',
                     ),
-                    const BottomNavigationBarItem(
+                    BottomNavigationBarItem(
                       icon: Icon(Icons.manage_accounts_outlined),
                       label: 'المدير',
                     ),
-                    const BottomNavigationBarItem(
+                    BottomNavigationBarItem(
                       icon: Icon(Icons.recommend_outlined),
                       label: 'الاستلام',
                     ),
-                    if (groups != null &&
-                        (groups!.contains('purchase_admins') ||
-                            groups!.contains('managers') ||
-                            groups!.contains('admins')))
-                      const BottomNavigationBarItem(
-                        icon: Icon(Icons.receipt),
-                        label: 'الفاتورة',
-                      ),
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.receipt),
+                      label: 'الفاتورة',
+                    ),
                   ],
                 ),
               ),
@@ -2161,6 +2205,7 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
     required String label,
     required VoidCallback onView,
     required VoidCallback onDelete,
+    required bool canDelete, // ⬅️ New required parameter
   }) {
     return Row(
       children: [
@@ -2168,26 +2213,37 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
         PopupMenuButton<String>(
           icon: const Icon(Icons.image),
           onSelected: (value) {
-            if (value == 'view')
+            if (value == 'view') {
               onView();
-            else if (value == 'delete') onDelete();
+            } else if (value == 'delete') {
+              onDelete();
+            }
           },
-          itemBuilder: (BuildContext context) => [
-            const PopupMenuItem(
-              value: 'view',
-              child: ListTile(
-                leading: Icon(Icons.image),
-                title: Text('عرض الصورة'),
+          itemBuilder: (BuildContext context) {
+            final List<PopupMenuEntry<String>> items = [
+              const PopupMenuItem(
+                value: 'view',
+                child: ListTile(
+                  leading: Icon(Icons.image),
+                  title: Text('عرض الصورة'),
+                ),
               ),
-            ),
-            const PopupMenuItem(
-              value: 'delete',
-              child: ListTile(
-                leading: Icon(Icons.delete, color: Colors.red),
-                title: Text('حذف الصورة'),
-              ),
-            ),
-          ],
+            ];
+
+            // ⬅️ Conditionally add the Delete option
+            if (canDelete) {
+              items.add(
+                const PopupMenuItem(
+                  value: 'delete',
+                  child: ListTile(
+                    leading: Icon(Icons.delete, color: Colors.red),
+                    title: Text('حذف الصورة'),
+                  ),
+                ),
+              );
+            }
+            return items;
+          },
         ),
       ],
     );

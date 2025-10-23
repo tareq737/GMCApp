@@ -1,3 +1,6 @@
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:bloc/bloc.dart';
 import 'package:gmcappclean/features/maintenance/Models/machine_maintenance_model.dart';
 import 'package:gmcappclean/features/maintenance/Models/maintenance_model.dart';
@@ -20,6 +23,20 @@ class MaintenanceBloc extends Bloc<MaintenanceEvent, MaintenanceState> {
           page: event.page,
           status: event.status,
           department: event.department,
+        );
+        if (result == null) {
+          emit(MaintenanceError(errorMessage: 'Error'));
+        } else {
+          emit(MaintenanceSuccess(result: result));
+        }
+      },
+    );
+    on<SearchMaintenance>(
+      (event, emit) async {
+        emit(MaintenanceLoading());
+        var result = await _maintenanceServices.searchMaintenance(
+          search: event.search,
+          page: event.page,
         );
         if (result == null) {
           emit(MaintenanceError(errorMessage: 'Error'));
@@ -110,6 +127,43 @@ class MaintenanceBloc extends Bloc<MaintenanceEvent, MaintenanceState> {
           emit(MaintenanceError(errorMessage: 'Error'));
         } else {
           emit(MaintenanceSuccess(result: result));
+        }
+      },
+    );
+    on<GetBillImage>((event, emit) async {
+      emit(MaintenanceLoading());
+      var result = await _maintenanceServices.getBillImage(event.id);
+      result.fold((success) {
+        emit(MaintenanceSuccess<Uint8List>(result: success));
+      }, (failure) {
+        emit(MaintenanceError(errorMessage: failure.message));
+      });
+    });
+    on<AddBillImage>(
+      (event, emit) async {
+        emit(MaintenanceLoading());
+        var result = await _maintenanceServices.addBillImage(
+          id: event.id,
+          image: event.image,
+        );
+        if (result == null) {
+          emit(MaintenanceError(errorMessage: 'Error'));
+        } else {
+          emit(ImageSavedSuccess(result: result));
+        }
+      },
+    );
+
+    on<DeleteBillImage>(
+      (event, emit) async {
+        emit(MaintenanceLoading());
+        var result = await _maintenanceServices.deleteBillImageByID(event.id);
+        if (result == false) {
+          emit(MaintenanceError(
+              errorMessage:
+                  'Error delete purchase image with ID: ${event.id}'));
+        } else {
+          emit(MaintenanceSuccess<bool>(result: true));
         }
       },
     );

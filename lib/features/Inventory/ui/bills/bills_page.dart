@@ -139,8 +139,14 @@ class _BillsPageChildState extends State<BillsPageChild> {
           widget.billModel!.transfer!.to_warehouse_name ?? '';
       _selectedToWarehouseId = widget.billModel!.transfer!.to_warehouse;
 
-      _customerController.text = widget.billModel!.customer!.account_name ?? '';
-      _selectedCustomerId = widget.billModel!.customer_id;
+      if (widget.billModel!.customer != null) {
+        _customerController.text =
+            widget.billModel!.customer!.account_name ?? '';
+        _selectedCustomerId = widget.billModel!.customer_id;
+      } else {
+        _customerController.text = '';
+        _selectedCustomerId = null;
+      }
 
       if (widget.billModel!.transfer!.items != null) {
         // Initialize lists with existing item data
@@ -818,7 +824,7 @@ class _BillsPageChildState extends State<BillsPageChild> {
                 _previousSerial =
                     _serialController.text; // Prevents re-fetching
               }
-            } else if (state is InventorySuccess<bool>) {
+            } else if (state is InventorySuccessDeleted) {
               showSnackBar(
                 context: context,
                 content: 'تم الحذف بنجاح',

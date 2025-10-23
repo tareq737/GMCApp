@@ -23,3 +23,9 @@ class MachinesLoaded extends MaintenanceState {
   final MachineMaintenanceModel? machines;
   MachinesLoaded(this.machines);
 }
+
+final class ImageSavedSuccess<T> extends MaintenanceState {
+  final T result;
+
+  ImageSavedSuccess({required this.result});
+}

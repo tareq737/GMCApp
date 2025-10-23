@@ -1032,11 +1032,36 @@ class _FullProPlanDetailsPageState extends State<FullProPlanDetailsPage> {
                                     Mybutton(
                                       text: 'تعديل',
                                       onPressed: () {
-                                        _fillProdPlanfromFormProductionManagers();
-                                        context.read<ProdPlanBloc>().add(
-                                              ProdUpdate<ProdPlanViewModel>(
-                                                  item: _prodPlan!),
-                                            );
+                                        if (widget.prodPlanViewModel.depChecks[
+                                                    'rawMaterial'] ==
+                                                true ||
+                                            widget.prodPlanViewModel.depChecks[
+                                                    'manufacturing'] ==
+                                                true ||
+                                            widget.prodPlanViewModel.depChecks[
+                                                    'lab'] ==
+                                                true ||
+                                            widget.prodPlanViewModel.depChecks[
+                                                    'emptyPackaging'] ==
+                                                true ||
+                                            widget.prodPlanViewModel
+                                                    .depChecks['packaging'] ==
+                                                true ||
+                                            widget.prodPlanViewModel.depChecks[
+                                                    'finishedGoods'] ==
+                                                true) {
+                                          showSnackBar(
+                                              context: context,
+                                              content:
+                                                  'لا يمكن التعديل في حال جهوزية قسم',
+                                              failure: true);
+                                        } else {
+                                          _fillProdPlanfromFormProductionManagers();
+                                          context.read<ProdPlanBloc>().add(
+                                                ProdUpdate<ProdPlanViewModel>(
+                                                    item: _prodPlan!),
+                                              );
+                                        }
                                       },
                                     ),
                                     Mybutton(

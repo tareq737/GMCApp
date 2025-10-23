@@ -30,11 +30,14 @@ class SearchRow extends StatelessWidget {
         child: Row(
           children: [
             Expanded(
-                flex: 8,
-                child: MyTextField(
-                  labelText: 'بحث',
-                  controller: textEditingController,
-                )),
+              flex: 8,
+              child: MyTextField(
+                maxLines: 1,
+                labelText: 'بحث',
+                controller: textEditingController,
+                onSubmitted: (_) => _handleSearch(context), // Trigger on Enter
+              ),
+            ),
             const SizedBox(width: 10),
             Expanded(
               flex: 2,

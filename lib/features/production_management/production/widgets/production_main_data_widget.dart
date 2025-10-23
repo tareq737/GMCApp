@@ -10,6 +10,7 @@ import 'package:gmcappclean/features/production_management/production/bloc/produ
 import 'package:gmcappclean/features/production_management/production/models/full_production_model.dart';
 import 'package:gmcappclean/features/production_management/production/services/production_services.dart';
 import 'package:gmcappclean/features/production_management/production/ui/production_list.dart';
+import 'package:gmcappclean/features/production_management/production_ready/presentation/pages/full_prod_plan_page.dart';
 import 'package:gmcappclean/init_dependencies.dart';
 
 class ProductionMainDataWidget extends StatefulWidget {
@@ -248,6 +249,74 @@ class _ProductionMainDataWidgetState extends State<ProductionMainDataWidget> {
     );
   }
 
+  bool _canEdit() {
+    // Check if any check is true across all sections
+    return !(
+        // Raw materials
+        (widget.fullProductionModel.rawMaterials.raw_material_check_1 ==
+                true) ||
+            (widget.fullProductionModel.rawMaterials.raw_material_check_2 ==
+                true) ||
+            (widget.fullProductionModel.rawMaterials.raw_material_check_3 ==
+                true) ||
+            (widget.fullProductionModel.rawMaterials.raw_material_check_4 ==
+                true) ||
+
+            // Manufacturing
+            (widget.fullProductionModel.manufacturing.manufacturing_check_1 ==
+                true) ||
+            (widget.fullProductionModel.manufacturing.manufacturing_check_2 ==
+                true) ||
+            (widget.fullProductionModel.manufacturing.manufacturing_check_3 ==
+                true) ||
+            (widget.fullProductionModel.manufacturing.manufacturing_check_4 ==
+                true) ||
+            (widget.fullProductionModel.manufacturing.manufacturing_check_5 ==
+                true) ||
+            (widget.fullProductionModel.manufacturing.manufacturing_check_6 ==
+                true) ||
+
+            // Lab
+            (widget.fullProductionModel.lab.lab_check_1 == true) ||
+            (widget.fullProductionModel.lab.lab_check_2 == true) ||
+            (widget.fullProductionModel.lab.lab_check_3 == true) ||
+            (widget.fullProductionModel.lab.lab_check_4 == true) ||
+            (widget.fullProductionModel.lab.lab_check_5 == true) ||
+            (widget.fullProductionModel.lab.lab_check_6 == true) ||
+
+            // Empty packaging
+            (widget.fullProductionModel.emptyPackaging.empty_packaging_check_1 ==
+                true) ||
+            (widget.fullProductionModel.emptyPackaging
+                    .empty_packaging_check_2 ==
+                true) ||
+            (widget.fullProductionModel.emptyPackaging
+                    .empty_packaging_check_3 ==
+                true) ||
+            (widget.fullProductionModel.emptyPackaging
+                    .empty_packaging_check_4 ==
+                true) ||
+            (widget.fullProductionModel.emptyPackaging
+                    .empty_packaging_check_5 ==
+                true) ||
+
+            // Packaging
+            (widget.fullProductionModel.packaging.packaging_check_1 == true) ||
+            (widget.fullProductionModel.packaging.packaging_check_2 == true) ||
+            (widget.fullProductionModel.packaging.packaging_check_3 == true) ||
+            (widget.fullProductionModel.packaging.packaging_check_4 == true) ||
+            (widget.fullProductionModel.packaging.packaging_check_5 == true) ||
+            (widget.fullProductionModel.packaging.packaging_check_6 == true) ||
+
+            // Finished goods
+            (widget.fullProductionModel.finishedGoods.finished_goods_check_1 ==
+                true) ||
+            (widget.fullProductionModel.finishedGoods.finished_goods_check_2 ==
+                true) ||
+            (widget.fullProductionModel.finishedGoods.finished_goods_check_3 ==
+                true));
+  }
+
   @override
   Widget build(BuildContext context) {
     List<Map<String, String>> rows = _generateRows();
@@ -273,6 +342,40 @@ class _ProductionMainDataWidgetState extends State<ProductionMainDataWidget> {
               showSnackBar(
                 context: context,
                 content: 'تم الأرشفة بنجاح',
+                failure: false,
+              );
+              Navigator.pop(context);
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) {
+                    return const ProductionList(
+                      type: 'Production',
+                    );
+                  },
+                ),
+              );
+            }
+            if (state is ProductionSuccessReverted<String>) {
+              showSnackBar(
+                context: context,
+                content: 'تم إعادة الطبخة للجهوزية بنجاح',
+                failure: false,
+              );
+              Navigator.pop(context);
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) {
+                    return const FullProdPlanPage();
+                  },
+                ),
+              );
+            }
+            if (state is ProductionSuccessUnArchive<String>) {
+              showSnackBar(
+                context: context,
+                content: 'تم إلغاء أرشفة الطبخة',
                 failure: false,
               );
               Navigator.pop(context);
@@ -343,11 +446,103 @@ class _ProductionMainDataWidgetState extends State<ProductionMainDataWidget> {
                   if ((groups!.contains('admins') ||
                           groups!.contains('production_managers')) &&
                       widget.type == 'Production')
+                    Row(
+                      spacing: 50,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Mybutton(
+                          text: 'إعادة للجهوزية',
+                          onPressed: () {
+                            if (_canEdit()) {
+                              context.read<ProductionBloc>().add(
+                                  RevertToProdplanning(
+                                      id: widget.fullProductionModel.productions
+                                          .id!));
+                            } else {
+                              // Show error
+                              showSnackBar(
+                                  context: context,
+                                  content:
+                                      'لا يمكن العودة للجهوزية في حال تشطيب أحد الأقسام',
+                                  failure: true);
+                            }
+                          },
+                        ),
+                        Mybutton(
+                          text: 'أرشفة',
+                          onPressed: () async {
+                            final confirm = await showDialog<bool>(
+                              context: context,
+                              builder: (context) => Directionality(
+                                textDirection: TextDirection.rtl,
+                                child: AlertDialog(
+                                  title: const Text('تأكيد الأرشفة'),
+                                  content: const Text(
+                                      'هل أنت متأكد أنك تريد أرشفة هذا السجل؟'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(false),
+                                      child: const Text('إلغاء'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(true),
+                                      child: const Text('تأكيد'),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+
+                            if (confirm == true) {
+                              context.read<ProductionBloc>().add(
+                                    Archive(
+                                        id: widget.fullProductionModel
+                                            .productions.id!),
+                                  );
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  if ((groups!.contains('admins') ||
+                          groups!.contains('production_managers')) &&
+                      widget.type == 'Archive')
                     Mybutton(
-                      text: 'أرشفة',
-                      onPressed: () {
-                        context.read<ProductionBloc>().add(Archive(
-                            id: widget.fullProductionModel.productions.id!));
+                      text: 'إلغاء أرشفة',
+                      onPressed: () async {
+                        final confirm = await showDialog<bool>(
+                          context: context,
+                          builder: (context) => Directionality(
+                            textDirection: TextDirection.rtl,
+                            child: AlertDialog(
+                              title: const Text('تأكيد إلغاء الأرشفة'),
+                              content: const Text(
+                                  'هل أنت متأكد أنك تريد إلغاء أرشفة هذا السجل؟'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.of(context).pop(false),
+                                  child: const Text('إلغاء'),
+                                ),
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.of(context).pop(true),
+                                  child: const Text('تأكيد'),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+
+                        if (confirm == true) {
+                          context.read<ProductionBloc>().add(
+                                UnArchive(
+                                    id: widget
+                                        .fullProductionModel.productions.id!),
+                              );
+                        }
                       },
                     ),
                   const SizedBox(

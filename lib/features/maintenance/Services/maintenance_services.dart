@@ -1,3 +1,7 @@
+import 'dart:io';
+import 'dart:typed_data';
+
+import 'package:dio/dio.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:gmcappclean/core/common/api/api.dart';
 import 'package:gmcappclean/core/common/entities/user_entity.dart';
@@ -61,6 +65,35 @@ class MaintenanceServices {
             'page': page,
             'status': status,
             'department': department,
+          },
+        );
+
+        return List.generate(response.length, (index) {
+          return BriefMaintenanceModel.fromMap(response[index]);
+        });
+      });
+    } catch (e) {
+      print('exception caught');
+      return null;
+    }
+  }
+
+  Future<List<BriefMaintenanceModel>?> searchMaintenance({
+    required String search,
+    required int page,
+  }) async {
+    try {
+      final userEntity = await getCredentials();
+      return userEntity.fold((failure) {
+        return null;
+      }, (success) async {
+        final response = await _apiClient.getPageinated(
+          user: success,
+          endPoint: 'briefmaintenance',
+          queryParams: {
+            'page_size': 20,
+            'page': page,
+            'search': search,
           },
         );
 
@@ -213,6 +246,80 @@ class MaintenanceServices {
     } catch (e) {
       print('exception caught');
       return null;
+    }
+  }
+
+  Future<Either<Uint8List, Failure>> getBillImage(
+    int id,
+  ) async {
+    try {
+      final userEntity = await getCredentials();
+      return userEntity.fold((failure) {
+        return right(Failure(message: 'no tokens'));
+      }, (success) async {
+        try {
+          final response = await _apiClient.getImage(
+            user: success,
+            endPoint: 'maintenance_bill',
+            id: id,
+          );
+          return left(response);
+        } catch (e) {
+          return right(Failure(message: e.toString()));
+        }
+      });
+    } catch (e) {
+      print('Error catched service');
+      return right(Failure(message: e.toString()));
+    }
+  }
+
+  Future<Map<String, dynamic>?> addBillImage({
+    required int id,
+    required File image,
+  }) async {
+    try {
+      final userEntity = await getCredentials();
+      return userEntity.fold((failure) {
+        return null;
+      }, (success) async {
+        try {
+          FormData formData = FormData.fromMap({
+            "maintenance_bill": await MultipartFile.fromFile(image.path,
+                filename: "upload.jpg"),
+          });
+          final response = await _apiClient.addImageByID(
+              userTokens: success,
+              endPoint: 'maintenance_bill/upload',
+              formData: formData,
+              id: id);
+          return (response);
+        } catch (e) {
+          return null;
+        }
+      });
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<bool> deleteBillImageByID(
+    int id,
+  ) async {
+    try {
+      final userEntity = await getCredentials();
+      return userEntity.fold((failure) {
+        return false;
+      }, (success) async {
+        final response = await _apiClient.delete(
+          user: success,
+          endPoint: 'maintenance_bill/delete',
+          id: id,
+        );
+        return response;
+      });
+    } catch (e) {
+      return false;
     }
   }
 }

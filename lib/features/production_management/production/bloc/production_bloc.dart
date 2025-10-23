@@ -145,6 +145,26 @@ class ProductionBloc extends Bloc<ProductionEvent, ProductionState> {
         });
       },
     );
+    on<UnArchive>(
+      (event, emit) async {
+        var result = await _productionServices.unArchive(event.id);
+        result.fold((failure) {
+          emit(ProductionError(errorMessage: failure.message));
+        }, (success) {
+          emit(ProductionSuccessUnArchive<String>(result: success));
+        });
+      },
+    );
+    on<RevertToProdplanning>(
+      (event, emit) async {
+        var result = await _productionServices.revertToProdplanning(event.id);
+        result.fold((failure) {
+          emit(ProductionError(errorMessage: failure.message));
+        }, (success) {
+          emit(ProductionSuccessReverted<String>(result: success));
+        });
+      },
+    );
     on<AllProduction>(
       (event, emit) async {
         var result = await _productionServices.allProduction(

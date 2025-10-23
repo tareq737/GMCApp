@@ -32,6 +32,7 @@ class NewVisitPage extends StatefulWidget {
 }
 
 class _NewVisitPageState extends State<NewVisitPage> {
+  bool _isReset = false;
   final _searchController = TextEditingController();
   final _visitDateController = TextEditingController();
   final _summaryController = TextEditingController();
@@ -192,21 +193,22 @@ class _NewVisitPageState extends State<NewVisitPage> {
             textDirection: ui.TextDirection.rtl,
             child: Scaffold(
               appBar: AppBar(
-                title: widget.operationsModel == null
-                    ? const Row(
-                        children: [
-                          Text('زيارة جديدة'),
-                          SizedBox(width: 10),
-                          Icon(Icons.add),
-                        ],
-                      )
-                    : const Row(
-                        children: [
-                          Text('معلومات الزيارة'),
-                          SizedBox(width: 10),
-                          Icon(Icons.info_outline),
-                        ],
-                      ),
+                title: Row(
+                  children: [
+                    Text(
+                      widget.operationsModel == null
+                          ? 'زيارة جديدة'
+                          : 'معلومات الزيارة ${widget.operationsModel?.id ?? ''}',
+                      style: const TextStyle(fontSize: 18),
+                    ),
+                    const SizedBox(width: 10),
+                    Icon(
+                      widget.operationsModel == null
+                          ? Icons.add
+                          : Icons.info_outline,
+                    ),
+                  ],
+                ),
               ),
               body: SingleChildScrollView(
                 child: Padding(
@@ -253,8 +255,9 @@ class _NewVisitPageState extends State<NewVisitPage> {
                       } else {
                         return Column(
                           children: [
-                            (_selectedCustomer?.id == null &&
-                                    widget.operationsModel == null)
+                            (_selectedCustomer == null &&
+                                    (widget.operationsModel == null ||
+                                        _isReset))
                                 ? Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
@@ -310,7 +313,7 @@ class _NewVisitPageState extends State<NewVisitPage> {
                                                   ),
                                                 ),
                                                 const SizedBox(
-                                                  width: 10,
+                                                  width: 20,
                                                 ),
                                                 Column(
                                                   children: [
@@ -338,46 +341,20 @@ class _NewVisitPageState extends State<NewVisitPage> {
                                                     ),
                                                   ],
                                                 ),
-                                                const SizedBox(
-                                                  width: 20,
+                                                const SizedBox(width: 20),
+                                                IconButton(
+                                                  icon: const Icon(
+                                                      Icons.change_circle,
+                                                      color: Colors.orange),
+                                                  tooltip: 'تغيير الزبون',
+                                                  onPressed: () {
+                                                    setState(() {
+                                                      _selectedCustomer = null;
+                                                      _searchController.clear();
+                                                      _isReset = true;
+                                                    });
+                                                  },
                                                 ),
-                                                (widget.operationsModel == null)
-                                                    ? IconButton(
-                                                        icon: const Icon(
-                                                          Icons.clear,
-                                                          color: Colors.red,
-                                                        ),
-                                                        onPressed: () {
-                                                          setState(() {
-                                                            _visitDateController
-                                                                .clear();
-                                                            _searchController
-                                                                .clear();
-                                                            _summaryController
-                                                                .clear();
-                                                            visitDuration = 0;
-                                                            salesRep1 = "";
-                                                            salesRep2 = "";
-                                                            processKind = "";
-                                                            reception = "";
-                                                            discussion = "";
-                                                            socialTalk = false;
-                                                            businessTalk =
-                                                                false;
-                                                            bill = false;
-                                                            complaints = false;
-                                                            payedMoney = false;
-                                                            changesOfShop =
-                                                                false;
-                                                            sellingPaints = "";
-                                                            sellingOthers = "";
-
-                                                            _selectedCustomer =
-                                                                null;
-                                                          });
-                                                        },
-                                                      )
-                                                    : const SizedBox()
                                               ],
                                             ),
                                           ],
@@ -803,7 +780,7 @@ class _NewVisitPageState extends State<NewVisitPage> {
                                               height: 10,
                                             ),
                                             MyTextField(
-                                                maxLines: 10,
+                                                maxLines: 100,
                                                 controller: _summaryController,
                                                 labelText: 'الملخص'),
                                             const SizedBox(

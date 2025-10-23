@@ -34,6 +34,7 @@ class _AddMaintenancePageState extends State<AddMaintenancePage> {
   final _reasonController = TextEditingController();
   final _problemController = TextEditingController();
   final _insertDateController = TextEditingController();
+  final _recommendedFixController = TextEditingController();
 
   @override
   void initState() {
@@ -58,17 +59,39 @@ class _AddMaintenancePageState extends State<AddMaintenancePage> {
   }
 
   bool _validateForm(BuildContext context) {
-    if (_departmentController.text.isEmpty ||
-        _machineController.text.isEmpty ||
-        _reasonController.text.isEmpty ||
-        _problemController.text.isEmpty) {
-      showSnackBar(
-          context: context,
-          content: 'يرجى ملء جميع الحقول المطلوبة',
-          failure: true);
+    if (_departmentController.text.trim().isEmpty) {
+      _showError(context, 'الرجاء اختيار القسم');
+      return false;
+    }
+    if (_machineController.text.trim().isEmpty) {
+      _showError(context, 'الرجاء اختيار الآلة');
+      return false;
+    }
+    if (_applicantController.text.trim().isEmpty) {
+      _showError(context, 'الرجاء إدخال اسم مقدم الطلب');
+      return false;
+    }
+    if (_insertDateController.text.trim().isEmpty) {
+      _showError(context, 'الرجاء إدخال تاريخ الطلب');
+      return false;
+    }
+    if (_reasonController.text.trim().isEmpty) {
+      _showError(context, 'الرجاء إدخال سبب العطل');
+      return false;
+    }
+    if (_problemController.text.trim().isEmpty) {
+      _showError(context, 'الرجاء إدخال تفاصيل المشكلة');
+      return false;
+    }
+    if (_recommendedFixController.text.trim().isEmpty) {
+      _showError(context, 'الرجاء إدخال التوصية المقترحة للإصلاح');
       return false;
     }
     return true;
+  }
+
+  void _showError(BuildContext context, String message) {
+    showSnackBar(context: context, content: message, failure: true);
   }
 
   MaintenanceModel _fillRequestModelfromForm() {
@@ -79,6 +102,7 @@ class _AddMaintenancePageState extends State<AddMaintenancePage> {
       insert_date: _insertDateController.text,
       reason: _reasonController.text,
       problem: _problemController.text,
+      recommended_fix: _recommendedFixController.text,
       id: 0,
     );
   }
@@ -153,6 +177,26 @@ class _AddMaintenancePageState extends State<AddMaintenancePage> {
                           ),
                         ),
                         const SizedBox(height: 20),
+                        Row(
+                          spacing: 5,
+                          children: [
+                            Expanded(
+                              child: MyTextField(
+                                readOnly: true,
+                                controller: _applicantController,
+                                labelText: 'مقدم الطلب',
+                              ),
+                            ),
+                            Expanded(
+                              child: MyTextField(
+                                readOnly: true,
+                                controller: _insertDateController,
+                                labelText: 'تاريخ الإدراج',
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
                         MyDropdownButton(
                           value: _departmentController.text.isEmpty
                               ? null
@@ -193,18 +237,6 @@ class _AddMaintenancePageState extends State<AddMaintenancePage> {
                         ),
                         const SizedBox(height: 16),
                         MyTextField(
-                          readOnly: true,
-                          controller: _applicantController,
-                          labelText: 'مقدم الطلب',
-                        ),
-                        const SizedBox(height: 16),
-                        MyTextField(
-                          readOnly: true,
-                          controller: _insertDateController,
-                          labelText: 'تاريخ الإدراج',
-                        ),
-                        const SizedBox(height: 16),
-                        MyTextField(
                           controller: _reasonController,
                           labelText: 'سبب العطل',
                         ),
@@ -212,6 +244,12 @@ class _AddMaintenancePageState extends State<AddMaintenancePage> {
                         MyTextField(
                           controller: _problemController,
                           labelText: 'العطل',
+                          maxLines: 3,
+                        ),
+                        const SizedBox(height: 16),
+                        MyTextField(
+                          controller: _recommendedFixController,
+                          labelText: 'الحل المقترح من القسم',
                           maxLines: 3,
                         ),
                         const SizedBox(height: 30),

@@ -15,6 +15,15 @@ class GetAllMaintenance extends MaintenanceEvent {
   });
 }
 
+class SearchMaintenance extends MaintenanceEvent {
+  final String search;
+  final int page;
+  SearchMaintenance({
+    required this.search,
+    required this.page,
+  });
+}
+
 class GetOneMaintenance extends MaintenanceEvent {
   final int id;
   GetOneMaintenance({required this.id});
@@ -65,4 +74,21 @@ class GetMaintenanceFilter extends MaintenanceEvent {
       required this.status,
       required this.date_1,
       required this.date_2});
+}
+
+class AddBillImage extends MaintenanceEvent {
+  final int id;
+  final File image;
+
+  AddBillImage({required this.image, required this.id});
+}
+
+class GetBillImage extends MaintenanceEvent {
+  final int id;
+  GetBillImage({required this.id});
+}
+
+class DeleteBillImage extends MaintenanceEvent {
+  final int id;
+  DeleteBillImage({required this.id});
 }

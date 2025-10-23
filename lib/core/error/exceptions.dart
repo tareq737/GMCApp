@@ -5,5 +5,5 @@ class ServerException implements Exception {
   const ServerException(this.message);
 
   @override
-  String toString() => 'ServerException(message: $message)';
+  String toString() => ' $message)';
 }

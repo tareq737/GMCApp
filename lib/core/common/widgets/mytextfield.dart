@@ -73,7 +73,6 @@ class MyTextField extends StatelessWidget {
       keyboardType: keyboardType,
       inputFormatters: inputFormatters,
       obscureText: obscureText,
-      // Use the new style property, with a fallback to the original style
       style: style ??
           TextStyle(fontSize: 12, color: isDark ? Colors.white : Colors.black),
       validator: validator,
@@ -86,7 +85,7 @@ class MyTextField extends StatelessWidget {
             labelText: labelText,
             labelStyle: labelStyle ??
                 TextStyle(
-                    fontSize: 12, color: isDark ? Colors.white : Colors.black),
+                    fontSize: 12, color: isDark ? Colors.white54 : Colors.grey),
             hintText: hintText,
             contentPadding: contentPadding ??
                 const EdgeInsets.symmetric(horizontal: 12, vertical: 16),

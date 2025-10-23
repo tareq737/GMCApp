@@ -72,48 +72,93 @@ class ApiClient {
       final response = await dio.post(
         '$baseURL/$endPoint',
         options: Options(
-          headers: {'Authorization': 'Bearer ${userTokens.accessToken}'},
+          headers: {
+            'Authorization': 'Bearer ${userTokens.accessToken}',
+            'Content-Type': 'application/json',
+          },
         ),
         data: data,
       );
-      print('await is over');
+
       if (response.statusCode! >= 200 && response.statusCode! < 300) {
-        print('status code is 200s');
         return response.data;
       } else {
-        throw const ServerException('response status code is not in the 200s');
+        final msg = response.data is Map && response.data['error'] != null
+            ? response.data['error'].toString()
+            : response.data.toString();
+        throw ServerException(msg);
+      }
+    } on DioException catch (e) {
+      if (e.response != null && e.response?.data != null) {
+        final responseData = e.response!.data;
+
+        // Check for 'detail' field first (your current API format)
+        if (responseData is Map && responseData['detail'] != null) {
+          throw ServerException(responseData['detail'].toString());
+        }
+        // Then check for 'error' field (if you have other APIs that use this)
+        else if (responseData is Map && responseData['error'] != null) {
+          throw ServerException(responseData['error'].toString());
+        }
+        // If neither field exists, use the whole response as string
+        else {
+          throw ServerException(responseData.toString());
+        }
+      } else {
+        throw const ServerException('Network or server error occurred.');
       }
     } catch (e) {
-      print(e.toString());
-      rethrow;
+      throw ServerException(e.toString());
     }
   }
 
   Future<Map<String, dynamic>> addById({
     required UserEntity userTokens,
     required String endPoint,
-    String? data,
+    Map? data,
     required int id,
   }) async {
     try {
-      print('reached api add');
       final response = await dio.post(
         '$baseURL/$endPoint/$id',
         options: Options(
-          headers: {'Authorization': 'Bearer ${userTokens.accessToken}'},
+          headers: {
+            'Authorization': 'Bearer ${userTokens.accessToken}',
+            'Content-Type': 'application/json',
+          },
         ),
         data: data,
       );
-      print('await is over');
+
       if (response.statusCode! >= 200 && response.statusCode! < 300) {
-        print('status code is 200s');
         return response.data;
       } else {
-        throw const ServerException('response status code is not in the 200s');
+        final msg = response.data is Map && response.data['error'] != null
+            ? response.data['error'].toString()
+            : response.data.toString();
+        throw ServerException(msg);
+      }
+    } on DioException catch (e) {
+      if (e.response != null && e.response?.data != null) {
+        final responseData = e.response!.data;
+
+        // Check for 'detail' field first (your current API format)
+        if (responseData is Map && responseData['detail'] != null) {
+          throw ServerException(responseData['detail'].toString());
+        }
+        // Then check for 'error' field (if you have other APIs that use this)
+        else if (responseData is Map && responseData['error'] != null) {
+          throw ServerException(responseData['error'].toString());
+        }
+        // If neither field exists, use the whole response as string
+        else {
+          throw ServerException(responseData.toString());
+        }
+      } else {
+        throw const ServerException('Network or server error occurred.');
       }
     } catch (e) {
-      print(e.toString());
-      rethrow;
+      throw ServerException(e.toString());
     }
   }
 

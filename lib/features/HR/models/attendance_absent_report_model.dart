@@ -4,14 +4,14 @@ import 'dart:convert';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 
-import 'package:gmcappclean/features/HR/models/employee_model.dart';
+import 'package:gmcappclean/features/HR/models/employee_absent_model.dart';
 
 class AttendanceAbsentReportModel {
   String report_date;
   int total_employees;
   int present;
   int absent;
-  List<EmployeeModel> absent_employees;
+  List<EmployeeAbsentModel> absent_employees;
   AttendanceAbsentReportModel({
     required this.report_date,
     required this.total_employees,
@@ -25,7 +25,7 @@ class AttendanceAbsentReportModel {
     int? total_employees,
     int? present,
     int? absent,
-    List<EmployeeModel>? absent_employees,
+    List<EmployeeAbsentModel>? absent_employees,
   }) {
     return AttendanceAbsentReportModel(
       report_date: report_date ?? this.report_date,
@@ -52,9 +52,9 @@ class AttendanceAbsentReportModel {
       total_employees: map['total_employees'] as int,
       present: map['present'] as int,
       absent: map['absent'] as int,
-      absent_employees: List<EmployeeModel>.from(
-        (map['absent_employees'] as List<dynamic>).map<EmployeeModel>(
-          (item) => EmployeeModel.fromMap(item as Map<String, dynamic>),
+      absent_employees: List<EmployeeAbsentModel>.from(
+        (map['absent_employees'] as List<dynamic>).map<EmployeeAbsentModel>(
+          (item) => EmployeeAbsentModel.fromMap(item as Map<String, dynamic>),
         ),
       ),
     );

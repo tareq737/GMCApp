@@ -72,11 +72,22 @@ class Archive extends ProductionEvent {
   });
 }
 
-// class SeachArchive extends ProductionEvent {
-//   final String lexum;
+class UnArchive extends ProductionEvent {
+  final int id;
 
-//   SeachArchive({required this.lexum});
-// }
+  UnArchive({
+    required this.id,
+  });
+}
+
+class RevertToProdplanning extends ProductionEvent {
+  final int id;
+
+  RevertToProdplanning({
+    required this.id,
+  });
+}
+
 class AllProduction extends ProductionEvent {
   final int page;
   final String search;

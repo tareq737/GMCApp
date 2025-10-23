@@ -455,7 +455,7 @@ class _HomePageState extends State<HomePage>
                           ],
                         ),
                       if (groups != null &&
-                          (groups.contains('Accounting') ||
+                          (groups.contains('accounting_&_warehouses') ||
                               groups.contains('managers') ||
                               groups.contains('admins')))
                         ExpansionTile(
@@ -465,9 +465,9 @@ class _HomePageState extends State<HomePage>
                             child:
                                 Image.asset('assets/images/warehouse_dep.png'),
                           ),
-                          title: const Text('المستودعات'),
+                          title: const Text('المستودعات والمحاسبة'),
                           children: [
-                            if ((groups.contains('accounting_items') ||
+                            if ((groups.contains('aw_items') ||
                                 groups.contains('managers') ||
                                 groups.contains('admins')))
                               ExpansionTile(
@@ -526,7 +526,7 @@ class _HomePageState extends State<HomePage>
                                   ),
                                 ],
                               ),
-                            if ((groups.contains('accounting_balance') ||
+                            if ((groups.contains('aw_balance') ||
                                 groups.contains('managers') ||
                                 groups.contains('admins')))
                               ExpansionTile(
@@ -560,14 +560,13 @@ class _HomePageState extends State<HomePage>
                                   ),
                                 ],
                               ),
-                            if ((groups.contains('accounting_transfers') ||
+                            if ((groups.contains('aw_transfers') ||
                                 groups.contains('managers') ||
                                 groups.contains('admins')))
                               ExpansionTile(
                                 title: const Text('المناقلات'),
                                 children: [
-                                  if ((groups.contains(
-                                          'accounting_transfers_ready') ||
+                                  if ((groups.contains('aw_transfers_ready') ||
                                       groups.contains('managers') ||
                                       groups.contains('admins')))
                                     ListTile(
@@ -583,8 +582,7 @@ class _HomePageState extends State<HomePage>
                                         );
                                       },
                                     ),
-                                  if ((groups.contains(
-                                          'accounting_transfers_ready') ||
+                                  if ((groups.contains('aw_transfers_ready') ||
                                       groups.contains('managers') ||
                                       groups.contains('admins')))
                                     ListTile(
@@ -600,8 +598,7 @@ class _HomePageState extends State<HomePage>
                                         );
                                       },
                                     ),
-                                  if ((groups.contains(
-                                          'accounting_transfers_raw') ||
+                                  if ((groups.contains('aw_transfers_raw') ||
                                       groups.contains('managers') ||
                                       groups.contains('admins')))
                                     ListTile(
@@ -617,8 +614,7 @@ class _HomePageState extends State<HomePage>
                                         );
                                       },
                                     ),
-                                  if ((groups.contains(
-                                          'accounting_transfers_raw') ||
+                                  if ((groups.contains('aw_transfers_raw') ||
                                       groups.contains('managers') ||
                                       groups.contains('admins')))
                                     ListTile(
@@ -634,8 +630,7 @@ class _HomePageState extends State<HomePage>
                                         );
                                       },
                                     ),
-                                  if ((groups.contains(
-                                          'accounting_transfers_trust') ||
+                                  if ((groups.contains('aw_transfers_trust') ||
                                       groups.contains('managers') ||
                                       groups.contains('admins')))
                                     ListTile(
@@ -651,8 +646,8 @@ class _HomePageState extends State<HomePage>
                                         );
                                       },
                                     ),
-                                  if ((groups.contains(
-                                          'accounting_transfers_warehouse') ||
+                                  if ((groups
+                                          .contains('aw_transfers_warehouse') ||
                                       groups.contains('managers') ||
                                       groups.contains('admins')))
                                     ListTile(
@@ -668,8 +663,8 @@ class _HomePageState extends State<HomePage>
                                         );
                                       },
                                     ),
-                                  if ((groups.contains(
-                                          'accounting_trasnfers_packaging') ||
+                                  if ((groups
+                                          .contains('aw_trasnfers_packaging') ||
                                       groups.contains('managers') ||
                                       groups.contains('admins')))
                                     ListTile(
@@ -685,8 +680,8 @@ class _HomePageState extends State<HomePage>
                                         );
                                       },
                                     ),
-                                  if ((groups.contains(
-                                          'accounting_trasnfers_packaging') ||
+                                  if ((groups
+                                          .contains('aw_trasnfers_packaging') ||
                                       groups.contains('managers') ||
                                       groups.contains('admins')))
                                     ListTile(
@@ -702,88 +697,109 @@ class _HomePageState extends State<HomePage>
                                         );
                                       },
                                     ),
+                                  if ((groups.contains('aw_manufacturing') ||
+                                      groups.contains('managers') ||
+                                      groups.contains('admins')))
+                                    ListTile(
+                                      title: const Text('عمليات التصنيع'),
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                const ManufacturingListPage(),
+                                          ),
+                                        );
+                                      },
+                                    ),
                                 ],
                               ),
-                            if ((groups.contains('accounting_bills') ||
+                            if ((groups.contains('aw_bills') ||
+                                groups.contains('managers') ||
+                                groups.contains('admins')))
+                              ExpansionTile(
+                                title: const Text('الفواتير'),
+                                children: [
+                                  if ((groups.contains('aw_bills_sales') ||
+                                      groups.contains('managers') ||
+                                      groups.contains('admins')))
+                                    ListTile(
+                                      title: const Text('فواتير المبيعات'),
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) {
+                                              return const BillsListPage(
+                                                bill_type: 'sales',
+                                                transfer_type: 102,
+                                              );
+                                            },
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  if ((groups.contains('aw_bills_purchases') ||
+                                      groups.contains('managers') ||
+                                      groups.contains('admins')))
+                                    ListTile(
+                                      title: const Text('فواتير المشتريات'),
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) {
+                                              return const BillsListPage(
+                                                bill_type: 'purchase',
+                                                transfer_type: 101,
+                                              );
+                                            },
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                ],
+                              ),
+                            if ((groups.contains('accounting') ||
                                 groups.contains('managers') ||
                                 groups.contains('admins')))
                               ExpansionTile(
                                 title: const Text('المحاسبة'),
                                 children: [
-                                  ListTile(
-                                    title: const Text('فواتير المبيعات'),
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) {
-                                            return const BillsListPage(
-                                              bill_type: 'sales',
-                                              transfer_type: 102,
-                                            );
-                                          },
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                  ListTile(
-                                    title: const Text('فواتير المشتريات'),
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) {
-                                            return const BillsListPage(
-                                              bill_type: 'purchase',
-                                              transfer_type: 101,
-                                            );
-                                          },
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                  ListTile(
-                                    title: const Text('الحسابات'),
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) {
-                                            return const AccountListPage();
-                                          },
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                  ListTile(
-                                    title: const Text('السندات'),
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) {
-                                            return const PaymentsListPage();
-                                          },
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ],
-                              ),
-                            if ((groups.contains('accounting_manufacturing') ||
-                                groups.contains('managers') ||
-                                groups.contains('admins')))
-                              ListTile(
-                                title: const Text('التصنيع'),
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          const ManufacturingListPage(),
+                                  if ((groups
+                                          .contains('accounting_customers') ||
+                                      groups.contains('managers') ||
+                                      groups.contains('admins')))
+                                    ListTile(
+                                      title: const Text('الحسابات'),
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) {
+                                              return const AccountListPage();
+                                            },
+                                          ),
+                                        );
+                                      },
                                     ),
-                                  );
-                                },
+                                  if ((groups.contains('accounting_payments') ||
+                                      groups.contains('managers') ||
+                                      groups.contains('admins')))
+                                    ListTile(
+                                      title: const Text('السندات'),
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) {
+                                              return const PaymentsListPage();
+                                            },
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                ],
                               ),
                           ],
                         ),
@@ -1032,9 +1048,35 @@ class _HomePageState extends State<HomePage>
                           child: Image.asset('assets/images/hr_dep.png'),
                         ),
                         children: [
+                          if (groups != null &&
+                              (groups.contains('HR_manager') ||
+                                  groups.contains('managers') ||
+                                  groups.contains('admins')))
+                            ListTile(
+                              title: const Text('الموظفون'),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) {
+                                      return const EmployeesListPage();
+                                    },
+                                  ),
+                                );
+                              },
+                            ),
                           ListTile(
                             title: const Text('الإجازات'),
-                            onTap: () {},
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) {
+                                    return const WorkLeavesListPage();
+                                  },
+                                ),
+                              );
+                            },
                           ),
                           if (groups != null &&
                               (groups.contains('HR_manager') ||
@@ -1149,27 +1191,44 @@ class _HomePageState extends State<HomePage>
                           }
                         },
                       ),
-                      ListTile(
+                      ExpansionTile(
+                        title: const Text('الصيانة'),
                         leading: SizedBox(
                           height: 30,
                           width: 30,
-                          child: Image.asset(
-                            'assets/images/maintenance _dep.png',
-                          ),
+                          child:
+                              Image.asset('assets/images/maintenance _dep.png'),
                         ),
-                        title: const Text('الصيانة'),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) {
-                                return const MaintenanceListPage(
-                                  status: 1,
-                                );
-                              },
-                            ),
-                          );
-                        },
+                        children: [
+                          ListTile(
+                            title: const Text('برنامج الصيانة'),
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) {
+                                    return const MaintenanceListPage(
+                                      status: 1,
+                                    );
+                                  },
+                                ),
+                              );
+                            },
+                          ),
+                          ListTile(
+                            title: const Text('سجل صيانة آلة'),
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) {
+                                    return const MachineMaintenanceLogPage();
+                                  },
+                                ),
+                              );
+                            },
+                          ),
+                        ],
                       ),
                       ListTile(
                         leading: SizedBox(

@@ -18,3 +18,15 @@ class ProductionSuccess<T> extends ProductionState {
 
   ProductionSuccess({required this.result});
 }
+
+class ProductionSuccessReverted<T> extends ProductionState {
+  final T result;
+
+  ProductionSuccessReverted({required this.result});
+}
+
+class ProductionSuccessUnArchive<T> extends ProductionState {
+  final T result;
+
+  ProductionSuccessUnArchive({required this.result});
+}

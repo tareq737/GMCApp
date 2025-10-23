@@ -21,7 +21,6 @@ import 'package:gmcappclean/features/sales_management/operations/ui/new_call_pag
 import 'package:gmcappclean/features/sales_management/operations/ui/new_visit_page.dart';
 import 'package:gmcappclean/init_dependencies.dart';
 
-// No changes needed in this widget
 class OperationsDatePage extends StatelessWidget {
   final String fromDate;
   final String toDate;
@@ -61,7 +60,6 @@ class OperationsDatePage extends StatelessWidget {
   }
 }
 
-// No changes needed in this widget
 class OperationsDatePageChild extends StatefulWidget {
   final String fromDate;
   final String toDate;
@@ -82,7 +80,6 @@ class OperationsDatePageChild extends StatefulWidget {
       _OperationsDatePageChildState();
 }
 
-// --- All changes are within this State class ---
 class _OperationsDatePageChildState extends State<OperationsDatePageChild> {
   int currentPage = 1;
   final ScrollController _scrollController = ScrollController();
@@ -150,8 +147,7 @@ class _OperationsDatePageChildState extends State<OperationsDatePageChild> {
 
   void _onScroll() {
     if (_scrollController.position.pixels >=
-            _scrollController.position.maxScrollExtent *
-                0.8 && // Trigger when 80% scrolled
+            _scrollController.position.maxScrollExtent * 0.5 &&
         !isLoadingMore) {
       _nextPage(context);
     }
@@ -185,7 +181,6 @@ class _OperationsDatePageChildState extends State<OperationsDatePageChild> {
         );
   }
 
-  // --- REFACTORED BUILD METHOD ---
   @override
   Widget build(BuildContext context) {
     width = MediaQuery.of(context).size.width;
@@ -201,7 +196,6 @@ class _OperationsDatePageChildState extends State<OperationsDatePageChild> {
             ],
           ),
           actions: [
-            // ... (Your AppBar actions remain the same)
             if (defaultTargetPlatform == TargetPlatform.windows)
               BlocConsumer<OperationsBloc, OperationsState>(
                 listener: (context, state) async {
@@ -316,7 +310,6 @@ class _OperationsDatePageChildState extends State<OperationsDatePageChild> {
     );
   }
 
-  /// Builds the layout for portrait mode (Filters on top of List).
   Widget _buildPortraitLayout() {
     return Padding(
       padding: const EdgeInsets.all(8.0),
@@ -330,21 +323,19 @@ class _OperationsDatePageChildState extends State<OperationsDatePageChild> {
     );
   }
 
-  /// Builds the layout for landscape mode (Filters in a row on top of a Grid).
   Widget _buildLandscapeLayout() {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Column(
         children: [
-          _buildFilterSectionRow(), // Using the new Row layout for filters
+          _buildFilterSectionRow(),
           const SizedBox(height: 10),
-          Expanded(child: _buildResultsGrid()), // Using GridView for results
+          Expanded(child: _buildResultsGrid()),
         ],
       ),
     );
   }
 
-  /// Filter controls arranged in a Column (for Portrait).
   Widget _buildFilterSectionColumn() {
     return Container(
       width: double.infinity,
@@ -369,7 +360,6 @@ class _OperationsDatePageChildState extends State<OperationsDatePageChild> {
     );
   }
 
-  /// Filter controls arranged in a single Row (for Landscape).
   Widget _buildFilterSectionRow() {
     return Container(
       width: double.infinity,
@@ -390,7 +380,6 @@ class _OperationsDatePageChildState extends State<OperationsDatePageChild> {
     );
   }
 
-  // --- Reusable Filter Components ---
   Widget _buildFromDateField() {
     return MyTextField(
       readOnly: true,
@@ -447,7 +436,6 @@ class _OperationsDatePageChildState extends State<OperationsDatePageChild> {
     );
   }
 
-  /// Common logic for handling Bloc states and building the UI.
   Widget _buildResultsBloc(Widget Function() contentBuilder) {
     return BlocConsumer<OperationsBloc, OperationsState>(
       listener: (context, state) {
@@ -492,7 +480,6 @@ class _OperationsDatePageChildState extends State<OperationsDatePageChild> {
     );
   }
 
-  /// Builds the results as a ListView.
   Widget _buildResultsList() {
     return _buildResultsBloc(() => _buildOperationsListView());
   }
@@ -502,8 +489,6 @@ class _OperationsDatePageChildState extends State<OperationsDatePageChild> {
     return _buildResultsBloc(() => _buildOperationsGridView());
   }
 
-  /// The ListView builder for operations.
-  /// The ListView builder for operations.
   Widget _buildOperationsListView() {
     return ListView.builder(
       physics: const BouncingScrollPhysics(),
@@ -518,7 +503,7 @@ class _OperationsDatePageChildState extends State<OperationsDatePageChild> {
                 )
               : const SizedBox.shrink();
         }
-        // A variable to hold the type for cleaner code
+
         final operationType = _model[index].type;
 
         return TweenAnimationBuilder<double>(
@@ -542,7 +527,6 @@ class _OperationsDatePageChildState extends State<OperationsDatePageChild> {
                         : operationType == 'call'
                             ? Icons.call
                             : Icons.error,
-                    // --- This is the added line ---
                     color: operationType == 'visit'
                         ? Colors.blueAccent
                         : operationType == 'call'
@@ -571,16 +555,15 @@ class _OperationsDatePageChildState extends State<OperationsDatePageChild> {
     );
   }
 
-  /// NEW: The GridView builder for operations.
   Widget _buildOperationsGridView() {
     return GridView.builder(
       physics: const BouncingScrollPhysics(),
       controller: _scrollController,
       gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent: 250, // Each item will have a max width of 250
+        maxCrossAxisExtent: 250,
         mainAxisSpacing: 8,
         crossAxisSpacing: 8,
-        childAspectRatio: 4 / 3, // Adjust aspect ratio as needed
+        childAspectRatio: 4 / 3,
       ),
       itemCount: _model.length + (isLoadingMore ? 1 : 0),
       itemBuilder: (context, index) {
@@ -597,7 +580,6 @@ class _OperationsDatePageChildState extends State<OperationsDatePageChild> {
     );
   }
 
-  /// Common navigation logic for both list and grid items.
   void _navigateToDetails(OperationsModel model) {
     if (model.type == 'visit') {
       Navigator.push(
@@ -615,7 +597,6 @@ class _OperationsDatePageChildState extends State<OperationsDatePageChild> {
   }
 }
 
-/// NEW: A dedicated widget for displaying an operation in the grid.
 class _OperationGridItem extends StatelessWidget {
   final OperationsModel model;
   final VoidCallback onTap;
@@ -654,14 +635,14 @@ class _OperationGridItem extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        model.customer_name ?? 'N/A',
+                        model.customer_name ?? '',
                         style: Theme.of(context).textTheme.titleSmall,
                         textAlign: TextAlign.center,
                         overflow: TextOverflow.ellipsis,
                         maxLines: 2,
                       ),
                       Text(
-                        model.shop_name ?? 'N/A',
+                        model.shop_name ?? '',
                         style: Theme.of(context).textTheme.titleSmall,
                         textAlign: TextAlign.center,
                         overflow: TextOverflow.ellipsis,

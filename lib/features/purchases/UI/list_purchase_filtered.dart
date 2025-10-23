@@ -1,5 +1,6 @@
 import 'dart:ui' as ui;
 
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gmcappclean/core/common/api/api.dart';
@@ -397,22 +398,22 @@ class _ListPurchaseFilteredChildState extends State<ListPurchaseFilteredChild> {
                                           children: [
                                             CircleAvatar(
                                               backgroundColor: Colors.teal,
-                                              radius: 11,
+                                              radius: 14,
                                               child: Text(
                                                 _model[index].id.toString(),
                                                 style: const TextStyle(
                                                     color: Colors.white,
-                                                    fontSize: 8),
+                                                    fontSize: 10),
                                               ),
                                             ),
-                                            FittedBox(
-                                              fit: BoxFit.scaleDown,
-                                              child: Text(
-                                                _model[index].department ?? "",
-                                                textAlign: TextAlign.center,
-                                                style: const TextStyle(
-                                                    fontSize: 8),
-                                              ),
+                                            AutoSizeText(
+                                              minFontSize: 8,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.visible,
+                                              _model[index].department ?? "",
+                                              textAlign: TextAlign.center,
+                                              style:
+                                                  const TextStyle(fontSize: 10),
                                             )
                                           ],
                                         ),
