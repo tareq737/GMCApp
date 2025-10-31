@@ -6,8 +6,10 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gmcappclean/core/common/api/api.dart';
+import 'package:gmcappclean/core/common/api/pageinted_result.dart';
 import 'package:gmcappclean/core/common/cubits/app_user/app_user_cubit.dart';
 import 'package:gmcappclean/core/common/widgets/loader.dart';
+import 'package:gmcappclean/core/common/widgets/my_circle_avatar.dart';
 import 'package:gmcappclean/core/common/widgets/search_row.dart';
 import 'package:gmcappclean/core/services/auth_interactor.dart';
 import 'package:gmcappclean/core/theme/app_colors.dart';
@@ -111,7 +113,7 @@ class _PurchasesListChildState extends State<PurchasesListChild> {
 
   String? _selectedItemDepartment;
   List<String>? groups;
-
+  int? count;
   @override
   void initState() {
     super.initState();
@@ -222,13 +224,24 @@ class _PurchasesListChildState extends State<PurchasesListChild> {
               ],
               backgroundColor:
                   isDark ? AppColors.gradient2 : AppColors.lightGradient2,
-              title: const Text(
-                'طلبات مشتريات عام',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                ),
+              title: Row(
+                children: [
+                  const Text(
+                    'طلبات مشتريات عام',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                    ),
+                  ),
+                  const SizedBox(
+                    width: 10,
+                  ),
+                  if (count != null)
+                    MyCircleAvatar(
+                      text: count.toString(),
+                    ),
+                ],
               ),
             ),
             body: Column(
@@ -380,20 +393,34 @@ class _PurchasesListChildState extends State<PurchasesListChild> {
                           content: 'حدث خطأ ما',
                           failure: true,
                         );
-                      } else if (state
-                          is PurchaseSuccess<List<BriefPurchaseModel>>) {
-                        setState(
-                          () {
-                            if (currentPage == 1) {
-                              _briefPurchases =
-                                  state.result; // First page, replace data
-                            } else {
-                              _briefPurchases
-                                  .addAll(state.result); // Append new data
+                      } else if (state is PurchaseSuccess<PageintedResult>) {
+                        bool shouldRebuildAppBar = false;
+                        if (count == null ||
+                            currentPage == 1 ||
+                            state.result.totalCount! > 0) {
+                          shouldRebuildAppBar =
+                              count != state.result.totalCount;
+                          count = state.result.totalCount;
+                        }
+                        if (currentPage == 1) {
+                          _briefPurchases =
+                              state.result.results.cast<BriefPurchaseModel>();
+                        } else {
+                          final newResults =
+                              state.result.results.cast<BriefPurchaseModel>();
+                          if (newResults.isNotEmpty) {
+                            _briefPurchases.addAll(newResults);
+                          }
+                        }
+                        isLoadingMore = false;
+
+                        if (shouldRebuildAppBar) {
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            if (mounted) {
+                              setState(() {});
                             }
-                            isLoadingMore = false;
-                          },
-                        );
+                          });
+                        }
                       } else if (state is PurchaseSuccess<PurchasesModel>) {
                         int statusID = _getItemStatusID();
                         Navigator.push(
@@ -518,33 +545,29 @@ class _PurchasesListChildState extends State<PurchasesListChild> {
                                                       : Colors.red,
                                                   size: 15,
                                                 ),
-                                                if (_briefPurchases[index]
-                                                        .department !=
-                                                    'فوارغ')
-                                                  Icon(
-                                                    _briefPurchases[index]
-                                                                .manager_check ==
-                                                            true
-                                                        ? Icons
-                                                            .check // ✅ If true, show check mark
-                                                        : _briefPurchases[index]
-                                                                    .manager_check ==
-                                                                false
-                                                            ? Icons.close
-                                                            : Icons
-                                                                .stop_circle_outlined,
-                                                    color: _briefPurchases[
-                                                                    index]
-                                                                .manager_check ==
-                                                            true
-                                                        ? Colors.green
-                                                        : _briefPurchases[index]
-                                                                    .manager_check ==
-                                                                false
-                                                            ? Colors.red
-                                                            : Colors.grey,
-                                                    size: 15,
-                                                  ),
+                                                Icon(
+                                                  _briefPurchases[index]
+                                                              .manager_check ==
+                                                          true
+                                                      ? Icons
+                                                          .check // ✅ If true, show check mark
+                                                      : _briefPurchases[index]
+                                                                  .manager_check ==
+                                                              false
+                                                          ? Icons.close
+                                                          : Icons
+                                                              .stop_circle_outlined,
+                                                  color: _briefPurchases[index]
+                                                              .manager_check ==
+                                                          true
+                                                      ? Colors.green
+                                                      : _briefPurchases[index]
+                                                                  .manager_check ==
+                                                              false
+                                                          ? Colors.red
+                                                          : Colors.grey,
+                                                  size: 15,
+                                                ),
                                                 if (_briefPurchases[index]
                                                             .department ==
                                                         'مواد أولية' ||

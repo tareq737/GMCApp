@@ -17,9 +17,20 @@ class GetOneProductionByID extends ProductionEvent {
 
 class SearchProductionArchivePagainted extends ProductionEvent {
   final int page;
-  final String search;
-
-  SearchProductionArchivePagainted({required this.page, required this.search});
+  final String? type;
+  final String? tier;
+  final String? color;
+  final String? search;
+  final String? date1;
+  final String? date2;
+  SearchProductionArchivePagainted(
+      {required this.page,
+      this.date1,
+      this.date2,
+      this.type,
+      this.tier,
+      this.search,
+      this.color});
 }
 
 class GetOneProductionArchiveByID extends ProductionEvent {

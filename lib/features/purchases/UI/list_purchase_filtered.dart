@@ -4,7 +4,9 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gmcappclean/core/common/api/api.dart';
+import 'package:gmcappclean/core/common/api/pageinted_result.dart';
 import 'package:gmcappclean/core/common/widgets/loader.dart';
+import 'package:gmcappclean/core/common/widgets/my_circle_avatar.dart';
 import 'package:gmcappclean/core/services/auth_interactor.dart';
 import 'package:gmcappclean/core/theme/app_colors.dart';
 import 'package:gmcappclean/core/utils/show_snackbar.dart';
@@ -72,6 +74,7 @@ class _ListPurchaseFilteredChildState extends State<ListPurchaseFilteredChild> {
   bool isLoadingMore = false;
   List<BriefPurchaseModel> _model = [];
   double width = 0;
+  int? count;
   @override
   void initState() {
     super.initState();
@@ -132,23 +135,34 @@ class _ListPurchaseFilteredChildState extends State<ListPurchaseFilteredChild> {
             appBar: AppBar(
               backgroundColor:
                   isDark ? AppColors.gradient2 : AppColors.lightGradient2,
-              title: Text(
-                widget.status == ""
-                    ? "كافة طلبات الشراء المدرجة"
-                    : widget.status == "pending"
-                        ? "طلبات الشراء قيد التنفيذ"
-                        : widget.status == "finished"
-                            ? "طلبات الشراء المنفذة"
-                            : widget.status == "on_time"
-                                ? "طلبات الشراء المنفذة على الوقت"
-                                : widget.status == "late"
-                                    ? "طلبات الشراء المتأخرة"
-                                    : "طلبات مشتريات عام",
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                ),
+              title: Row(
+                children: [
+                  Text(
+                    widget.status == ""
+                        ? "كافة طلبات الشراء المدرجة"
+                        : widget.status == "pending"
+                            ? "طلبات الشراء قيد التنفيذ"
+                            : widget.status == "finished"
+                                ? "طلبات الشراء المنفذة"
+                                : widget.status == "on_time"
+                                    ? "طلبات الشراء المنفذة على الوقت"
+                                    : widget.status == "late"
+                                        ? "طلبات الشراء المتأخرة"
+                                        : "طلبات مشتريات عام",
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                    ),
+                  ),
+                  const SizedBox(
+                    width: 10,
+                  ),
+                  if (count != null)
+                    MyCircleAvatar(
+                      text: count.toString(),
+                    ),
+                ],
               ),
             ),
             body: Column(
@@ -164,18 +178,34 @@ class _ListPurchaseFilteredChildState extends State<ListPurchaseFilteredChild> {
                           content: 'حدث خطأ ما',
                           failure: true,
                         );
-                      } else if (state
-                          is PurchaseSuccess<List<BriefPurchaseModel>>) {
-                        setState(
-                          () {
-                            if (currentPage == 1) {
-                              _model = state.result; // First page, replace data
-                            } else {
-                              _model.addAll(state.result); // Append new data
+                      } else if (state is PurchaseSuccess<PageintedResult>) {
+                        bool shouldRebuildAppBar = false;
+                        if (count == null ||
+                            currentPage == 1 ||
+                            state.result.totalCount! > 0) {
+                          shouldRebuildAppBar =
+                              count != state.result.totalCount;
+                          count = state.result.totalCount;
+                        }
+                        if (currentPage == 1) {
+                          _model =
+                              state.result.results.cast<BriefPurchaseModel>();
+                        } else {
+                          final newResults =
+                              state.result.results.cast<BriefPurchaseModel>();
+                          if (newResults.isNotEmpty) {
+                            _model.addAll(newResults);
+                          }
+                        }
+                        isLoadingMore = false;
+
+                        if (shouldRebuildAppBar) {
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            if (mounted) {
+                              setState(() {});
                             }
-                            isLoadingMore = false;
-                          },
-                        );
+                          });
+                        }
                       } else if (state is PurchaseSuccess<PurchasesModel>) {
                         Navigator.push(
                           context,

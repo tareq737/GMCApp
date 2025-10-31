@@ -1,13 +1,10 @@
 import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
-import 'package:gmcappclean/features/production_management/production/models/brief_production_model.dart';
 import 'package:gmcappclean/features/production_management/production/models/empty_packaging_model.dart';
 import 'package:gmcappclean/features/production_management/production/models/finished_goods_model.dart';
-import 'package:gmcappclean/features/production_management/production/models/full_production_model.dart';
 import 'package:gmcappclean/features/production_management/production/models/lab_model.dart';
 import 'package:gmcappclean/features/production_management/production/models/manufacturing_model.dart';
 import 'package:gmcappclean/features/production_management/production/models/packaging_model.dart';
-import 'package:gmcappclean/features/production_management/production/models/production_model.dart';
 import 'package:gmcappclean/features/production_management/production/models/raw_materials_model.dart';
 import 'package:gmcappclean/features/production_management/production/services/production_services.dart';
 import 'package:meta/meta.dart';
@@ -29,23 +26,36 @@ class ProductionBloc extends Bloc<ProductionEvent, ProductionState> {
         if (result == null) {
           emit(ProductionError(errorMessage: 'Error'));
         } else {
-          emit(ProductionSuccess(result: result));
+          emit(ProductionSuccess(
+            result: result,
+            totalCount: result.totalCount,
+          ));
         }
       },
     );
-    on<SearchProductionArchivePagainted>(
-      (event, emit) async {
-        var result = await _productionServices.searchProductionArchive(
-          page: event.page,
-          search: event.search,
-        );
-        if (result == null) {
-          emit(ProductionError(errorMessage: 'Error'));
-        } else {
-          emit(ProductionSuccess(result: result));
-        }
-      },
-    );
+    on<SearchProductionArchivePagainted>((event, emit) async {
+      emit(ProductionLoading());
+
+      final result = await _productionServices.searchProductionArchive(
+        page: event.page,
+        date1: event.date1,
+        date2: event.date2,
+        tier: event.tier,
+        type: event.type,
+        color: event.color,
+        search: event.search,
+      );
+
+      if (result == null) {
+        emit(ProductionError(errorMessage: 'Error'));
+      } else {
+        emit(ProductionSuccess(
+          result: result,
+          totalCount: result.totalCount,
+        ));
+      }
+    });
+
     on<GetOneProductionByID>(
       (event, emit) async {
         var result = await _productionServices.getOneProductionByID(event.id);
@@ -191,7 +201,10 @@ class ProductionBloc extends Bloc<ProductionEvent, ProductionState> {
         if (result == null) {
           emit(ProductionError(errorMessage: 'Error'));
         } else {
-          emit(ProductionSuccess(result: result));
+          emit(ProductionSuccess(
+            result: result,
+            totalCount: result.totalCount,
+          ));
         }
       },
     );

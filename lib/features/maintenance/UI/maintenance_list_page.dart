@@ -2,7 +2,9 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gmcappclean/core/common/api/api.dart';
+import 'package:gmcappclean/core/common/api/pageinted_result.dart';
 import 'package:gmcappclean/core/common/widgets/loader.dart';
+import 'package:gmcappclean/core/common/widgets/my_circle_avatar.dart';
 import 'package:gmcappclean/core/common/widgets/search_row.dart';
 import 'package:gmcappclean/core/services/auth_interactor.dart';
 import 'package:gmcappclean/core/theme/app_colors.dart';
@@ -53,6 +55,7 @@ class _MaintenanceListChildState extends State<MaintenanceListChild> {
   bool isLoadingMore = false;
   List<BriefMaintenanceModel> _briefMaintenance = [];
   final Map<int, String> _itemStatus = {
+    8: 'طلبات غير محددة من قسم الصيانة',
     1: 'الطلبات الغير موافقة من المدير',
     2: 'الطلبات الموافقة من المدير',
     3: 'الطلبات المرفوضة من المدير',
@@ -80,6 +83,7 @@ class _MaintenanceListChildState extends State<MaintenanceListChild> {
   late String _selectedStatus;
   String? _selectedItemDepartment;
   List<String>? groups;
+  int? count;
   final TextEditingController _searchController = TextEditingController();
   @override
   void initState() {
@@ -112,7 +116,7 @@ class _MaintenanceListChildState extends State<MaintenanceListChild> {
               actions: [
                 IconButton(
                   onPressed: () {
-                    Navigator.pushReplacement(
+                    Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) {
@@ -129,13 +133,24 @@ class _MaintenanceListChildState extends State<MaintenanceListChild> {
               ],
               backgroundColor:
                   isDark ? AppColors.gradient2 : AppColors.lightGradient2,
-              title: const Text(
-                'طلبات الصيانة',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                ),
+              title: Row(
+                children: [
+                  const Text(
+                    'طلبات الصيانة',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                    ),
+                  ),
+                  const SizedBox(
+                    width: 10,
+                  ),
+                  if (count != null)
+                    MyCircleAvatar(
+                      text: count.toString(),
+                    ),
+                ],
               ),
             ),
             body: Column(
@@ -287,20 +302,34 @@ class _MaintenanceListChildState extends State<MaintenanceListChild> {
                           content: 'حدث خطأ ما',
                           failure: true,
                         );
-                      } else if (state
-                          is MaintenanceSuccess<List<BriefMaintenanceModel>>) {
-                        setState(
-                          () {
-                            if (currentPage == 1) {
-                              _briefMaintenance =
-                                  state.result; // First page, replace data
-                            } else {
-                              _briefMaintenance
-                                  .addAll(state.result); // Append new data
+                      } else if (state is MaintenanceSuccess<PageintedResult>) {
+                        bool shouldRebuildAppBar = false;
+                        if (count == null ||
+                            currentPage == 1 ||
+                            state.result.totalCount! > 0) {
+                          shouldRebuildAppBar =
+                              count != state.result.totalCount;
+                          count = state.result.totalCount;
+                        }
+                        if (currentPage == 1) {
+                          _briefMaintenance = state.result.results
+                              .cast<BriefMaintenanceModel>();
+                        } else {
+                          final newResults = state.result.results
+                              .cast<BriefMaintenanceModel>();
+                          if (newResults.isNotEmpty) {
+                            _briefMaintenance.addAll(newResults);
+                          }
+                        }
+                        isLoadingMore = false;
+
+                        if (shouldRebuildAppBar) {
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            if (mounted) {
+                              setState(() {});
                             }
-                            isLoadingMore = false;
-                          },
-                        );
+                          });
+                        }
                       } else if (state
                           is MaintenanceSuccess<MaintenanceModel>) {
                         int statusID = _getItemStatusID();
@@ -403,6 +432,21 @@ class _MaintenanceListChildState extends State<MaintenanceListChild> {
                                                 MainAxisAlignment.center,
                                             children: [
                                               Icon(
+                                                (_briefMaintenance[index]
+                                                                .maintained_by ??
+                                                            "")
+                                                        .isNotEmpty
+                                                    ? Icons.check
+                                                    : Icons.close,
+                                                color: (_briefMaintenance[index]
+                                                                .maintained_by ??
+                                                            "")
+                                                        .isNotEmpty
+                                                    ? Colors.green
+                                                    : Colors.red,
+                                                size: 15,
+                                              ),
+                                              Icon(
                                                 _briefMaintenance[index]
                                                             .manager_check ==
                                                         true
@@ -447,6 +491,21 @@ class _MaintenanceListChildState extends State<MaintenanceListChild> {
                                                 color: (_briefMaintenance[index]
                                                             .archived ==
                                                         true)
+                                                    ? Colors.green
+                                                    : Colors.red,
+                                                size: 15,
+                                              ),
+                                              Icon(
+                                                (_briefMaintenance[index]
+                                                                .maintenance_bill ??
+                                                            "")
+                                                        .isNotEmpty
+                                                    ? Icons.check
+                                                    : Icons.close,
+                                                color: (_briefMaintenance[index]
+                                                                .maintenance_bill ??
+                                                            "")
+                                                        .isNotEmpty
                                                     ? Colors.green
                                                     : Colors.red,
                                                 size: 15,

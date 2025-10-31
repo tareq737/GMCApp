@@ -30,7 +30,10 @@ class GardeningBloc extends Bloc<GardeningEvent, GardeningState> {
         if (result == null) {
           emit(GardeningError(errorMessage: 'Error'));
         } else {
-          emit(GardeningSuccess(result: result));
+          emit(GardeningSuccess(
+            result: result,
+            totalCount: result.totalCount,
+          ));
         }
       },
     );

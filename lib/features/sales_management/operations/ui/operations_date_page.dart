@@ -4,6 +4,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:gmcappclean/core/common/api/pageinted_result.dart';
+import 'package:gmcappclean/core/common/widgets/my_circle_avatar.dart';
+import 'package:gmcappclean/core/theme/app_colors.dart';
 import 'package:intl/intl.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
@@ -89,6 +92,7 @@ class _OperationsDatePageChildState extends State<OperationsDatePageChild> {
   List<OperationsModel> _model = [];
   bool isInitialDataLoaded = false;
   double width = 0;
+  int? count;
   @override
   void initState() {
     super.initState();
@@ -183,16 +187,29 @@ class _OperationsDatePageChildState extends State<OperationsDatePageChild> {
 
   @override
   Widget build(BuildContext context) {
+    bool isDark = Theme.of(context).brightness == Brightness.dark;
     width = MediaQuery.of(context).size.width;
     return Directionality(
       textDirection: ui.TextDirection.rtl,
       child: Scaffold(
         appBar: AppBar(
-          title: const Row(
+          backgroundColor:
+              isDark ? AppColors.gradient2 : AppColors.lightGradient2,
+          title: Row(
             children: [
-              Text('عمليات الزبائن'),
-              SizedBox(width: 10),
-              Icon(Icons.info_outline),
+              const Text(
+                'عمليات الزبائن',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                ),
+              ),
+              const SizedBox(width: 10),
+              if (count != null)
+                MyCircleAvatar(
+                  text: count.toString(),
+                ),
             ],
           ),
           actions: [
@@ -211,6 +228,7 @@ class _OperationsDatePageChildState extends State<OperationsDatePageChild> {
                 },
                 builder: (context, state) {
                   return IconButton(
+                    color: Colors.white,
                     icon: const Icon(FontAwesomeIcons.fileExport),
                     onPressed: () {
                       if (_fromDateController.text.isNotEmpty &&
@@ -439,20 +457,34 @@ class _OperationsDatePageChildState extends State<OperationsDatePageChild> {
   Widget _buildResultsBloc(Widget Function() contentBuilder) {
     return BlocConsumer<OperationsBloc, OperationsState>(
       listener: (context, state) {
-        if (state is OperationsSuccess<List<OperationsModel>>) {
+        if (state is OperationsSuccess<PageintedResult>) {
+          bool shouldRebuildAppBar = false;
+          if (count == null ||
+              currentPage == 1 ||
+              state.result.totalCount! > 0) {
+            shouldRebuildAppBar = count != state.result.totalCount;
+            count = state.result.totalCount;
+          }
+
           setState(() {
             if (currentPage == 1) {
-              _model = state.result;
+              _model = state.result.results.cast<OperationsModel>();
             } else {
-              _model.addAll(state.result);
+              final newResults = state.result.results.cast<OperationsModel>();
+              if (newResults.isNotEmpty) {
+                _model.addAll(newResults);
+              }
             }
             isLoadingMore = false;
             isInitialDataLoaded = true;
           });
-        } else if (state is OperationsError) {
-          setState(() {
-            isLoadingMore = false;
-          });
+
+          // Optional: only rebuild AppBar count badge
+          if (shouldRebuildAppBar && mounted) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              setState(() {});
+            });
+          }
         }
       },
       builder: (context, state) {

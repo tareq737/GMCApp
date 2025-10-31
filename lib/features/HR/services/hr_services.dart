@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:gmcappclean/core/common/api/api.dart';
+import 'package:gmcappclean/core/common/api/pageinted_result.dart';
 import 'package:gmcappclean/core/common/entities/user_entity.dart';
 import 'package:gmcappclean/core/error/exceptions.dart';
 import 'package:gmcappclean/core/error/failures.dart';
@@ -89,7 +90,7 @@ class HrServices {
     }
   }
 
-  Future<List<BriefEmployeeModel>?> searchEmployee({
+  Future<PageintedResult?> searchEmployee({
     String? search,
     String? department,
     bool? is_working,
@@ -100,31 +101,34 @@ class HrServices {
       return userEntity.fold((failure) {
         return null;
       }, (success) async {
-        // Create a base query params map
+        // Build query parameters dynamically
         final Map<String, dynamic> queryParams = {
-          'page': page,
           'page_size': 40,
+          'page': page,
         };
-        if (search != null && search.isNotEmpty) {
-          queryParams['search'] = search;
-        }
+
+        if (search != null && search.isNotEmpty) queryParams['search'] = search;
         if (department != null && department.isNotEmpty) {
           queryParams['department'] = department;
         }
-        if (is_working != null) {
-          queryParams['is_working'] = is_working;
-        }
-        final response = await _apiClient.getPageinated(
+        if (is_working != null) queryParams['is_working'] = is_working;
+
+        // Call API
+        final paginated = await _apiClient.getPageinatedWithCount(
           user: success,
           endPoint: 'hr/employeebrief',
           queryParams: queryParams,
         );
-        return List.generate(response.length, (index) {
-          return BriefEmployeeModel.fromMap(response[index]);
-        });
+
+        // Map results to models
+        final models = paginated.results
+            .map((item) => BriefEmployeeModel.fromMap(item))
+            .toList();
+
+        return PageintedResult(results: models, totalCount: paginated.count);
       });
     } catch (e) {
-      print('exception caught');
+      print('exception caught: $e');
       return null;
     }
   }
@@ -182,7 +186,7 @@ class HrServices {
     }
   }
 
-  Future<List<WorkleavesModel>?> getWorkLeaves({
+  Future<PageintedResult?> getWorkLeaves({
     required int page,
     required int? progress,
     required int? employee_id,
@@ -194,25 +198,33 @@ class HrServices {
       return userEntity.fold((failure) {
         return null;
       }, (success) async {
+        // Build query parameters dynamically
         final Map<String, dynamic> queryParams = {
-          'page': page,
           'page_size': 40,
-          'progress': progress,
-          'employee_id': employee_id,
-          'date1': date1,
-          'date2': date2,
+          'page': page,
         };
-        final response = await _apiClient.getPageinated(
+
+        if (progress != null) queryParams['progress'] = progress;
+        if (employee_id != null) queryParams['employee_id'] = employee_id;
+        if (date1 != null && date1.isNotEmpty) queryParams['date1'] = date1;
+        if (date2 != null && date2.isNotEmpty) queryParams['date2'] = date2;
+
+        // Call API
+        final paginated = await _apiClient.getPageinatedWithCount(
           user: success,
           endPoint: 'hr/workleaves',
           queryParams: queryParams,
         );
-        return List.generate(response.length, (index) {
-          return WorkleavesModel.fromMap(response[index]);
-        });
+
+        // Map results to models
+        final models = paginated.results
+            .map((item) => WorkleavesModel.fromMap(item))
+            .toList();
+
+        return PageintedResult(results: models, totalCount: paginated.count);
       });
     } catch (e) {
-      print('exception caught');
+      print('exception caught: $e');
       return null;
     }
   }

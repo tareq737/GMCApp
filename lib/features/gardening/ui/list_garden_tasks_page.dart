@@ -6,8 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gmcappclean/core/common/api/api.dart';
+import 'package:gmcappclean/core/common/api/pageinted_result.dart';
 import 'package:gmcappclean/core/common/cubits/app_user/app_user_cubit.dart';
 import 'package:gmcappclean/core/common/widgets/loader.dart';
+import 'package:gmcappclean/core/common/widgets/my_circle_avatar.dart';
 import 'package:gmcappclean/core/common/widgets/mytextfield.dart';
 import 'package:gmcappclean/core/services/auth_interactor.dart';
 import 'package:gmcappclean/core/theme/app_colors.dart';
@@ -78,7 +80,7 @@ class _ListGardenTasksPageChildState extends State<ListGardenTasksPageChild> {
   double width = 0;
   bool _isSelectionMode = false;
   final Set<int> _selectedIds = <int>{};
-
+  int? count;
   @override
   void initState() {
     super.initState();
@@ -688,11 +690,22 @@ class _ListGardenTasksPageChildState extends State<ListGardenTasksPageChild> {
           appBar: AppBar(
             backgroundColor:
                 isDark ? AppColors.gradient2 : AppColors.lightGradient2,
-            title: Text(
-              _isSelectionMode
-                  ? 'تم تحديد ${_selectedIds.length} مهمة'
-                  : 'برنامج الزراعة',
-              style: const TextStyle(color: Colors.white),
+            title: Row(
+              children: [
+                Text(
+                  _isSelectionMode
+                      ? 'تم تحديد ${_selectedIds.length} مهمة'
+                      : 'برنامج الزراعة',
+                  style: const TextStyle(color: Colors.white),
+                ),
+                const SizedBox(
+                  width: 10,
+                ),
+                if (count != null && _isSelectionMode != true)
+                  MyCircleAvatar(
+                    text: count.toString(),
+                  ),
+              ],
             ),
             actions: [
               IconButton(
@@ -800,18 +813,32 @@ class _ListGardenTasksPageChildState extends State<ListGardenTasksPageChild> {
                         content: 'حدث خطأ ما',
                         failure: true,
                       );
-                    } else if (state
-                        is GardeningSuccess<List<GardenTasksModel>>) {
-                      setState(
-                        () {
-                          if (currentPage == 1) {
-                            _model = state.result; // First page, replace data
-                          } else {
-                            _model.addAll(state.result); // Append new data
+                    } else if (state is GardeningSuccess<PageintedResult>) {
+                      bool shouldRebuildAppBar = false;
+                      if (count == null ||
+                          currentPage == 1 ||
+                          state.result.totalCount! > 0) {
+                        shouldRebuildAppBar = count != state.result.totalCount;
+                        count = state.result.totalCount;
+                      }
+                      if (currentPage == 1) {
+                        _model = state.result.results.cast<GardenTasksModel>();
+                      } else {
+                        final newResults =
+                            state.result.results.cast<GardenTasksModel>();
+                        if (newResults.isNotEmpty) {
+                          _model.addAll(newResults);
+                        }
+                      }
+                      isLoadingMore = false;
+
+                      if (shouldRebuildAppBar) {
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (mounted) {
+                            setState(() {});
                           }
-                          isLoadingMore = false;
-                        },
-                      );
+                        });
+                      }
                     } else if (state is GardeningSuccess<GardenTasksModel>) {
                       Navigator.push(
                         context,

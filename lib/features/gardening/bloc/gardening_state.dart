@@ -15,8 +15,9 @@ class GardeningError extends GardeningState {
 
 class GardeningSuccess<T> extends GardeningState {
   final T result;
+  final int? totalCount;
 
-  GardeningSuccess({required this.result});
+  GardeningSuccess({required this.result, this.totalCount});
 }
 
 class GardeningSuccessDuplicate<T> extends GardeningState {

@@ -1,5 +1,6 @@
 import 'package:fpdart/fpdart.dart';
 import 'package:gmcappclean/core/common/api/api.dart';
+import 'package:gmcappclean/core/common/api/pageinted_result.dart';
 import 'package:gmcappclean/core/common/entities/user_entity.dart';
 import 'package:gmcappclean/core/error/failures.dart';
 import 'package:gmcappclean/core/services/auth_interactor.dart';
@@ -48,7 +49,7 @@ class ProductionServices {
     }
   }
 
-  Future<List<BriefProductionModel>?> getAllProduction({
+  Future<PageintedResult?> getAllProduction({
     required int page,
   }) async {
     try {
@@ -56,7 +57,7 @@ class ProductionServices {
       return userEntity.fold((failure) {
         return null;
       }, (success) async {
-        final response = await _apiClient.getPageinated(
+        final paginated = await _apiClient.getPageinatedWithCount(
           user: success,
           endPoint: 'briefproduction',
           queryParams: {
@@ -64,66 +65,62 @@ class ProductionServices {
             'page': page,
           },
         );
+        final models = paginated.results
+            .map((item) => BriefProductionModel.fromMap(item))
+            .toList();
 
-        return List.generate(response.length, (index) {
-          return BriefProductionModel.fromMap(response[index]);
-        });
+        return PageintedResult(results: models, totalCount: paginated.count);
       });
     } catch (e) {
-      print('exception caught');
+      // Consistent exception logging
+      print('exception caught: $e');
       return null;
     }
   }
 
-  // Future<List<BriefProductionModel>?> getAllProductionArchive({
-  //   required int page,
-  // }) async {
-  //   try {
-  //     final userEntity = await getCredentials();
-  //     return userEntity.fold((failure) {
-  //       return null;
-  //     }, (success) async {
-  //       final response = await _apiClient.getPageinated(
-  //         user: success,
-  //         endPoint: 'production/archive',
-  //         queryParams: {
-  //           'page_size': 15,
-  //           'page': page,
-  //         },
-  //       );
-
-  //       return List.generate(response.length, (index) {
-  //         return BriefProductionModel.fromMap(response[index]);
-  //       });
-  //     });
-  //   } catch (e) {
-  //     print('exception caught');
-  //     return null;
-  //   }
-  // }
-
-  Future<List<BriefProductionModel>?> searchProductionArchive(
-      {required int page, required String search}) async {
+  Future<PageintedResult?> searchProductionArchive({
+    required int page,
+    String? type,
+    String? tier,
+    String? color,
+    String? search,
+    String? date1,
+    String? date2,
+  }) async {
     try {
       final userEntity = await getCredentials();
       return userEntity.fold((failure) {
         return null;
       }, (success) async {
-        final response = await _apiClient.getPageinated(
+        // Build query parameters dynamically
+        final Map<String, dynamic> queryParams = {
+          'page_size': 40,
+          'page': page,
+        };
+
+        if (type != null && type.isNotEmpty) queryParams['type'] = type;
+        if (tier != null && tier.isNotEmpty) queryParams['tier'] = tier;
+        if (color != null && color.isNotEmpty) queryParams['color'] = color;
+        if (search != null && search.isNotEmpty) queryParams['search'] = search;
+        if (date1 != null && date1.isNotEmpty) queryParams['date1'] = date1;
+        if (date2 != null && date2.isNotEmpty) queryParams['date2'] = date2;
+
+        // Call API
+        final paginated = await _apiClient.getPageinatedWithCount(
           user: success,
-          endPoint: 'production/briefarchive',
-          queryParams: {
-            'search': search,
-            'page_size': 40,
-            'page': page,
-          },
+          endPoint: 'archive_production_filter',
+          queryParams: queryParams,
         );
-        return List.generate(response.length, (index) {
-          return BriefProductionModel.fromMap(response[index]);
-        });
+
+        // Map results to models
+        final models = paginated.results
+            .map((item) => BriefProductionModel.fromMap(item))
+            .toList();
+
+        return PageintedResult(results: models, totalCount: paginated.count);
       });
     } catch (e) {
-      print('exception caught');
+      print('exception caught: $e');
       return null;
     }
   }
@@ -391,7 +388,7 @@ class ProductionServices {
     }
   }
 
-  Future<List<BriefProductionModel>?> getProductionFilter({
+  Future<PageintedResult?> getProductionFilter({
     required int page,
     required String status,
     required String type,
@@ -404,7 +401,7 @@ class ProductionServices {
       return userEntity.fold((failure) {
         return null;
       }, (success) async {
-        final response = await _apiClient.getPageinated(
+        final paginated = await _apiClient.getPageinatedWithCount(
           user: success,
           endPoint: 'production_filter',
           queryParams: {
@@ -418,12 +415,14 @@ class ProductionServices {
           },
         );
 
-        return List.generate(response.length, (index) {
-          return BriefProductionModel.fromMap(response[index]);
-        });
+        final models = paginated.results
+            .map((item) => BriefProductionModel.fromMap(item))
+            .toList();
+
+        return PageintedResult(results: models, totalCount: paginated.count);
       });
     } catch (e) {
-      print('exception caught');
+      print('exception caught: $e');
       return null;
     }
   }

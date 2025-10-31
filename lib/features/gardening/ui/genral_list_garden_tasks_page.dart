@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gmcappclean/core/common/api/api.dart';
+import 'package:gmcappclean/core/common/api/pageinted_result.dart';
 import 'package:gmcappclean/core/common/cubits/app_user/app_user_cubit.dart';
 import 'package:gmcappclean/core/common/widgets/loader.dart';
+import 'package:gmcappclean/core/common/widgets/my_circle_avatar.dart';
 import 'package:gmcappclean/core/common/widgets/my_dropdown_button_widget.dart';
 import 'package:gmcappclean/core/common/widgets/mytextfield.dart';
 import 'package:gmcappclean/core/services/auth_interactor.dart';
@@ -71,6 +73,7 @@ class _GenralListGardenTasksPageChildState
   List<String> workers = [];
   String? selectedWorker;
   double width = 0;
+  int? count;
   @override
   void initState() {
     super.initState();
@@ -202,9 +205,20 @@ class _GenralListGardenTasksPageChildState
         appBar: AppBar(
           backgroundColor:
               isDark ? AppColors.gradient2 : AppColors.lightGradient2,
-          title: const Text(
-            'برنامج الزراعة العام',
-            style: TextStyle(color: Colors.white),
+          title: Row(
+            children: [
+              const Text(
+                'برنامج الزراعة العام',
+                style: TextStyle(color: Colors.white),
+              ),
+              const SizedBox(
+                width: 10,
+              ),
+              if (count != null)
+                MyCircleAvatar(
+                  text: count.toString(),
+                ),
+            ],
           ),
         ),
         body: Padding(
@@ -340,28 +354,32 @@ class _GenralListGardenTasksPageChildState
                         content: 'حدث خطأ ما',
                         failure: true,
                       );
-                    } else if (state
-                        is GardeningSuccess<List<GardenTasksModel>>) {
-                      setState(() {
-                        if (state.result.isEmpty) {
-                          hasReachedMax = true;
-                          isLoadingMore = false;
-                          return;
+                    } else if (state is GardeningSuccess<PageintedResult>) {
+                      bool shouldRebuildAppBar = false;
+                      if (count == null ||
+                          currentPage == 1 ||
+                          state.result.totalCount! > 0) {
+                        shouldRebuildAppBar = count != state.result.totalCount;
+                        count = state.result.totalCount;
+                      }
+                      if (currentPage == 1) {
+                        _model = state.result.results.cast<GardenTasksModel>();
+                      } else {
+                        final newResults =
+                            state.result.results.cast<GardenTasksModel>();
+                        if (newResults.isNotEmpty) {
+                          _model.addAll(newResults);
                         }
+                      }
+                      isLoadingMore = false;
 
-                        if (currentPage == 1) {
-                          _model = state.result;
-                        } else {
-                          final newItems = state.result
-                              .where((newItem) => !_model.any((existingItem) =>
-                                  existingItem.id == newItem.id))
-                              .toList();
-                          _model.addAll(newItems);
-                        }
-                        isLoadingMore = false;
-                        hasReachedMax = state.result.length <
-                            10; // Assuming 10 items per page
-                      });
+                      if (shouldRebuildAppBar) {
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (mounted) {
+                            setState(() {});
+                          }
+                        });
+                      }
                     } else if (state is GardeningSuccess<GardenTasksModel>) {
                       Navigator.push(
                         context,

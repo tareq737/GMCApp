@@ -1,11 +1,18 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
+
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:gmcappclean/core/common/api/pageinted_result.dart';
+import 'package:gmcappclean/core/common/widgets/my_circle_avatar.dart';
 import 'package:intl/intl.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:path_provider/path_provider.dart';
+
 import 'package:gmcappclean/core/common/api/api.dart';
 import 'package:gmcappclean/core/common/widgets/loader.dart';
 import 'package:gmcappclean/core/services/auth_interactor.dart';
@@ -16,13 +23,13 @@ import 'package:gmcappclean/features/HR/models/workleaves_model.dart';
 import 'package:gmcappclean/features/HR/services/hr_services.dart';
 import 'package:gmcappclean/features/HR/ui/work%20leaves/work_leaves_page.dart';
 import 'package:gmcappclean/init_dependencies.dart';
-import 'package:open_filex/open_filex.dart';
-import 'package:path_provider/path_provider.dart';
-
-// --- WorkLeavesListPage (BlocProvider Setup) -----------------------------------
 
 class WorkLeavesListPage extends StatelessWidget {
-  const WorkLeavesListPage({super.key});
+  final int? selectedProgress;
+  const WorkLeavesListPage({
+    Key? key,
+    required this.selectedProgress,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -30,18 +37,19 @@ class WorkLeavesListPage extends StatelessWidget {
       create: (context) => HrBloc(HrServices(
           apiClient: getIt<ApiClient>(),
           authInteractor: getIt<AuthInteractor>())),
-      child: const Directionality(
+      child: Directionality(
         textDirection: ui.TextDirection.rtl,
-        child: WorkLeavesListPageChild(),
+        child: WorkLeavesListPageChild(
+          selectedProgress: selectedProgress,
+        ),
       ),
     );
   }
 }
 
-// --- WorkLeavesListPageChild (Stateful Widget) --------------------------------
-
 class WorkLeavesListPageChild extends StatefulWidget {
-  const WorkLeavesListPageChild({super.key});
+  final int? selectedProgress;
+  const WorkLeavesListPageChild({super.key, required this.selectedProgress});
 
   @override
   State<WorkLeavesListPageChild> createState() =>
@@ -49,12 +57,11 @@ class WorkLeavesListPageChild extends StatefulWidget {
 }
 
 class _WorkLeavesListPageChildState extends State<WorkLeavesListPageChild> {
-  // Pagination State
   int currentPage = 1;
   final ScrollController _scrollController = ScrollController();
   bool isLoadingMore = false;
   List<WorkleavesModel> _model = [];
-
+  int? count;
   // Filter State
   DateTime? _startDate;
   DateTime? _endDate;
@@ -74,11 +81,11 @@ class _WorkLeavesListPageChildState extends State<WorkLeavesListPageChild> {
 
   String get _selectedProgressLabel {
     switch (_selectedProgress) {
-      case 1:
+      case 0:
         return 'رئيس القسم';
-      case 2:
+      case 1:
         return 'الموارد البشرية';
-      case 3:
+      case 2:
         return 'المدير';
       default:
         return 'الكل';
@@ -88,6 +95,7 @@ class _WorkLeavesListPageChildState extends State<WorkLeavesListPageChild> {
   @override
   void initState() {
     super.initState();
+    _selectedProgress = widget.selectedProgress;
     _scrollController.addListener(_onScroll);
 
     // Fetch employees first
@@ -102,13 +110,11 @@ class _WorkLeavesListPageChildState extends State<WorkLeavesListPageChild> {
     super.dispose();
   }
 
-  // Helper to format DateTimes to the required API string format
   String _formatDate(DateTime? date) {
     if (date == null) return '';
     return DateFormat('yyyy-MM-dd').format(date);
   }
 
-  // Helper to format DateTimes for UI display
   String _formatDateUI(DateTime? date) {
     if (date == null) return '';
     return DateFormat('dd/MM/yyyy').format(date);
@@ -244,15 +250,15 @@ class _WorkLeavesListPageChildState extends State<WorkLeavesListPageChild> {
                                   child: Text('الكل'),
                                 ),
                                 DropdownMenuItem<int>(
-                                  value: 1,
+                                  value: 0,
                                   child: Text('عند رئيس القسم'),
                                 ),
                                 DropdownMenuItem<int>(
-                                  value: 2,
+                                  value: 1,
                                   child: Text('عند الموارد البشرية'),
                                 ),
                                 DropdownMenuItem<int>(
-                                  value: 3,
+                                  value: 2,
                                   child: Text('عند المدير'),
                                 ),
                               ],
@@ -491,15 +497,39 @@ class _WorkLeavesListPageChildState extends State<WorkLeavesListPageChild> {
           if (_model.isEmpty && currentPage == 1) {
             runBloc();
           }
-        } else if (state is HRSuccess<List<WorkleavesModel>>) {
-          setState(() {
-            if (currentPage == 1) {
-              _model = state.result;
-            } else {
-              _model.addAll(state.result);
+        } else if (state is HRSuccess<PageintedResult>) {
+          bool shouldRebuildAppBar = false;
+          if (count == null ||
+              currentPage == 1 ||
+              state.result.totalCount! > 0) {
+            shouldRebuildAppBar = count != state.result.totalCount;
+            count = state.result.totalCount;
+          }
+          if (currentPage == 1) {
+            _model = state.result.results.cast<WorkleavesModel>();
+          } else {
+            final newResults = state.result.results.cast<WorkleavesModel>();
+            if (newResults.isNotEmpty) {
+              _model.addAll(newResults);
             }
-            isLoadingMore = false;
-          });
+          }
+          isLoadingMore = false;
+
+          if (shouldRebuildAppBar) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                setState(() {});
+              }
+            });
+          }
+          // setState(() {
+          //   if (currentPage == 1) {
+          //     _model = state.result;
+          //   } else {
+          //     _model.addAll(state.result);
+          //   }
+          //   isLoadingMore = false;
+          // });
         } else if (state is HRSuccess<WorkleavesModel>) {
           Navigator.push(
             context,
@@ -697,13 +727,22 @@ class _WorkLeavesListPageChildState extends State<WorkLeavesListPageChild> {
           ],
           backgroundColor:
               isDark ? AppColors.gradient2 : AppColors.lightGradient2,
-          title: const Text(
-            'الإجازات',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 20,
-            ),
+          title: Row(
+            children: [
+              const Text(
+                'الإجازات',
+                style: TextStyle(
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(
+                width: 10,
+              ),
+              if (count != null)
+                MyCircleAvatar(
+                  text: count.toString(),
+                ),
+            ],
           ),
         ),
         body: Column(

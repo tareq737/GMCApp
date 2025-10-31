@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gmcappclean/core/common/cubits/app_user/app_user_cubit.dart';
 import 'package:gmcappclean/core/common/widgets/loader.dart';
+import 'package:gmcappclean/core/theme/app_colors.dart';
 import 'package:gmcappclean/core/utils/show_snackbar.dart';
 import 'package:gmcappclean/features/production_management/production_ready/presentation/bloc/production_bloc.dart';
 import 'package:gmcappclean/features/production_management/production_ready/presentation/pages/add_pro_plan_page.dart';
@@ -24,6 +25,7 @@ class _FullProdPlanPageState extends State<FullProdPlanPage> {
 
   @override
   Widget build(BuildContext context) {
+    bool isDark = Theme.of(context).brightness == Brightness.dark;
     AppUserState userState = context.watch<AppUserCubit>().state;
     if (userState is AppUserLoggedIn) {
       groups = userState.userEntity.groups;
@@ -38,18 +40,12 @@ class _FullProdPlanPageState extends State<FullProdPlanPage> {
             textDirection: ui.TextDirection.rtl,
             child: Scaffold(
               appBar: AppBar(
-                actions: [
-                  IconButton(
-                    onPressed: () {
-                      context
-                          .read<ProdPlanBloc>()
-                          .add(ProdGetAll<ProdPlanViewModel>());
-                    },
-                    icon: const Icon(Icons.refresh),
-                  )
-                ],
-                title: const Text('طبخات الجهوزية'),
-                centerTitle: true,
+                backgroundColor:
+                    isDark ? AppColors.gradient2 : AppColors.lightGradient2,
+                title: const Text(
+                  'طبخات الجهوزية',
+                  style: TextStyle(color: Colors.white),
+                ),
               ),
               floatingActionButton: (groups != null &&
                       (groups!.contains('admins') ||

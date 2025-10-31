@@ -7,8 +7,9 @@ final class HrInitial extends HrState {}
 
 final class HRSuccess<T> extends HrInitial {
   final T result;
+  final int? totalCount;
 
-  HRSuccess({required this.result});
+  HRSuccess({required this.result, this.totalCount});
 }
 
 final class HRLoading extends HrInitial {}

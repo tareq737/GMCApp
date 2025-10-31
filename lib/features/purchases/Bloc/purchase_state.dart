@@ -17,8 +17,9 @@ class PurchaseError extends PurchaseState {
 
 class PurchaseSuccess<T> extends PurchaseState {
   final T result;
+  final int? totalCount;
 
-  PurchaseSuccess({required this.result});
+  PurchaseSuccess({required this.result, this.totalCount});
 }
 
 class PurchaseImageSuccess<T> extends PurchaseState {

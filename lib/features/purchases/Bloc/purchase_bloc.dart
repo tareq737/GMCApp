@@ -29,7 +29,10 @@ class PurchaseBloc extends Bloc<PurchaseEvent, PurchaseState> {
         if (result == null) {
           emit(PurchaseError(errorMessage: 'Error'));
         } else {
-          emit(PurchaseSuccess(result: result));
+          emit(PurchaseSuccess(
+            result: result,
+            totalCount: result.totalCount,
+          ));
         }
       },
     );
@@ -44,7 +47,10 @@ class PurchaseBloc extends Bloc<PurchaseEvent, PurchaseState> {
         if (result == null) {
           emit(PurchaseError(errorMessage: 'Error'));
         } else {
-          emit(PurchaseSuccess(result: result));
+          emit(PurchaseSuccess(
+            result: result,
+            totalCount: result.totalCount,
+          ));
         }
       },
     );

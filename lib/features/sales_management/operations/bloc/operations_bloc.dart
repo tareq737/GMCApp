@@ -50,13 +50,11 @@ class OperationsBloc extends Bloc<OperationsEvent, OperationsState> {
 
     on<GetAllOperationsForDate>(
       (event, emit) async {
-        // Explicitly type the map as Map<String, dynamic>
         final Map<String, dynamic> request = {
           "date1": event.date1,
           "date2": event.date2,
-          "page": event.page, // Add page parameter
+          "page": event.page,
         };
-
         if (event.bill != null) {
           request["bill"] = event.bill;
         }
@@ -72,7 +70,10 @@ class OperationsBloc extends Bloc<OperationsEvent, OperationsState> {
         if (result == null) {
           emit(OperationsError(errorMessage: 'خطأ'));
         } else {
-          emit(OperationsSuccess(result: result));
+          emit(OperationsSuccess(
+            result: result,
+            totalCount: result.totalCount,
+          ));
         }
       },
     );

@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:gmcappclean/core/common/api/api.dart';
+import 'package:gmcappclean/core/common/api/pageinted_result.dart';
 import 'package:gmcappclean/core/common/entities/user_entity.dart';
 import 'package:gmcappclean/core/error/failures.dart';
 import 'package:gmcappclean/core/services/auth_interactor.dart';
@@ -47,7 +48,7 @@ class MaintenanceServices {
     }
   }
 
-  Future<List<BriefMaintenanceModel>?> getAllMaintenance({
+  Future<PageintedResult?> getAllMaintenance({
     required int page,
     required int status,
     required String department,
@@ -57,28 +58,35 @@ class MaintenanceServices {
       return userEntity.fold((failure) {
         return null;
       }, (success) async {
-        final response = await _apiClient.getPageinated(
+        // Build query parameters
+        final Map<String, dynamic> queryParams = {
+          'page_size': 20,
+          'page': page,
+          'status': status,
+          'department': department,
+        };
+
+        // Call API
+        final paginated = await _apiClient.getPageinatedWithCount(
           user: success,
           endPoint: 'briefmaintenance',
-          queryParams: {
-            'page_size': 20,
-            'page': page,
-            'status': status,
-            'department': department,
-          },
+          queryParams: queryParams,
         );
 
-        return List.generate(response.length, (index) {
-          return BriefMaintenanceModel.fromMap(response[index]);
-        });
+        // Map results to models
+        final models = paginated.results
+            .map((item) => BriefMaintenanceModel.fromMap(item))
+            .toList();
+
+        return PageintedResult(results: models, totalCount: paginated.count);
       });
     } catch (e) {
-      print('exception caught');
+      print('exception caught: $e');
       return null;
     }
   }
 
-  Future<List<BriefMaintenanceModel>?> searchMaintenance({
+  Future<PageintedResult?> searchMaintenance({
     required String search,
     required int page,
   }) async {
@@ -87,22 +95,29 @@ class MaintenanceServices {
       return userEntity.fold((failure) {
         return null;
       }, (success) async {
-        final response = await _apiClient.getPageinated(
+        // Build query parameters
+        final Map<String, dynamic> queryParams = {
+          'page_size': 20,
+          'page': page,
+          'search': search,
+        };
+
+        // Call API
+        final paginated = await _apiClient.getPageinatedWithCount(
           user: success,
           endPoint: 'briefmaintenance',
-          queryParams: {
-            'page_size': 20,
-            'page': page,
-            'search': search,
-          },
+          queryParams: queryParams,
         );
 
-        return List.generate(response.length, (index) {
-          return BriefMaintenanceModel.fromMap(response[index]);
-        });
+        // Map results to models
+        final models = paginated.results
+            .map((item) => BriefMaintenanceModel.fromMap(item))
+            .toList();
+
+        return PageintedResult(results: models, totalCount: paginated.count);
       });
     } catch (e) {
-      print('exception caught');
+      print('exception caught: $e');
       return null;
     }
   }
@@ -216,7 +231,7 @@ class MaintenanceServices {
     }
   }
 
-  Future<List<BriefMaintenanceModel>?> getMaintenanceFilter({
+  Future<PageintedResult?> getMaintenanceFilter({
     required int page,
     required String status,
     required String date_1,
@@ -227,7 +242,7 @@ class MaintenanceServices {
       return userEntity.fold((failure) {
         return null;
       }, (success) async {
-        final response = await _apiClient.getPageinated(
+        final response = await _apiClient.getPageinatedWithCount(
           user: success,
           endPoint: 'maintenance_filter',
           queryParams: {
@@ -239,12 +254,19 @@ class MaintenanceServices {
           },
         );
 
-        return List.generate(response.length, (index) {
-          return BriefMaintenanceModel.fromMap(response[index]);
-        });
+        // Convert each map in 'results' to a BriefMaintenanceModel
+        final items = List<BriefMaintenanceModel>.from(
+          response.results.map((item) => BriefMaintenanceModel.fromMap(item)),
+        );
+
+        return PageintedResult(
+          results: items,
+          totalCount: response.count ?? 0,
+        );
       });
-    } catch (e) {
-      print('exception caught');
+    } catch (e, st) {
+      print('Exception in getMaintenanceFilter: $e');
+      print(st);
       return null;
     }
   }

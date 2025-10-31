@@ -1,26 +1,25 @@
 import 'dart:io';
 import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gmcappclean/core/Pages/view_image_page.dart';
 import 'package:gmcappclean/core/common/api/api.dart';
+import 'package:gmcappclean/core/common/api/pageinted_result.dart';
 import 'package:gmcappclean/core/common/cubits/app_user/app_user_cubit.dart';
 import 'package:gmcappclean/core/common/widgets/loader.dart';
+import 'package:gmcappclean/core/common/widgets/my_circle_avatar.dart';
 import 'package:gmcappclean/core/common/widgets/mybutton.dart';
 import 'package:gmcappclean/core/common/widgets/mytextfield.dart';
 import 'package:gmcappclean/core/services/auth_interactor.dart';
 import 'package:gmcappclean/core/theme/app_colors.dart';
 import 'package:gmcappclean/core/utils/show_snackbar.dart';
 import 'dart:ui' as ui;
-
 import 'package:gmcappclean/features/maintenance/Models/maintenance_model.dart';
 import 'package:gmcappclean/features/maintenance/Services/maintenance_services.dart';
 import 'package:gmcappclean/features/maintenance/UI/maintenance_list_page.dart';
 import 'package:gmcappclean/features/maintenance/bloc/maintenance_bloc.dart';
-import 'package:gmcappclean/features/production_management/production/models/brief_production_model.dart';
 import 'package:gmcappclean/features/purchases/Bloc/purchase_bloc.dart';
 import 'package:gmcappclean/features/purchases/Models/brief_purchase_model.dart';
 import 'package:gmcappclean/features/purchases/Models/purchases_model.dart';
@@ -807,12 +806,28 @@ class _FullMaintanceDetailsPageState extends State<FullMaintanceDetailsPage> {
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ),
-                const Text(
-                  '      من يتولى الإصلاح:',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
+                Row(
+                  children: [
+                    const Text(
+                      '      من يتولى الإصلاح:',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(
+                      width: 20,
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.clear, size: 20),
+                      onPressed: () {
+                        setState(() {
+                          _selectedHandler = null;
+                        });
+                      },
+                      tooltip: 'إعادة تعيين',
+                    ),
+                  ],
                 ),
                 RadioListTile<String>(
                   title: const Text('رئيس القسم'),
@@ -949,9 +964,18 @@ class _FullMaintanceDetailsPageState extends State<FullMaintanceDetailsPage> {
                       child: CheckboxListTile(
                         value: _isArchived,
                         onChanged: (bool? value) {
-                          setState(() {
-                            _isArchived = value ?? false;
-                          });
+                          if (widget.maintenanceModel.maintenance_bill !=
+                              null) {
+                            setState(() {
+                              _isArchived = value ?? false;
+                            });
+                          } else {
+                            // Show a snackbar or dialog explaining why it can't be checked
+                            showSnackBar(
+                                context: context,
+                                content: 'لا يمكن الأرشفة بدون فاتورة صيانة',
+                                failure: true);
+                          }
                         },
                         title: const Text(
                           'أرشفة',
@@ -1079,20 +1103,25 @@ class _FullMaintanceDetailsPageState extends State<FullMaintanceDetailsPage> {
                     },
                   ),
                   const Text('عرض الفاتورة', style: TextStyle(fontSize: 12)),
-                  const SizedBox(
-                      width: 20), // Add spacing between the two actions
-                  IconButton(
-                    icon: const Icon(Icons.delete, color: Colors.red),
-                    tooltip: 'حذف الفاتورة',
-                    onPressed: () {
-                      _confirmDelete(context, () {
-                        context.read<MaintenanceBloc>().add(
-                              DeleteBillImage(id: widget.maintenanceModel.id),
-                            );
-                      });
-                    },
-                  ),
-                  const Text('حذف الفاتورة', style: TextStyle(fontSize: 12)),
+                  const SizedBox(width: 20),
+                  if (groups != null &&
+                      (groups!.contains('maintenance_managers') ||
+                          groups!.contains('admins')))
+                    IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      tooltip: 'حذف الفاتورة',
+                      onPressed: () {
+                        _confirmDelete(context, () {
+                          context.read<MaintenanceBloc>().add(
+                                DeleteBillImage(id: widget.maintenanceModel.id),
+                              );
+                        });
+                      },
+                    ),
+                  if (groups != null &&
+                      (groups!.contains('maintenance_managers') ||
+                          groups!.contains('admins')))
+                    const Text('حذف الفاتورة', style: TextStyle(fontSize: 12)),
                 ],
               )
             : Row(
@@ -1101,12 +1130,41 @@ class _FullMaintanceDetailsPageState extends State<FullMaintanceDetailsPage> {
                   if (Platform.isAndroid)
                     Column(
                       children: [
+                        if (groups != null &&
+                            (groups!.contains('maintenance_managers') ||
+                                groups!.contains('admins')))
+                          IconButton(
+                            icon: const Icon(Icons.camera_alt,
+                                color: Colors.green),
+                            tooltip: 'تصوير الفاتورة',
+                            onPressed: () async {
+                              await _pickBillImage(ImageSource.camera);
+                              if (_billImage != null) {
+                                context.read<MaintenanceBloc>().add(
+                                    AddBillImage(
+                                        image: _billImage!,
+                                        id: widget.maintenanceModel.id));
+                              }
+                            },
+                          ),
+                        if (groups != null &&
+                            (groups!.contains('maintenance_managers') ||
+                                groups!.contains('admins')))
+                          const Text('تصوير الفاتورة',
+                              style: TextStyle(fontSize: 12)),
+                      ],
+                    ),
+                  Column(
+                    children: [
+                      if (groups != null &&
+                          (groups!.contains('maintenance_managers') ||
+                              groups!.contains('admins')))
                         IconButton(
-                          icon:
-                              const Icon(Icons.camera_alt, color: Colors.green),
-                          tooltip: 'تصوير الفاتورة',
+                          icon: const Icon(Icons.photo_library,
+                              color: Colors.orange),
+                          tooltip: 'اختيار الفاتورة',
                           onPressed: () async {
-                            await _pickBillImage(ImageSource.camera);
+                            await _pickBillImage(ImageSource.gallery);
                             if (_billImage != null) {
                               context.read<MaintenanceBloc>().add(AddBillImage(
                                   image: _billImage!,
@@ -1114,27 +1172,11 @@ class _FullMaintanceDetailsPageState extends State<FullMaintanceDetailsPage> {
                             }
                           },
                         ),
-                        const Text('تصوير الفاتورة',
+                      if (groups != null &&
+                          (groups!.contains('maintenance_managers') ||
+                              groups!.contains('admins')))
+                        const Text('اختيار الفاتورة',
                             style: TextStyle(fontSize: 12)),
-                      ],
-                    ),
-                  Column(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.photo_library,
-                            color: Colors.orange),
-                        tooltip: 'اختيار الفاتورة',
-                        onPressed: () async {
-                          await _pickBillImage(ImageSource.gallery);
-                          if (_billImage != null) {
-                            context.read<MaintenanceBloc>().add(AddBillImage(
-                                image: _billImage!,
-                                id: widget.maintenanceModel.id));
-                          }
-                        },
-                      ),
-                      const Text('اختيار الفاتورة',
-                          style: TextStyle(fontSize: 12)),
                     ],
                   ),
                 ],
@@ -1318,11 +1360,15 @@ class _ProductionSearchDialogContentState
         Expanded(
           child: BlocConsumer<PurchaseBloc, PurchaseState>(
             listener: (context, state) {
-              if (state is PurchaseSuccess<List<BriefPurchaseModel>>) {
+              if (state is PurchaseSuccess<PageintedResult>) {
                 if (currentPage == 1) {
-                  resultList = state.result;
+                  resultList = state.result.results.cast<BriefPurchaseModel>();
                 } else {
-                  resultList.addAll(state.result);
+                  final newResults =
+                      state.result.results.cast<BriefPurchaseModel>();
+                  if (newResults.isNotEmpty) {
+                    resultList.addAll(newResults);
+                  }
                 }
                 isLoadingMore = false;
               }
@@ -1354,14 +1400,7 @@ class _ProductionSearchDialogContentState
                     margin: const EdgeInsets.symmetric(
                         horizontal: 8.0, vertical: 4.0),
                     child: ListTile(
-                      leading: CircleAvatar(
-                        radius: 12,
-                        child: Text(
-                          item.id?.toString() ?? '0',
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 10),
-                        ),
-                      ),
+                      leading: MyCircleAvatar(text: item.id.toString()),
                       title: Row(
                         // Removed spacing: 5 as Row doesn't have it
                         children: [

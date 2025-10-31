@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:fpdart/fpdart.dart';
 import 'package:gmcappclean/core/common/api/api.dart';
+import 'package:gmcappclean/core/common/api/pageinted_result.dart';
 import 'package:gmcappclean/core/common/entities/user_entity.dart';
 import 'package:gmcappclean/core/error/failures.dart';
 import 'package:gmcappclean/core/services/auth_interactor.dart';
@@ -146,7 +147,7 @@ class GardeningServices {
     }
   }
 
-  Future<List<GardenTasksModel>?> getAllGardenTasks({
+  Future<PageintedResult?> getAllGardenTasks({
     required int page,
     required String date1,
     required String date2,
@@ -159,7 +160,7 @@ class GardeningServices {
       return userEntity.fold((failure) {
         return null;
       }, (success) async {
-        final response = await _apiClient.getPageinated(
+        final response = await _apiClient.getPageinatedWithCount(
           user: success,
           endPoint: 'garden_tasks',
           queryParams: {
@@ -172,12 +173,19 @@ class GardeningServices {
             if (activity_details != null) 'activity_details': activity_details,
           },
         );
-        return List.generate(response.length, (index) {
-          return GardenTasksModel.fromMap(response[index]);
-        });
+
+        final tasks = List<GardenTasksModel>.from(
+          response.results.map((item) => GardenTasksModel.fromMap(item)),
+        );
+
+        return PageintedResult(
+          results: tasks,
+          totalCount: response.count ?? 0,
+        );
       });
-    } catch (e) {
-      print('exception caught');
+    } catch (e, st) {
+      print('Exception in getAllGardenTasks: $e');
+      print(st);
       return null;
     }
   }

@@ -1068,12 +1068,20 @@ class _HomePageState extends State<HomePage>
                           ListTile(
                             title: const Text('الإجازات'),
                             onTap: () {
+                              int? selectedProgress;
+                              if (groups?.contains('managers') ?? false) {
+                                selectedProgress = 2;
+                              } else if (groups?.contains('HR_manager') ??
+                                  false) {
+                                selectedProgress = 1;
+                              }
+
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) {
-                                    return const WorkLeavesListPage();
-                                  },
+                                  builder: (context) => WorkLeavesListPage(
+                                    selectedProgress: selectedProgress,
+                                  ),
                                 ),
                               );
                             },
@@ -1203,16 +1211,29 @@ class _HomePageState extends State<HomePage>
                           ListTile(
                             title: const Text('برنامج الصيانة'),
                             onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) {
-                                    return const MaintenanceListPage(
-                                      status: 1,
-                                    );
-                                  },
-                                ),
-                              );
+                              if (user == 'أسامة عبيد') {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) {
+                                      return const MaintenanceListPage(
+                                        status: 1,
+                                      );
+                                    },
+                                  ),
+                                );
+                              } else {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) {
+                                      return const MaintenanceListPage(
+                                        status: 7,
+                                      );
+                                    },
+                                  ),
+                                );
+                              }
                             },
                           ),
                           ListTile(

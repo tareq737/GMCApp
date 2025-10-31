@@ -15,6 +15,6 @@ class OperationsError extends OperationsState {
 
 class OperationsSuccess<T> extends OperationsState {
   final T result;
-
-  OperationsSuccess({required this.result});
+  final int? totalCount;
+  OperationsSuccess({required this.result, this.totalCount});
 }

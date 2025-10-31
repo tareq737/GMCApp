@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gmcappclean/core/common/api/api.dart';
+import 'package:gmcappclean/core/common/api/pageinted_result.dart';
 import 'package:gmcappclean/core/common/widgets/loader.dart';
+import 'package:gmcappclean/core/common/widgets/my_circle_avatar.dart';
 import 'package:gmcappclean/core/services/auth_interactor.dart';
+import 'package:gmcappclean/core/theme/app_colors.dart';
 import 'package:gmcappclean/core/utils/show_snackbar.dart';
 import 'package:gmcappclean/features/production_management/production/bloc/production_bloc.dart';
 import 'package:gmcappclean/features/production_management/production/models/brief_production_model.dart';
@@ -85,6 +88,7 @@ class _ListProductionFilteredChildState
   bool isLoadingMore = false;
   List<BriefProductionModel> resultList = [];
   List<String>? groups;
+  int? count;
   double width = 0;
   @override
   void initState() {
@@ -183,35 +187,50 @@ class _ListProductionFilteredChildState
 
   @override
   Widget build(BuildContext context) {
+    bool isDark = Theme.of(context).brightness == Brightness.dark;
     width = MediaQuery.of(context).size.width;
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
         appBar: AppBar(
-          title: Text(
-            widget.type == "oil_based"
-                ? "طبخات الزياتي المنفذة"
-                : widget.type == "water_based"
-                    ? "طبخات الطرش المنفذة"
-                    : widget.type == "acrylic"
-                        ? "طبخات الأكريليك المنفذة"
-                        : widget.type == "other"
-                            ? "طبخات أخرى منفذة"
-                            : widget.timeliness == "on_time"
-                                ? "طبخات منفذة في الوقت"
-                                : widget.timeliness == "late"
-                                    ? "طبخات متأخرة"
-                                    : widget.status == ""
-                                        ? "طبخات الإنتاج المدرجة"
-                                        : widget.status == "pending"
-                                            ? "طبخات الإنتاج قيد التنفيذ"
-                                            : widget.status == "finished"
-                                                ? "الطبخات المنفذة"
-                                                : "إحصائيات الإنتاج",
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 20,
-            ),
+          backgroundColor:
+              isDark ? AppColors.gradient2 : AppColors.lightGradient2,
+          title: Row(
+            children: [
+              Text(
+                widget.type == "oil_based"
+                    ? "طبخات الزياتي المنفذة"
+                    : widget.type == "water_based"
+                        ? "طبخات الطرش المنفذة"
+                        : widget.type == "acrylic"
+                            ? "طبخات الأكريليك المنفذة"
+                            : widget.type == "other"
+                                ? "طبخات أخرى منفذة"
+                                : widget.timeliness == "on_time"
+                                    ? "طبخات منفذة في الوقت"
+                                    : widget.timeliness == "late"
+                                        ? "طبخات متأخرة"
+                                        : widget.status == ""
+                                            ? "طبخات الإنتاج المدرجة"
+                                            : widget.status == "pending"
+                                                ? "طبخات الإنتاج قيد التنفيذ"
+                                                : widget.status == "finished"
+                                                    ? "الطبخات المنفذة"
+                                                    : "إحصائيات الإنتاج",
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  fontSize: 20,
+                ),
+              ),
+              const SizedBox(
+                width: 10,
+              ),
+              if (count != null)
+                MyCircleAvatar(
+                  text: count.toString(),
+                ),
+            ],
           ),
         ),
         body: BlocConsumer<ProductionBloc, ProductionState>(
@@ -246,14 +265,41 @@ class _ListProductionFilteredChildState
               return const Loader();
             }
             // Update resultList on successful data fetch
-            else if (state is ProductionSuccess<List<BriefProductionModel>>) {
-              // If it's the first page, replace the list; otherwise, add to it
-              if (currentPage == 1) {
-                resultList = state.result;
-              } else {
-                resultList.addAll(state.result);
+            // else if (state is ProductionSuccess<List<BriefProductionModel>>) {
+            //   // If it's the first page, replace the list; otherwise, add to it
+            //   if (currentPage == 1) {
+            //     resultList = state.result;
+            //   } else {
+            //     resultList.addAll(state.result);
+            //   }
+            //   isLoadingMore = false; // Stop loading more
+            // }
+            else if (state is ProductionSuccess<PageintedResult>) {
+              bool shouldRebuildAppBar = false;
+              if (count == null ||
+                  currentPage == 1 ||
+                  state.result.totalCount! > 0) {
+                shouldRebuildAppBar = count != state.result.totalCount;
+                count = state.result.totalCount;
               }
-              isLoadingMore = false; // Stop loading more
+              if (currentPage == 1) {
+                resultList = state.result.results.cast<BriefProductionModel>();
+              } else {
+                final newResults =
+                    state.result.results.cast<BriefProductionModel>();
+                if (newResults.isNotEmpty) {
+                  resultList.addAll(newResults);
+                }
+              }
+              isLoadingMore = false;
+
+              if (shouldRebuildAppBar) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) {
+                    setState(() {});
+                  }
+                });
+              }
             }
 
             // Handle cases where resultList might be empty after an initial load or search

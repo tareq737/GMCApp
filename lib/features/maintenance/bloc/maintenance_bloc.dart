@@ -27,7 +27,10 @@ class MaintenanceBloc extends Bloc<MaintenanceEvent, MaintenanceState> {
         if (result == null) {
           emit(MaintenanceError(errorMessage: 'Error'));
         } else {
-          emit(MaintenanceSuccess(result: result));
+          emit(MaintenanceSuccess(
+            result: result,
+            totalCount: result.totalCount,
+          ));
         }
       },
     );
@@ -41,7 +44,10 @@ class MaintenanceBloc extends Bloc<MaintenanceEvent, MaintenanceState> {
         if (result == null) {
           emit(MaintenanceError(errorMessage: 'Error'));
         } else {
-          emit(MaintenanceSuccess(result: result));
+          emit(MaintenanceSuccess(
+            result: result,
+            totalCount: result.totalCount,
+          ));
         }
       },
     );

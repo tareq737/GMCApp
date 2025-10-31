@@ -15,8 +15,9 @@ class MaintenanceError extends MaintenanceState {
 
 class MaintenanceSuccess<T> extends MaintenanceState {
   final T result;
+  final int? totalCount;
 
-  MaintenanceSuccess({required this.result});
+  MaintenanceSuccess({required this.result, this.totalCount});
 }
 
 class MachinesLoaded extends MaintenanceState {

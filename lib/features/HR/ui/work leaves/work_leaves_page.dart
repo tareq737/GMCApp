@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:gmcappclean/core/Pages/view_image_page.dart';
 import 'package:gmcappclean/core/common/api/api.dart';
+import 'package:gmcappclean/core/common/cubits/app_user/app_user_cubit.dart';
 import 'package:gmcappclean/core/common/widgets/loader.dart';
 import 'package:gmcappclean/core/common/widgets/my_dropdown_button_widget.dart';
 import 'package:gmcappclean/core/common/widgets/mybutton.dart';
@@ -393,6 +394,11 @@ class _WorkLeavesPageChildState extends State<WorkLeavesPageChild> {
 
   @override
   Widget build(BuildContext context) {
+    List<String>? groups;
+    AppUserState state = context.read<AppUserCubit>().state;
+    if (state is AppUserLoggedIn) {
+      groups = state.userEntity.groups;
+    }
     return Directionality(
       textDirection: ui.TextDirection.rtl,
       child: Scaffold(
@@ -419,21 +425,6 @@ class _WorkLeavesPageChildState extends State<WorkLeavesPageChild> {
               }
 
               setState(() {});
-            }
-            if (state is HRSuccess<WorkleavesModel>) {
-              showSnackBar(
-                context: context,
-                content:
-                    'تم ${widget.workleavesModel == null ? 'إضافة' : 'تعديل'} إجازة: ${_employeeFullNameController.text}',
-                failure: false,
-              );
-              Navigator.pop(context);
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const WorkLeavesListPage(),
-                ),
-              );
             } else if (state is HRError) {
               showSnackBar(
                 context: context,
@@ -457,10 +448,20 @@ class _WorkLeavesPageChildState extends State<WorkLeavesPageChild> {
                 failure: false,
               );
               Navigator.pop(context);
+
+              int? selectedProgress;
+              if (groups?.contains('managers') ?? false) {
+                selectedProgress = 2;
+              } else if (groups?.contains('HR_manager') ?? false) {
+                selectedProgress = 1;
+              }
+
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const WorkLeavesListPage(),
+                  builder: (context) => WorkLeavesListPage(
+                    selectedProgress: selectedProgress,
+                  ),
                 ),
               );
             } else if (state is ImageSavedSuccess) {
@@ -470,10 +471,45 @@ class _WorkLeavesPageChildState extends State<WorkLeavesPageChild> {
                 failure: false,
               );
               Navigator.pop(context);
+
+              int? selectedProgress;
+              if (groups?.contains('managers') ?? false) {
+                selectedProgress = 2;
+              } else if (groups?.contains('HR_manager') ?? false) {
+                selectedProgress = 1;
+              }
+
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const WorkLeavesListPage(),
+                  builder: (context) => WorkLeavesListPage(
+                    selectedProgress: selectedProgress,
+                  ),
+                ),
+              );
+            } else if (state is HRSuccess) {
+              showSnackBar(
+                context: context,
+                content:
+                    'تم ${widget.workleavesModel == null ? 'إضافة' : 'تعديل'} إجازة: ${_employeeFullNameController.text}',
+                failure: false,
+              );
+
+              Navigator.pop(context);
+
+              int? selectedProgress;
+              if (groups?.contains('managers') ?? false) {
+                selectedProgress = 2;
+              } else if (groups?.contains('HR_manager') ?? false) {
+                selectedProgress = 1;
+              }
+
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => WorkLeavesListPage(
+                    selectedProgress: selectedProgress,
+                  ),
                 ),
               );
             }
@@ -796,33 +832,42 @@ class _WorkLeavesPageChildState extends State<WorkLeavesPageChild> {
                               text: 'تعديل',
                               onPressed: _submitForm,
                             ),
-                        if (widget.workleavesModel != null)
-                          if (widget.workleavesModel!.progress == 0 ||
-                              widget.workleavesModel!.progress == 1)
-                            Mybutton(
-                              text: 'توقيع رئيس القسم',
-                              onPressed: () {
-                                _showApprovalDialog('توقيع رئيس القسم');
-                              },
-                            ),
-                        if (widget.workleavesModel != null)
-                          if (widget.workleavesModel!.progress == 1 ||
-                              widget.workleavesModel!.progress == 2)
-                            Mybutton(
-                              text: 'توقيع الموارد البشرية',
-                              onPressed: () {
-                                _showApprovalDialog('توقيع الموارد البشرية');
-                              },
-                            ),
-                        if (widget.workleavesModel != null)
-                          if (widget.workleavesModel!.progress == 2 ||
-                              widget.workleavesModel!.progress == 3)
-                            Mybutton(
-                              text: 'توقيع المدير',
-                              onPressed: () {
-                                _showApprovalDialog('توقيع المدير');
-                              },
-                            ),
+                        if (groups != null &&
+                            (!groups.contains('HR_manager') ||
+                                groups.contains('admins')))
+                          if (widget.workleavesModel != null)
+                            if (widget.workleavesModel!.progress == 0 ||
+                                widget.workleavesModel!.progress == 1)
+                              Mybutton(
+                                text: 'توقيع رئيس القسم',
+                                onPressed: () {
+                                  _showApprovalDialog('توقيع رئيس القسم');
+                                },
+                              ),
+                        if (groups != null &&
+                            (groups.contains('HR_manager') ||
+                                groups.contains('admins')))
+                          if (widget.workleavesModel != null)
+                            if (widget.workleavesModel!.progress == 1 ||
+                                widget.workleavesModel!.progress == 2)
+                              Mybutton(
+                                text: 'توقيع الموارد البشرية',
+                                onPressed: () {
+                                  _showApprovalDialog('توقيع الموارد البشرية');
+                                },
+                              ),
+                        if (groups != null &&
+                            (groups.contains('managers') ||
+                                groups.contains('admins')))
+                          if (widget.workleavesModel != null)
+                            if (widget.workleavesModel!.progress == 2 ||
+                                widget.workleavesModel!.progress == 3)
+                              Mybutton(
+                                text: 'توقيع المدير',
+                                onPressed: () {
+                                  _showApprovalDialog('توقيع المدير');
+                                },
+                              ),
                       ],
                     )
                   ],

@@ -63,7 +63,7 @@ class HrBloc extends Bloc<HrEvent, HrState> {
         if (result == null) {
           emit(HRError(errorMessage: 'Error'));
         } else {
-          emit(HRSuccess(result: result));
+          emit(HRSuccess(result: result, totalCount: result.totalCount));
         }
       },
     );
@@ -116,7 +116,7 @@ class HrBloc extends Bloc<HrEvent, HrState> {
         if (result == null) {
           emit(HRError(errorMessage: 'Error'));
         } else {
-          emit(HRSuccess(result: result));
+          emit(HRSuccess(result: result, totalCount: result.totalCount));
         }
       },
     );

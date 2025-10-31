@@ -15,8 +15,9 @@ class ProductionError extends ProductionState {
 
 class ProductionSuccess<T> extends ProductionState {
   final T result;
+  final int? totalCount;
 
-  ProductionSuccess({required this.result});
+  ProductionSuccess({required this.result, this.totalCount});
 }
 
 class ProductionSuccessReverted<T> extends ProductionState {

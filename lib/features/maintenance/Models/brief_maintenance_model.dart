@@ -11,6 +11,8 @@ class BriefMaintenanceModel {
   bool? received;
   String? machine_name;
   int? duration;
+  String? maintained_by;
+  String? maintenance_bill;
   BriefMaintenanceModel({
     required this.id,
     this.department,
@@ -21,6 +23,8 @@ class BriefMaintenanceModel {
     this.received,
     this.machine_name,
     this.duration,
+    this.maintained_by,
+    this.maintenance_bill,
   });
 
   BriefMaintenanceModel copyWith({
@@ -33,6 +37,8 @@ class BriefMaintenanceModel {
     bool? received,
     String? machine_name,
     int? duration,
+    String? maintained_by,
+    String? maintenance_bill,
   }) {
     return BriefMaintenanceModel(
       id: id ?? this.id,
@@ -44,6 +50,8 @@ class BriefMaintenanceModel {
       received: received ?? this.received,
       machine_name: machine_name ?? this.machine_name,
       duration: duration ?? this.duration,
+      maintained_by: maintained_by ?? this.maintained_by,
+      maintenance_bill: maintenance_bill ?? this.maintenance_bill,
     );
   }
 
@@ -58,6 +66,8 @@ class BriefMaintenanceModel {
       'received': received,
       'machine_name': machine_name,
       'duration': duration,
+      'maintained_by': maintained_by,
+      'maintenance_bill': maintenance_bill,
     };
   }
 
@@ -76,6 +86,11 @@ class BriefMaintenanceModel {
       machine_name:
           map['machine_name'] != null ? map['machine_name'] as String : null,
       duration: map['duration'] != null ? map['duration'] as int : null,
+      maintained_by:
+          map['maintained_by'] != null ? map['maintained_by'] as String : null,
+      maintenance_bill: map['maintenance_bill'] != null
+          ? map['maintenance_bill'] as String
+          : null,
     );
   }
 
@@ -87,7 +102,7 @@ class BriefMaintenanceModel {
 
   @override
   String toString() {
-    return 'BriefMaintenanceModel(id: $id, department: $department, problem: $problem, insert_date: $insert_date, manager_check: $manager_check, archived: $archived, received: $received, machine_name: $machine_name, duration: $duration)';
+    return 'BriefMaintenanceModel(id: $id, department: $department, problem: $problem, insert_date: $insert_date, manager_check: $manager_check, archived: $archived, received: $received, machine_name: $machine_name, duration: $duration, maintained_by: $maintained_by, maintenance_bill: $maintenance_bill)';
   }
 
   @override
@@ -102,7 +117,9 @@ class BriefMaintenanceModel {
         other.archived == archived &&
         other.received == received &&
         other.machine_name == machine_name &&
-        other.duration == duration;
+        other.duration == duration &&
+        other.maintained_by == maintained_by &&
+        other.maintenance_bill == maintenance_bill;
   }
 
   @override
@@ -115,6 +132,8 @@ class BriefMaintenanceModel {
         archived.hashCode ^
         received.hashCode ^
         machine_name.hashCode ^
-        duration.hashCode;
+        duration.hashCode ^
+        maintained_by.hashCode ^
+        maintenance_bill.hashCode;
   }
 }

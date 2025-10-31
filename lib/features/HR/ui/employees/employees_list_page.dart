@@ -6,7 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gmcappclean/core/common/api/api.dart';
+import 'package:gmcappclean/core/common/api/pageinted_result.dart';
 import 'package:gmcappclean/core/common/widgets/loader.dart';
+import 'package:gmcappclean/core/common/widgets/my_circle_avatar.dart';
 import 'package:gmcappclean/core/common/widgets/search_row.dart';
 import 'package:gmcappclean/core/services/auth_interactor.dart';
 import 'package:gmcappclean/core/theme/app_colors.dart';
@@ -59,7 +61,7 @@ class _EmployeesListPageChildState extends State<EmployeesListPageChild> {
 
   String? _selectedItemDepartment;
   String? _selectedStatus;
-
+  int? count;
   final List<String> _status = [
     'يعمل',
     'لا يعمل',
@@ -348,13 +350,22 @@ class _EmployeesListPageChildState extends State<EmployeesListPageChild> {
             ],
             backgroundColor:
                 isDark ? AppColors.gradient2 : AppColors.lightGradient2,
-            title: const Text(
-              'الموظفون',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-              ),
+            title: Row(
+              children: [
+                const Text(
+                  'الموظفون',
+                  style: TextStyle(
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(
+                  width: 10,
+                ),
+                if (count != null)
+                  MyCircleAvatar(
+                    text: count.toString(),
+                  ),
+              ],
             ),
           ),
           body: OrientationBuilder(
@@ -407,24 +418,34 @@ class _EmployeesListPageChildState extends State<EmployeesListPageChild> {
                             content: 'حدث خطأ ما',
                             failure: true,
                           );
-                        } else if (state
-                            is HRSuccess<List<BriefEmployeeModel>>) {
-                          setState(() {
-                            if (state.result.isEmpty) {
-                              // No more data: stop pagination
-                              isLoadingMore = false;
-
-                              return;
+                        } else if (state is HRSuccess<PageintedResult>) {
+                          bool shouldRebuildAppBar = false;
+                          if (count == null ||
+                              currentPage == 1 ||
+                              state.result.totalCount! > 0) {
+                            shouldRebuildAppBar =
+                                count != state.result.totalCount;
+                            count = state.result.totalCount;
+                          }
+                          if (currentPage == 1) {
+                            _model =
+                                state.result.results.cast<BriefEmployeeModel>();
+                          } else {
+                            final newResults =
+                                state.result.results.cast<BriefEmployeeModel>();
+                            if (newResults.isNotEmpty) {
+                              _model.addAll(newResults);
                             }
+                          }
+                          isLoadingMore = false;
 
-                            if (currentPage == 1) {
-                              _model = state.result;
-                            } else {
-                              _model.addAll(state.result);
-                            }
-
-                            isLoadingMore = false;
-                          });
+                          if (shouldRebuildAppBar) {
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              if (mounted) {
+                                setState(() {});
+                              }
+                            });
+                          }
                         } else if (state is HRSuccess<EmployeeModel>) {
                           setState(() {
                             isEmployeeLoading = false;

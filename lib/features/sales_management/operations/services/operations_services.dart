@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:fpdart/fpdart.dart';
 import 'package:gmcappclean/core/common/api/api.dart';
+import 'package:gmcappclean/core/common/api/pageinted_result.dart';
 import 'package:gmcappclean/core/common/entities/user_entity.dart';
 import 'package:gmcappclean/core/error/exceptions.dart';
 import 'package:gmcappclean/core/error/failures.dart';
@@ -97,7 +98,7 @@ class OperationsServices {
     }
   }
 
-  Future<List<OperationsModel>?> getAllOperationsForDate(
+  Future<PageintedResult?> getAllOperationsForDate(
       Map<String, dynamic> queryParams) async {
     try {
       final userEntity = await getCredentials();
@@ -107,18 +108,20 @@ class OperationsServices {
         queryParams['page'] = queryParams['page'] ?? 1;
         queryParams['page_size'] = 30;
 
-        final response = await _apiClient.getPageinated(
+        final paginated = await _apiClient.getPageinatedWithCount(
           user: success,
           endPoint: 'sales_op_paginated',
           queryParams: queryParams,
         );
-        print(response.length.toString());
-        return List.generate(response.length, (index) {
-          return OperationsModel.fromMap(response[index]);
-        });
+
+        final models = paginated.results
+            .map((item) => OperationsModel.fromMap(item))
+            .toList();
+
+        return PageintedResult(results: models, totalCount: paginated.count);
       });
     } catch (e) {
-      print('exception caught');
+      print('exception caught: $e');
       return null;
     }
   }

@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:gmcappclean/core/common/api/api.dart';
+import 'package:gmcappclean/core/common/api/pageinted_result.dart';
 import 'package:gmcappclean/core/common/entities/user_entity.dart';
 import 'package:gmcappclean/core/error/failures.dart';
 import 'package:gmcappclean/core/services/auth_interactor.dart';
@@ -46,7 +47,7 @@ class PurchaseService {
     }
   }
 
-  Future<List<BriefPurchaseModel>?> getAllPurchase({
+  Future<PageintedResult?> getAllPurchase({
     required int page,
     required int status,
     required String department,
@@ -56,7 +57,7 @@ class PurchaseService {
       return userEntity.fold((failure) {
         return null;
       }, (success) async {
-        final response = await _apiClient.getPageinated(
+        final paginated = await _apiClient.getPageinatedWithCount(
           user: success,
           endPoint: 'purchases/paginated',
           queryParams: {
@@ -67,34 +68,47 @@ class PurchaseService {
           },
         );
 
-        return List.generate(response.length, (index) {
-          return BriefPurchaseModel.fromMap(response[index]);
-        });
+        // Map results to models
+        final models = paginated.results
+            .map((item) => BriefPurchaseModel.fromMap(item))
+            .toList();
+
+        return PageintedResult(results: models, totalCount: paginated.count);
       });
     } catch (e) {
-      print('exception caught');
+      print('exception caught: $e');
       return null;
     }
   }
 
-  Future<List<BriefPurchaseModel>?> searchPurchase(
-      {required String search, required int page}) async {
+  Future<PageintedResult?> searchPurchase({
+    required String search,
+    required int page,
+  }) async {
     try {
       final userEntity = await getCredentials();
       return userEntity.fold((failure) {
         return null;
       }, (success) async {
-        final response = await _apiClient.getPageinated(
+        final paginated = await _apiClient.getPageinatedWithCount(
           user: success,
           endPoint: 'purchases/paginated',
-          queryParams: {'search': search, 'page': page},
+          queryParams: {
+            'page_size': 20,
+            'page': page,
+            'search': search,
+          },
         );
-        return List.generate(response.length, (index) {
-          return BriefPurchaseModel.fromMap(response[index]);
-        });
+
+        // Map results to models
+        final models = paginated.results
+            .map((item) => BriefPurchaseModel.fromMap(item))
+            .toList();
+
+        return PageintedResult(results: models, totalCount: paginated.count);
       });
     } catch (e) {
-      print('exception caught');
+      print('exception caught: $e');
       return null;
     }
   }
@@ -810,7 +824,7 @@ class PurchaseService {
     }
   }
 
-  Future<List<BriefPurchaseModel>?> getPurchasesFilter({
+  Future<PageintedResult?> getPurchasesFilter({
     required int page,
     required String date_1,
     required String date_2,
@@ -821,7 +835,7 @@ class PurchaseService {
       return userEntity.fold((failure) {
         return null;
       }, (success) async {
-        final response = await _apiClient.getPageinated(
+        final response = await _apiClient.getPageinatedWithCount(
           user: success,
           endPoint: 'purchases_filter',
           queryParams: {
@@ -833,12 +847,19 @@ class PurchaseService {
           },
         );
 
-        return List.generate(response.length, (index) {
-          return BriefPurchaseModel.fromMap(response[index]);
-        });
+        // Map each item in the 'results' list to a model
+        final items = List<BriefPurchaseModel>.from(
+          response.results.map((item) => BriefPurchaseModel.fromMap(item)),
+        );
+
+        return PageintedResult(
+          results: items,
+          totalCount: response.count ?? 0,
+        );
       });
-    } catch (e) {
-      print('exception caught');
+    } catch (e, st) {
+      print('Exception in getPurchasesFilter: $e');
+      print(st);
       return null;
     }
   }

@@ -11,7 +11,6 @@ import 'package:gmcappclean/features/Exchange Rate/ui/rate_list_page.dart';
 import 'package:gmcappclean/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:gmcappclean/features/maintenance/UI/maintenance_list_page.dart';
 import 'package:gmcappclean/features/purchases/UI/general%20purchases/purchases_list.dart';
-import 'package:gmcappclean/features/purchases/UI/production%20purchases/production_purchases_list.dart';
 import 'package:gmcappclean/features/sales_management/customers/presentation/pages/full_coustomers_page.dart';
 import 'package:gmcappclean/init_dependencies.dart';
 import 'package:gmcappclean/core/theme/theme_cubit.dart';
@@ -74,7 +73,7 @@ class MyApp extends StatelessWidget {
                   status: 8,
                 ),
             'MaintenanceListPage': (context) => const MaintenanceListPage(
-                  status: 1,
+                  status: 7,
                 ),
             'FullCoustomersPage': (context) => const FullCoustomersPage(),
           },
