@@ -37,3 +37,9 @@ final class ExcelExportedSuccess<T> extends HrInitial {
 
   ExcelExportedSuccess({required this.result});
 }
+
+final class HRSuccessFetched<T> extends HrInitial {
+  final T result;
+
+  HRSuccessFetched({required this.result});
+}

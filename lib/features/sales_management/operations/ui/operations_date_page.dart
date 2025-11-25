@@ -30,7 +30,7 @@ class OperationsDatePage extends StatelessWidget {
   final String? reception;
   final bool? bill;
   final bool? paid_money;
-
+  final String? type;
   const OperationsDatePage({
     super.key,
     required this.fromDate,
@@ -38,6 +38,7 @@ class OperationsDatePage extends StatelessWidget {
     this.reception,
     this.bill,
     this.paid_money,
+    this.type,
   });
 
   @override
@@ -58,6 +59,7 @@ class OperationsDatePage extends StatelessWidget {
         reception: reception,
         bill: bill,
         paid_money: paid_money,
+        type: type,
       ),
     );
   }
@@ -69,6 +71,7 @@ class OperationsDatePageChild extends StatefulWidget {
   final String? reception;
   final bool? bill;
   final bool? paid_money;
+  final String? type;
   const OperationsDatePageChild({
     super.key,
     required this.fromDate,
@@ -76,6 +79,7 @@ class OperationsDatePageChild extends StatefulWidget {
     this.reception,
     this.bill,
     this.paid_money,
+    this.type,
   });
 
   @override
@@ -181,6 +185,7 @@ class _OperationsDatePageChildState extends State<OperationsDatePageChild> {
             reception: widget.reception,
             bill: widget.bill,
             paid_money: widget.paid_money,
+            type: widget.type,
           ),
         );
   }

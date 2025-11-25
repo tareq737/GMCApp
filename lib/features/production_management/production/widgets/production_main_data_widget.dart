@@ -154,6 +154,20 @@ class _ProductionMainDataWidgetState extends State<ProductionMainDataWidget> {
               false,
         ],
       ),
+      CheckSection(
+        onTap: () => widget.moveToTab!(7),
+        title: 'الجودة',
+        checks: [
+          widget.fullProductionModel.qualityControl.qc_raw_check ?? false,
+          widget.fullProductionModel.qualityControl.qc_manufacturing_check ??
+              false,
+          widget.fullProductionModel.qualityControl.qc_lab_check ?? false,
+          widget.fullProductionModel.qualityControl.qc_empty_check ?? false,
+          widget.fullProductionModel.qualityControl.qc_packaging_check ?? false,
+          widget.fullProductionModel.qualityControl.qc_finished_check ?? false,
+          widget.fullProductionModel.qualityControl.qc_archive_ready ?? false,
+        ],
+      ),
     ];
 
     if (orientation == Orientation.landscape) {
@@ -185,6 +199,8 @@ class _ProductionMainDataWidgetState extends State<ProductionMainDataWidget> {
                 checkSections[2], // التصنيع
                 const SizedBox(height: 10),
                 checkSections[3], // التعبئة
+                const SizedBox(height: 10),
+                checkSections[6], // الجودة
               ],
             ),
           ),
@@ -571,7 +587,7 @@ class _ProductionMainDataWidgetState extends State<ProductionMainDataWidget> {
                             crossAxisCount: 3,
                             crossAxisSpacing: 8,
                             mainAxisSpacing: 8,
-                            childAspectRatio: 5,
+                            childAspectRatio: 4,
                           ),
                           itemBuilder: (context, index) {
                             final row = rows[index];

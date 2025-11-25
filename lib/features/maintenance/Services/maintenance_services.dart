@@ -169,7 +169,7 @@ class MaintenanceServices {
       }, (success) async {
         final response = await _apiClient.getOneMap(
           user: success,
-          endPoint: 'machines',
+          endPoint: 'machines_by_department',
         );
         if (response == null) {
           return null;
@@ -194,6 +194,7 @@ class MaintenanceServices {
           queryParams: {
             'search': search,
             'page': page,
+            'page_size': 1000,
           },
         );
         return List.generate(response.length, (index) {

@@ -1,3 +1,4 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 part of 'production_bloc.dart';
 
 @immutable
@@ -5,8 +6,21 @@ sealed class ProductionEvent {}
 
 class GetBriefProductionPagainted extends ProductionEvent {
   final int page;
+  final String? type;
+  final String? tier;
+  final String? color;
+  final String? search;
+  final String? date1;
+  final String? date2;
 
-  GetBriefProductionPagainted({required this.page});
+  GetBriefProductionPagainted(
+      {required this.page,
+      this.type,
+      this.tier,
+      this.color,
+      this.search,
+      this.date1,
+      this.date2});
 }
 
 class GetOneProductionByID extends ProductionEvent {
@@ -75,6 +89,12 @@ final class SaveFinishedGoods<T> extends ProductionEvent {
   SaveFinishedGoods({required this.finishedGoodsModel});
 }
 
+final class SaveQualityControl<T> extends ProductionEvent {
+  final QualityControlModel qualityControlModel;
+
+  SaveQualityControl({required this.qualityControlModel});
+}
+
 class Archive extends ProductionEvent {
   final int id;
 
@@ -121,4 +141,11 @@ class GetProductionFilter extends ProductionEvent {
       required this.date_1,
       required this.date_2,
       required this.timeliness});
+}
+
+class GenrateQr extends ProductionEvent {
+  int production_id;
+  GenrateQr({
+    required this.production_id,
+  });
 }

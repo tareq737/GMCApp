@@ -160,7 +160,14 @@ class _EmployeePageChildState extends State<EmployeePageChild> {
     'مشكلة مع الإدارة',
     'سفر',
   ];
-
+  final List<String> academicLevel = [
+    'إبتدائي',
+    'إعدادي',
+    'ثانوي',
+    'جامعي',
+    'ماجستير',
+    'دتوراه',
+  ];
   // --- Controllers and Form State ---
   final _departmentController = TextEditingController();
   final _fingePrintCodeController = TextEditingController();
@@ -194,6 +201,8 @@ class _EmployeePageChildState extends State<EmployeePageChild> {
   final _idNumberCountController = TextEditingController();
   final _insSalaryController = TextEditingController();
   final _detailsController = TextEditingController();
+  final _academicLevelController = TextEditingController();
+  final _academicMajorController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _isWorking = false;
   bool? _smokes = false;
@@ -303,6 +312,8 @@ class _EmployeePageChildState extends State<EmployeePageChild> {
     _idNumberCountController.text = widget.employeeModel!.ID_number ?? '';
     _insSalaryController.text = widget.employeeModel!.ins_salary ?? '';
     _detailsController.text = widget.employeeModel!.details ?? '';
+    _academicLevelController.text = widget.employeeModel!.academic_level ?? '';
+    _academicMajorController.text = widget.employeeModel!.academic_major ?? '';
     _isWorking = widget.employeeModel!.is_working ?? false;
     _smokes = widget.employeeModel!.smokes ?? false;
   }
@@ -342,6 +353,8 @@ class _EmployeePageChildState extends State<EmployeePageChild> {
       _idNumberCountController,
       _insSalaryController,
       _detailsController,
+      _academicLevelController,
+      _academicMajorController,
     ];
 
     for (var controller in controllers) {
@@ -448,11 +461,42 @@ class _EmployeePageChildState extends State<EmployeePageChild> {
           ),
           Switch(
             value: _isWorking,
-            onChanged: (value) => setState(() => _isWorking = value),
+            onChanged: (value) {
+              // Check if trying to set to not working without quitting date
+              if (value == false && _quittingDateController.text.isEmpty) {
+                _showQuittingDateRequiredDialog();
+                return;
+              }
+              setState(() => _isWorking = value);
+            },
             activeColor: Colors.green,
           ),
         ],
       ),
+    );
+  }
+
+  void _showQuittingDateRequiredDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Directionality(
+          textDirection: ui.TextDirection.rtl,
+          child: AlertDialog(
+            title: const Text('تاريخ الاستقالة مطلوب'),
+            content:
+                const Text('يجب إدخال تاريخ الاستقالة قبل تعطيل حالة العمل.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text('موافق'),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -661,9 +705,25 @@ class _EmployeePageChildState extends State<EmployeePageChild> {
                 ),
               ),
             ]),
+            // Academic Information in Portrait
+            _buildFieldRow([
+              Expanded(
+                child: _buildConditionalDropdown(
+                  controller: _academicLevelController,
+                  options: academicLevel,
+                  label: 'المستوى الأكاديمي',
+                ),
+              ),
+              Expanded(
+                child: MyTextField(
+                  controller: _academicMajorController,
+                  labelText: 'التخصص الأكاديمي',
+                  maxLines: 5,
+                ),
+              ),
+            ]),
           ],
         ),
-
         // Contact Information Section
         _buildInfoCard(
           title: 'معلومات الاتصال',
@@ -959,6 +1019,22 @@ class _EmployeePageChildState extends State<EmployeePageChild> {
                   controller: _militaryServiceController,
                   options: militaryService,
                   label: 'خدمة العلم',
+                ),
+              ),
+              const Expanded(child: SizedBox.shrink()), // Filler
+            ]),
+            _buildFieldRow([
+              Expanded(
+                child: _buildConditionalDropdown(
+                  controller: _academicLevelController,
+                  options: academicLevel,
+                  label: 'المستوى الأكاديمي',
+                ),
+              ),
+              Expanded(
+                child: MyTextField(
+                  controller: _academicMajorController,
+                  labelText: 'التخصص الأكاديمي',
                 ),
               ),
               const Expanded(child: SizedBox.shrink()), // Filler
@@ -1426,6 +1502,16 @@ class _EmployeePageChildState extends State<EmployeePageChild> {
         return;
       }
 
+      // Additional validation: If employee is not working, quitting date must be provided
+      if (!_isWorking && _quittingDateController.text.isEmpty) {
+        showSnackBar(
+          context: context,
+          content: 'يجب إدخال تاريخ الاستقالة عندما تكون حالة العمل غير مفعلة.',
+          failure: true,
+        );
+        return;
+      }
+
       final model = _fillModelFromForm();
 
       if (widget.employeeModel == null) {
@@ -1483,6 +1569,8 @@ class _EmployeePageChildState extends State<EmployeePageChild> {
       ins_salary: _insSalaryController.text,
       ID_number: _idNumberCountController.text,
       details: _detailsController.text,
+      academic_level: _academicLevelController.text,
+      academic_major: _academicMajorController.text,
     );
   }
 }

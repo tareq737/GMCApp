@@ -1,9 +1,12 @@
+import 'dart:typed_data';
+
 import 'package:fpdart/fpdart.dart';
 import 'package:gmcappclean/core/common/api/api.dart';
 import 'package:gmcappclean/core/common/api/pageinted_result.dart';
 import 'package:gmcappclean/core/common/entities/user_entity.dart';
 import 'package:gmcappclean/core/error/failures.dart';
 import 'package:gmcappclean/core/services/auth_interactor.dart';
+import 'package:gmcappclean/features/production_management/production/bloc/production_bloc.dart';
 import 'package:gmcappclean/features/production_management/production/models/brief_production_model.dart';
 import 'package:gmcappclean/features/production_management/production/models/empty_packaging_model.dart';
 import 'package:gmcappclean/features/production_management/production/models/finished_goods_model.dart';
@@ -11,6 +14,7 @@ import 'package:gmcappclean/features/production_management/production/models/ful
 import 'package:gmcappclean/features/production_management/production/models/lab_model.dart';
 import 'package:gmcappclean/features/production_management/production/models/manufacturing_model.dart';
 import 'package:gmcappclean/features/production_management/production/models/packaging_model.dart';
+import 'package:gmcappclean/features/production_management/production/models/quality_control_model.dart';
 import 'package:gmcappclean/features/production_management/production/models/raw_materials_model.dart';
 
 class ProductionServices {
@@ -51,20 +55,32 @@ class ProductionServices {
 
   Future<PageintedResult?> getAllProduction({
     required int page,
+    String? type,
+    String? tier,
+    String? color,
+    String? search,
+    String? date1,
+    String? date2,
   }) async {
     try {
       final userEntity = await getCredentials();
       return userEntity.fold((failure) {
         return null;
       }, (success) async {
+        final Map<String, dynamic> queryParams = {
+          'page_size': 40,
+          'page': page,
+        };
+        if (type != null && type.isNotEmpty) queryParams['type'] = type;
+        if (tier != null && tier.isNotEmpty) queryParams['tier'] = tier;
+        if (color != null && color.isNotEmpty) queryParams['color'] = color;
+        if (search != null && search.isNotEmpty) queryParams['search'] = search;
+        if (date1 != null && date1.isNotEmpty) queryParams['date1'] = date1;
+        if (date2 != null && date2.isNotEmpty) queryParams['date2'] = date2;
         final paginated = await _apiClient.getPageinatedWithCount(
-          user: success,
-          endPoint: 'briefproduction',
-          queryParams: {
-            'page_size': 50,
-            'page': page,
-          },
-        );
+            user: success,
+            endPoint: 'briefproduction',
+            queryParams: queryParams);
         final models = paginated.results
             .map((item) => BriefProductionModel.fromMap(item))
             .toList();
@@ -264,6 +280,26 @@ class ProductionServices {
     }
   }
 
+  Future<QualityControlModel?> saveQualityControl(
+      int id, QualityControlModel qualityControl) async {
+    try {
+      final userEntity = await getCredentials();
+      return userEntity.fold((failure) {
+        return null;
+      }, (success) async {
+        final response = await _apiClient.updateViaPatch(
+          user: success,
+          endPoint: 'production/edit',
+          data: qualityControl.toJson(),
+          id: id,
+        );
+        return QualityControlModel.fromMap(response);
+      });
+    } catch (e) {
+      return null;
+    }
+  }
+
   Future<Either<Failure, String>> archive(int id) async {
     try {
       final userEntityResult = await getCredentials();
@@ -424,6 +460,36 @@ class ProductionServices {
     } catch (e) {
       print('exception caught: $e');
       return null;
+    }
+  }
+
+  Future<Either<Uint8List, Failure>> generateQr({
+    required int production_id,
+  }) async {
+    try {
+      final userEntity = await getCredentials();
+      return userEntity.fold(
+        (failure) {
+          return right(Failure(message: 'No tokens found.'));
+        },
+        (success) async {
+          try {
+            final response = await _apiClient.downloadFile(
+                user: success,
+                endPoint: 'loyalty/generate_qr/',
+                queryParameters: {'production_id': production_id});
+            return left(response);
+          } catch (e) {
+            print('Error exporting PDF: $e');
+            return right(
+                Failure(message: 'Failed to export PDF: ${e.toString()}'));
+          }
+        },
+      );
+    } catch (e) {
+      print('Caught error in exportPDF service: $e');
+      return right(Failure(
+          message: 'Unexpected error during PDF export: ${e.toString()}'));
     }
   }
 }

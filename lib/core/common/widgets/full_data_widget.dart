@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:gmcappclean/core/common/widgets/mybutton.dart';
-import 'package:gmcappclean/core/utils/show_snackbar.dart';
 
 class FullData extends StatelessWidget {
   final String appBarText;
@@ -8,12 +6,15 @@ class FullData extends StatelessWidget {
   final List<BottomNavigationBarItem> bottomNavigationBarItems;
   final Function(int) onTap;
 
+  final List<Widget>? appBarActions; // إضافة جديدة
+
   const FullData({
     super.key,
     required this.appBarText,
     required this.listOfData,
     required this.bottomNavigationBarItems,
     required this.onTap,
+    this.appBarActions, // إضافتها بالكونستركتور
   });
 
   @override
@@ -22,6 +23,7 @@ class FullData extends StatelessWidget {
       appBar: AppBar(
         centerTitle: true,
         title: Text(appBarText),
+        actions: appBarActions, // إضافتها هنا
       ),
       body: SingleChildScrollView(
         child: Center(

@@ -14,6 +14,7 @@ import 'package:gmcappclean/core/utils/show_snackbar.dart';
 import 'package:gmcappclean/features/sales_management/customers/presentation/bloc/sales_bloc.dart';
 import 'package:gmcappclean/features/sales_management/customers/presentation/pages/full_coustomers_page.dart';
 import 'package:gmcappclean/features/sales_management/customers/presentation/viewmodels/customer_view_model.dart';
+import 'package:gmcappclean/features/sales_management/operations/ui/customer_operations_page.dart';
 import 'package:gmcappclean/init_dependencies.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -574,6 +575,25 @@ class _FullCustomerDataPageState extends State<FullCustomerDataPage> {
               textDirection: TextDirection.rtl,
               child: FullData(
                 appBarText: 'بيانات الزبون',
+                appBarActions: [
+                  TextButton.icon(
+                    icon: const Icon(Icons.list_alt),
+                    label: const Text("عمليات الزبون"),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => CustomerOperationsPage(
+                            customerId: _customerdata.id,
+                            customerName:
+                                _customerdata.basicInfo.customerName ?? '',
+                            shopName: _customerdata.basicInfo.shopName ?? '',
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
                 listOfData: [
                   SwitchListTile(
                     title: const Text(

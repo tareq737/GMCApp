@@ -278,6 +278,7 @@ class _StatisticsWidgetState extends State<StatisticsWidget> {
               return OperationsDatePage(
                 fromDate: _fromDateController.text,
                 toDate: _toDateController.text,
+                type: 'visits',
               );
             }));
           },

@@ -64,6 +64,9 @@ class OperationsBloc extends Bloc<OperationsEvent, OperationsState> {
         if (event.reception != null) {
           request["reception"] = event.reception;
         }
+        if (event.type != null) {
+          request["type"] = event.type;
+        }
 
         var result = await _operationsServices.getAllOperationsForDate(request);
 

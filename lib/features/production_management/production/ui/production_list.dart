@@ -284,8 +284,6 @@ class _FullProdPageChildState extends State<FullProdPageChild> {
     'فضي',
     'المنيوم',
   ];
-
-  // Helper to format date
   String _formatDate(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
@@ -306,6 +304,8 @@ class _FullProdPageChildState extends State<FullProdPageChild> {
           _selectedDate2 = picked;
         }
       });
+      // Automatically trigger filter after date selection
+      _runFilter();
     }
   }
 
@@ -322,16 +322,28 @@ class _FullProdPageChildState extends State<FullProdPageChild> {
     final String date1Formatted = _formatDate(_selectedDate1);
     final String date2Formatted = _formatDate(_selectedDate2);
 
-    // Dispatch the search/filter event
-    context.read<ProductionBloc>().add(SearchProductionArchivePagainted(
-          search: _searchController.text,
-          page: 1,
-          date1: date1Formatted,
-          date2: date2Formatted,
-          type: _selectedType,
-          tier: _selectedTier,
-          color: _selectedColor,
-        ));
+    if (widget.type == 'Production') {
+      context.read<ProductionBloc>().add(GetBriefProductionPagainted(
+            search: _searchController.text,
+            page: 1,
+            date1: date1Formatted,
+            date2: date2Formatted,
+            type: _selectedType,
+            tier: _selectedTier,
+            color: _selectedColor,
+          ));
+    }
+    if (widget.type == 'Archive') {
+      context.read<ProductionBloc>().add(SearchProductionArchivePagainted(
+            search: _searchController.text,
+            page: 1,
+            date1: date1Formatted,
+            date2: date2Formatted,
+            type: _selectedType,
+            tier: _selectedTier,
+            color: _selectedColor,
+          ));
+    }
   }
 
   @override
@@ -369,14 +381,20 @@ class _FullProdPageChildState extends State<FullProdPageChild> {
     final String date2Formatted = _formatDate(_selectedDate2);
 
     if (widget.type == 'Production') {
-      context
-          .read<ProductionBloc>()
-          .add(GetBriefProductionPagainted(page: currentPage));
+      context.read<ProductionBloc>().add(GetBriefProductionPagainted(
+            page: currentPage,
+            search: _searchController.text,
+            date1: date1Formatted,
+            date2: date2Formatted,
+            type: _selectedType,
+            tier: _selectedTier,
+            color: _selectedColor,
+          ));
     } else if (widget.type == 'Archive') {
       // NOTE: Pass all current filter parameters when loading the next page
       context.read<ProductionBloc>().add(SearchProductionArchivePagainted(
-            search: _searchController.text,
             page: currentPage,
+            search: _searchController.text,
             date1: date1Formatted,
             date2: date2Formatted,
             type: _selectedType,
@@ -402,38 +420,6 @@ class _FullProdPageChildState extends State<FullProdPageChild> {
           : _darkThemeRed;
     }
     return _prefixColors[prefix]!;
-  }
-
-  Widget _buildCheckIcon(String department, bool? checkValue,
-      {double size = 14}) {
-    IconData icon;
-    switch (department) {
-      case 'raw_material':
-        icon = FontAwesomeIcons.boxesStacked;
-        break;
-      case 'manufacturing':
-        icon = FontAwesomeIcons.industry;
-        break;
-      case 'lab':
-        icon = FontAwesomeIcons.flaskVial;
-        break;
-      case 'empty_packaging':
-        icon = FontAwesomeIcons.boxOpen;
-        break;
-      case 'packaging':
-        icon = FontAwesomeIcons.boxesPacking;
-        break;
-      case 'finished_goods':
-        icon = FontAwesomeIcons.cubes;
-        break;
-      default:
-        icon = FontAwesomeIcons.circleQuestion;
-    }
-    return FaIcon(
-      icon,
-      color: checkValue == true ? Colors.green : Colors.grey,
-      size: size,
-    );
   }
 
   // Refactored to use MyDropdownButton
@@ -468,7 +454,8 @@ class _FullProdPageChildState extends State<FullProdPageChild> {
                   _selectedType = newValue;
                   _selectedTier = null; // Reset tier when type changes
                 });
-                // Filter is triggered by the button
+                // Automatically trigger filter when type changes
+                _runFilter();
               },
             ),
           ),
@@ -499,7 +486,8 @@ class _FullProdPageChildState extends State<FullProdPageChild> {
                 setState(() {
                   _selectedTier = newValue;
                 });
-                // Filter is triggered by the button
+                // Automatically trigger filter when tier changes
+                _runFilter();
               },
               isEnabled:
                   _selectedType != null, // Disable if Type isn't selected
@@ -530,7 +518,8 @@ class _FullProdPageChildState extends State<FullProdPageChild> {
                 setState(() {
                   _selectedColor = newValue;
                 });
-                // Filter is triggered by the button
+                // Automatically trigger filter when color changes
+                _runFilter();
               },
             ),
           ),
@@ -539,8 +528,8 @@ class _FullProdPageChildState extends State<FullProdPageChild> {
     );
   }
 
-  // Widget for Date Pickers and Filter Button
-  Widget _buildDateAndFilterControls(BuildContext context) {
+  // Widget for Date Pickers (removed the filter button)
+  Widget _buildDateControls(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
       child: Row(
@@ -585,20 +574,6 @@ class _FullProdPageChildState extends State<FullProdPageChild> {
               ),
             ),
           ),
-          const SizedBox(width: 8.0),
-
-          // Filter Button
-          SizedBox(
-            width: 80,
-            child: ElevatedButton(
-              onPressed: _runFilter,
-              style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.zero,
-                minimumSize: const Size(80, 48),
-              ),
-              child: const Text('تصفية', style: TextStyle(fontSize: 14)),
-            ),
-          ),
         ],
       ),
     );
@@ -638,20 +613,19 @@ class _FullProdPageChildState extends State<FullProdPageChild> {
         ),
         body: Column(
           children: [
-            if (widget.type == 'Archive') ...[
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: SearchRow(
-                  textEditingController: _searchController,
-                  // UPDATED: Call the unified filter function
-                  onSearch: _runFilter,
-                ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: SearchRow(
+                textEditingController: _searchController,
+                // UPDATED: Call the unified filter function
+                onSearch: _runFilter,
               ),
-              // Filter Dropdowns
-              _buildFilterDropdowns(context),
-              // Date Pickers and Filter Button
-              _buildDateAndFilterControls(context),
-            ],
+            ),
+            // Filter Dropdowns
+            _buildFilterDropdowns(context),
+            // Date Pickers (without filter button)
+            _buildDateControls(context),
+
             Expanded(
               child: BlocConsumer<ProductionBloc, ProductionState>(
                 listener: (context, state) {
@@ -803,6 +777,7 @@ class _FullProdPageChildState extends State<FullProdPageChild> {
                       _buildCheckIcon('packaging', item.packaging_check_6),
                       _buildCheckIcon(
                           'finished_goods', item.finished_goods_check_3),
+                      _buildCheckIcon('quality_control', item.qc_archive_ready),
                     ],
                   ),
               ],
@@ -901,39 +876,6 @@ class _ProductionGridItem extends StatelessWidget {
     required this.onTap,
   });
 
-  // Duplicating this helper here for encapsulation
-  Widget _buildCheckIcon(String department, bool? checkValue,
-      {double size = 16}) {
-    IconData icon;
-    switch (department) {
-      case 'raw_material':
-        icon = FontAwesomeIcons.boxesStacked;
-        break;
-      case 'manufacturing':
-        icon = FontAwesomeIcons.industry;
-        break;
-      case 'lab':
-        icon = FontAwesomeIcons.flaskVial;
-        break;
-      case 'empty_packaging':
-        icon = FontAwesomeIcons.boxOpen;
-        break;
-      case 'packaging':
-        icon = FontAwesomeIcons.boxesPacking;
-        break;
-      case 'finished_goods':
-        icon = FontAwesomeIcons.cubes;
-        break;
-      default:
-        icon = FontAwesomeIcons.circleQuestion;
-    }
-    return FaIcon(
-      icon,
-      color: checkValue == true ? Colors.green : Colors.grey,
-      size: size,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return InkWell(
@@ -1009,6 +951,7 @@ class _ProductionGridItem extends StatelessWidget {
                     _buildCheckIcon('packaging', item.packaging_check_6),
                     _buildCheckIcon(
                         'finished_goods', item.finished_goods_check_3),
+                    _buildCheckIcon('quality_control', item.qc_archive_ready),
                   ],
                 ),
               const Spacer(),
@@ -1018,4 +961,39 @@ class _ProductionGridItem extends StatelessWidget {
       ),
     );
   }
+}
+
+Widget _buildCheckIcon(String department, bool? checkValue,
+    {double size = 16}) {
+  IconData icon;
+  switch (department) {
+    case 'raw_material':
+      icon = FontAwesomeIcons.boxesStacked;
+      break;
+    case 'manufacturing':
+      icon = FontAwesomeIcons.industry;
+      break;
+    case 'lab':
+      icon = FontAwesomeIcons.flaskVial;
+      break;
+    case 'empty_packaging':
+      icon = FontAwesomeIcons.boxOpen;
+      break;
+    case 'packaging':
+      icon = FontAwesomeIcons.boxesPacking;
+      break;
+    case 'finished_goods':
+      icon = FontAwesomeIcons.cubes;
+      break;
+    case 'quality_control':
+      icon = FontAwesomeIcons.award;
+      break;
+    default:
+      icon = FontAwesomeIcons.circleQuestion;
+  }
+  return FaIcon(
+    icon,
+    color: checkValue == true ? Colors.green : Colors.grey,
+    size: size,
+  );
 }

@@ -30,7 +30,8 @@ class GetAllOperationsForDate extends OperationsEvent {
   final String? reception;
   final bool? paid_money;
   final bool? bill;
-  final int page; // Add page parameter
+  final int page;
+  final String? type;
 
   GetAllOperationsForDate({
     required this.date1,
@@ -38,7 +39,8 @@ class GetAllOperationsForDate extends OperationsEvent {
     this.reception,
     this.paid_money,
     this.bill,
-    this.page = 1, // Default to page 1
+    this.page = 1,
+    this.type,
   });
 }
 

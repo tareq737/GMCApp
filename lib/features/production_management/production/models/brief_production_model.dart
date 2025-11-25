@@ -16,6 +16,7 @@ class BriefProductionModel {
   bool? empty_packaging_check_5;
   bool? packaging_check_6;
   bool? finished_goods_check_3;
+  bool? qc_archive_ready;
   int? duration;
   BriefProductionModel({
     this.id,
@@ -32,6 +33,7 @@ class BriefProductionModel {
     this.empty_packaging_check_5,
     this.packaging_check_6,
     this.finished_goods_check_3,
+    this.qc_archive_ready,
     this.duration,
   });
 
@@ -50,6 +52,7 @@ class BriefProductionModel {
     bool? empty_packaging_check_5,
     bool? packaging_check_6,
     bool? finished_goods_check_3,
+    bool? qc_archive_ready,
     int? duration,
   }) {
     return BriefProductionModel(
@@ -70,6 +73,7 @@ class BriefProductionModel {
       packaging_check_6: packaging_check_6 ?? this.packaging_check_6,
       finished_goods_check_3:
           finished_goods_check_3 ?? this.finished_goods_check_3,
+      qc_archive_ready: qc_archive_ready ?? this.qc_archive_ready,
       duration: duration ?? this.duration,
     );
   }
@@ -90,6 +94,7 @@ class BriefProductionModel {
       'empty_packaging_check_5': empty_packaging_check_5,
       'packaging_check_6': packaging_check_6,
       'finished_goods_check_3': finished_goods_check_3,
+      'qc_archive_ready': qc_archive_ready,
       'duration': duration,
     };
   }
@@ -125,6 +130,9 @@ class BriefProductionModel {
       finished_goods_check_3: map['finished_goods_check_3'] != null
           ? map['finished_goods_check_3'] as bool
           : null,
+      qc_archive_ready: map['qc_archive_ready'] != null
+          ? map['qc_archive_ready'] as bool
+          : null,
       duration: map['duration'] != null ? map['duration'] as int : null,
     );
   }
@@ -136,7 +144,7 @@ class BriefProductionModel {
 
   @override
   String toString() {
-    return 'BriefProductionModel(id: $id, batch_number: $batch_number, insert_date: $insert_date, type: $type, tier: $tier, color: $color, total_weight: $total_weight, total_volume: $total_volume, raw_material_check_4: $raw_material_check_4, manufacturing_check_6: $manufacturing_check_6, lab_check_6: $lab_check_6, empty_packaging_check_5: $empty_packaging_check_5, packaging_check_6: $packaging_check_6, finished_goods_check_3: $finished_goods_check_3, duration: $duration)';
+    return 'BriefProductionModel(id: $id, batch_number: $batch_number, insert_date: $insert_date, type: $type, tier: $tier, color: $color, total_weight: $total_weight, total_volume: $total_volume, raw_material_check_4: $raw_material_check_4, manufacturing_check_6: $manufacturing_check_6, lab_check_6: $lab_check_6, empty_packaging_check_5: $empty_packaging_check_5, packaging_check_6: $packaging_check_6, finished_goods_check_3: $finished_goods_check_3, qc_archive_ready: $qc_archive_ready, duration: $duration)';
   }
 
   @override
@@ -157,6 +165,7 @@ class BriefProductionModel {
         other.empty_packaging_check_5 == empty_packaging_check_5 &&
         other.packaging_check_6 == packaging_check_6 &&
         other.finished_goods_check_3 == finished_goods_check_3 &&
+        other.qc_archive_ready == qc_archive_ready &&
         other.duration == duration;
   }
 
@@ -176,6 +185,7 @@ class BriefProductionModel {
         empty_packaging_check_5.hashCode ^
         packaging_check_6.hashCode ^
         finished_goods_check_3.hashCode ^
+        qc_archive_ready.hashCode ^
         duration.hashCode;
   }
 }

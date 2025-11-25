@@ -964,18 +964,9 @@ class _FullMaintanceDetailsPageState extends State<FullMaintanceDetailsPage> {
                       child: CheckboxListTile(
                         value: _isArchived,
                         onChanged: (bool? value) {
-                          if (widget.maintenanceModel.maintenance_bill !=
-                              null) {
-                            setState(() {
-                              _isArchived = value ?? false;
-                            });
-                          } else {
-                            // Show a snackbar or dialog explaining why it can't be checked
-                            showSnackBar(
-                                context: context,
-                                content: 'لا يمكن الأرشفة بدون فاتورة صيانة',
-                                failure: true);
-                          }
+                          setState(() {
+                            _isArchived = value ?? false;
+                          });
                         },
                         title: const Text(
                           'أرشفة',

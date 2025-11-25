@@ -1065,6 +1065,23 @@ class _HomePageState extends State<HomePage>
                                 );
                               },
                             ),
+                          if (groups != null &&
+                              (groups.contains('HR_manager') ||
+                                  groups.contains('managers') ||
+                                  groups.contains('admins')))
+                            ListTile(
+                              title: const Text('جدول الدوام'),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) {
+                                      return const AttendanceLogeListPage();
+                                    },
+                                  ),
+                                );
+                              },
+                            ),
                           ListTile(
                             title: const Text('الإجازات'),
                             onTap: () {

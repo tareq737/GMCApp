@@ -65,14 +65,45 @@ class ApiClient {
     }
   }
 
+  Future<void> clearFcmToken(String fcmToken) async {
+    try {
+      final response = await dio.post(
+        '$baseURL/remove_fcm_token',
+        data: {'token': fcmToken},
+        options: Options(
+          headers: {'Content-Type': 'application/json'},
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        print('✅ FCM token cleared successfully');
+      } else {
+        print('⚠️ Failed to clear FCM token: ${response.statusCode}');
+        print('Response data: ${response.data}');
+      }
+    } on DioException catch (e) {
+      if (e.response != null) {
+        print('❌ Dio error (${e.response?.statusCode}): ${e.response?.data}');
+        throw ServerException(e.response!.data.toString());
+      } else {
+        print('❌ Network or unexpected error: ${e.message}');
+        throw const ServerException('Network or server error occurred.');
+      }
+    } catch (e) {
+      throw ServerException(e.toString());
+    }
+  }
+
   Future<Map<String, dynamic>> add({
     required UserEntity userTokens,
     required String endPoint,
     required String data,
+    Map<String, dynamic>? queryParameters,
   }) async {
     try {
       final response = await dio.post(
         '$baseURL/$endPoint',
+        queryParameters: queryParameters,
         options: Options(
           headers: {
             'Authorization': 'Bearer ${userTokens.accessToken}',
@@ -82,13 +113,12 @@ class ApiClient {
         data: data,
       );
 
-      if (response.statusCode! >= 200 && response.statusCode! < 300) {
+      if (response.statusCode! >= 200 && response.statusCode! < 500) {
         return response.data;
       } else {
-        final msg =
-            response.data is Map && response.data['error'] != null
-                ? response.data['error'].toString()
-                : response.data.toString();
+        final msg = response.data is Map && response.data['error'] != null
+            ? response.data['error'].toString()
+            : response.data.toString();
         throw ServerException(msg);
       }
     } on DioException catch (e) {
@@ -136,10 +166,9 @@ class ApiClient {
       if (response.statusCode! >= 200 && response.statusCode! < 300) {
         return response.data;
       } else {
-        final msg =
-            response.data is Map && response.data['error'] != null
-                ? response.data['error'].toString()
-                : response.data.toString();
+        final msg = response.data is Map && response.data['error'] != null
+            ? response.data['error'].toString()
+            : response.data.toString();
         throw ServerException(msg);
       }
     } on DioException catch (e) {

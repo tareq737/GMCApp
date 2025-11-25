@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gmcappclean/core/common/api/api.dart';
 import 'package:gmcappclean/core/services/auth_interactor.dart';
+import 'package:gmcappclean/core/theme/app_colors.dart';
 import 'package:gmcappclean/features/production_management/production/bloc/production_bloc.dart';
 import 'dart:ui' as ui;
 import 'package:gmcappclean/features/production_management/production/models/full_production_model.dart';
@@ -13,6 +14,7 @@ import 'package:gmcappclean/features/production_management/production/widgets/pr
 import 'package:gmcappclean/features/production_management/production/widgets/production_main_data_widget.dart';
 import 'package:gmcappclean/features/production_management/production/widgets/production_manufacturing_data_widget.dart';
 import 'package:gmcappclean/features/production_management/production/widgets/production_packaging_data_widget.dart';
+import 'package:gmcappclean/features/production_management/production/widgets/production_quality_control_data_widget.dart';
 import 'package:gmcappclean/features/production_management/production/widgets/production_raw_material_data_widget.dart';
 import 'package:gmcappclean/init_dependencies.dart';
 
@@ -36,7 +38,7 @@ class _ProductionFullDataPageState extends State<ProductionFullDataPage>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 7, vsync: this);
+    _tabController = TabController(length: 8, vsync: this);
   }
 
   @override
@@ -60,8 +62,11 @@ class _ProductionFullDataPageState extends State<ProductionFullDataPage>
         length: 7,
         child: Scaffold(
           appBar: AppBar(
+            backgroundColor:
+                isDark ? AppColors.gradient2 : AppColors.lightGradient2,
             title: Text(
               'الطبخة رقم ${widget.fullProductionModel.productions.batch_number} - ${widget.fullProductionModel.productions.id}',
+              style: const TextStyle(color: Colors.white),
             ),
           ),
           body: BlocProvider(
@@ -116,6 +121,12 @@ class _ProductionFullDataPageState extends State<ProductionFullDataPage>
                       ),
                       SingleChildScrollView(
                         child: ProductionFinishedGoodsDataWidget(
+                          type: widget.type,
+                          fullProductionModel: widget.fullProductionModel,
+                        ),
+                      ),
+                      SingleChildScrollView(
+                        child: ProductionQualityControlDataWidget(
                           type: widget.type,
                           fullProductionModel: widget.fullProductionModel,
                         ),
@@ -179,6 +190,12 @@ class _ProductionFullDataPageState extends State<ProductionFullDataPage>
                       child: Padding(
                         padding: const EdgeInsets.all(2.0),
                         child: Image.asset('assets/images/finishedGoods.png'),
+                      ),
+                    ),
+                    Tab(
+                      child: Padding(
+                        padding: const EdgeInsets.all(2.0),
+                        child: Image.asset('assets/images/quality_control.png'),
                       ),
                     ),
                   ],

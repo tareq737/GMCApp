@@ -100,7 +100,7 @@ class _WorkLeavesPageChildState extends State<WorkLeavesPageChild> {
             content: const SingleChildScrollView(
               child: ListBody(
                 children: [
-                  Text('هل أنت متأكد من رغبتك في حذف الفاتورة'),
+                  Text('هل أنت متأكد من رغبتك في حذف التقرير'),
                 ],
               ),
             ),

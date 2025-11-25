@@ -1,49 +1,45 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 
 class MachineMaintenanceModel {
-  Map<String, List<String>> machines;
-  MachineMaintenanceModel({
-    required this.machines,
-  });
+  final Map<String, List<Map<String, dynamic>>> machines;
+
+  MachineMaintenanceModel({required this.machines});
 
   MachineMaintenanceModel copyWith({
-    Map<String, List<String>>? categories,
+    Map<String, List<Map<String, dynamic>>>? machines,
   }) {
     return MachineMaintenanceModel(
-      machines: categories ?? this.machines,
+      machines: machines ?? this.machines,
     );
   }
 
   Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'categories': machines,
-    };
+    return machines.map((key, value) => MapEntry(key, value));
   }
 
   factory MachineMaintenanceModel.fromMap(Map<String, dynamic> map) {
-    return MachineMaintenanceModel(
-      machines: map.map(
-        (key, value) => MapEntry(key, List<String>.from(value)),
-      ),
-    );
+    // parse each list of machines safely
+    final parsedMap = map.map((key, value) => MapEntry(
+          key,
+          (value as List<dynamic>)
+              .map((e) => Map<String, dynamic>.from(e))
+              .toList(),
+        ));
+    return MachineMaintenanceModel(machines: parsedMap);
   }
 
   String toJson() => json.encode(toMap());
 
   factory MachineMaintenanceModel.fromJson(String source) =>
-      MachineMaintenanceModel.fromMap(
-          json.decode(source) as Map<String, dynamic>);
+      MachineMaintenanceModel.fromMap(json.decode(source));
 
   @override
-  String toString() => 'MachineMaintenanceModel(categories: $machines)';
+  String toString() => 'MachineMaintenanceModel(machines: $machines)';
 
   @override
   bool operator ==(covariant MachineMaintenanceModel other) {
-    if (identical(this, other)) return true;
-
     return mapEquals(other.machines, machines);
   }
 

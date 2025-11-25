@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gmcappclean/core/common/api/api.dart';
 import 'package:gmcappclean/core/common/cubits/app_user/app_user_cubit.dart';
 import 'package:gmcappclean/core/common/widgets/loader.dart';
-import 'package:gmcappclean/core/common/widgets/my_dropdown_button_widget.dart';
+import 'package:gmcappclean/core/common/widgets/my_dropdown_button_widget.dart'; // Assuming MyDropdownButton is here
 import 'package:gmcappclean/core/common/widgets/mybutton.dart';
 import 'package:gmcappclean/core/common/widgets/mytextfield.dart';
 import 'package:gmcappclean/core/services/auth_interactor.dart';
@@ -24,17 +24,20 @@ class AddMaintenancePage extends StatefulWidget {
 }
 
 class _AddMaintenancePageState extends State<AddMaintenancePage> {
-  Map<String, List<String>> departmentToMachinesMap = {};
+  Map<String, List<Map<String, dynamic>>> departmentToMachinesMap = {};
   List<String> departmentList = [];
-  List<String> machinesList = [];
+  List<Map<String, dynamic>> machinesList = [];
 
   final _applicantController = TextEditingController();
   final _departmentController = TextEditingController();
-  final _machineController = TextEditingController();
+  Map<String, dynamic>? _selectedMachine; // store selected machine object
   final _reasonController = TextEditingController();
   final _problemController = TextEditingController();
   final _insertDateController = TextEditingController();
   final _recommendedFixController = TextEditingController();
+
+  // FIX: Add a key to force rebuild the machine dropdown when department changes
+  Key _machineDropdownKey = UniqueKey();
 
   @override
   void initState() {
@@ -54,7 +57,7 @@ class _AddMaintenancePageState extends State<AddMaintenancePage> {
     _insertDateController.dispose();
     _reasonController.dispose();
     _problemController.dispose();
-    _machineController.dispose();
+    _recommendedFixController.dispose();
     super.dispose();
   }
 
@@ -63,7 +66,7 @@ class _AddMaintenancePageState extends State<AddMaintenancePage> {
       _showError(context, 'الرجاء اختيار القسم');
       return false;
     }
-    if (_machineController.text.trim().isEmpty) {
+    if (_selectedMachine == null) {
       _showError(context, 'الرجاء اختيار الآلة');
       return false;
     }
@@ -97,7 +100,7 @@ class _AddMaintenancePageState extends State<AddMaintenancePage> {
   MaintenanceModel _fillRequestModelfromForm() {
     return MaintenanceModel(
       department: _departmentController.text,
-      machine_name: _machineController.text,
+      machine: _selectedMachine?['id'],
       applicant: _applicantController.text,
       insert_date: _insertDateController.text,
       reason: _reasonController.text,
@@ -140,9 +143,8 @@ class _AddMaintenancePageState extends State<AddMaintenancePage> {
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const MaintenanceListPage(
-                        status: 7,
-                      ),
+                      builder: (context) =>
+                          const MaintenanceListPage(status: 7),
                     ),
                   );
                 } else if (state is MaintenanceError) {
@@ -155,11 +157,12 @@ class _AddMaintenancePageState extends State<AddMaintenancePage> {
               },
               builder: (context, state) {
                 if (state is MaintenanceLoading) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(child: Loader());
                 }
 
                 if (state is MachinesLoaded) {
-                  departmentToMachinesMap = state.machines!.machines;
+                  departmentToMachinesMap = state.machines?.machines ??
+                      <String, List<Map<String, dynamic>>>{};
                   departmentList = departmentToMachinesMap.keys.toList();
                 }
 
@@ -178,7 +181,6 @@ class _AddMaintenancePageState extends State<AddMaintenancePage> {
                         ),
                         const SizedBox(height: 20),
                         Row(
-                          spacing: 5,
                           children: [
                             Expanded(
                               child: MyTextField(
@@ -187,6 +189,7 @@ class _AddMaintenancePageState extends State<AddMaintenancePage> {
                                 labelText: 'مقدم الطلب',
                               ),
                             ),
+                            const SizedBox(width: 10),
                             Expanded(
                               child: MyTextField(
                                 readOnly: true,
@@ -210,27 +213,34 @@ class _AddMaintenancePageState extends State<AddMaintenancePage> {
                           onChanged: (String? newValue) {
                             setState(() {
                               _departmentController.text = newValue ?? '';
-                              machinesList =
-                                  departmentToMachinesMap[newValue] ?? [];
-                              _machineController.clear();
+                              machinesList = List<Map<String, dynamic>>.from(
+                                  departmentToMachinesMap[newValue] ?? []);
+                              _selectedMachine = null;
+                              // FIX: Reset the key to force MyDropdownButton to rebuild for machines
+                              _machineDropdownKey = UniqueKey();
                             });
                           },
                           labelText: 'القسم',
                         ),
                         const SizedBox(height: 16),
                         MyDropdownButton(
-                          value: _machineController.text.isEmpty
+                          key: _machineDropdownKey, // FIX: Apply the key here
+                          value: _selectedMachine == null
                               ? null
-                              : _machineController.text,
+                              : _selectedMachine!['name'] as String?,
                           items: machinesList
-                              .map((mac) => DropdownMenuItem(
-                                    value: mac,
-                                    child: Text(mac),
-                                  ))
+                              .map<DropdownMenuItem<String>>(
+                                  (mac) => DropdownMenuItem<String>(
+                                        value: mac['name'] as String,
+                                        child: Text(mac['name'] as String),
+                                      ))
                               .toList(),
                           onChanged: (String? newValue) {
                             setState(() {
-                              _machineController.text = newValue ?? '';
+                              _selectedMachine = machinesList.firstWhere(
+                                (m) => m['name'] == newValue,
+                                orElse: () => {},
+                              );
                             });
                           },
                           labelText: 'المكنة',

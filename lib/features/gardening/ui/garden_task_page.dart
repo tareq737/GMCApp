@@ -73,6 +73,12 @@ class _GardenTaskChildState extends State<GardenTaskChild> {
   List<String> workers = [];
   String? selectedWorker;
   bool _done = false;
+
+  // Track loading states
+  bool _isActivitiesLoaded = false;
+  bool _isWorkersLoaded = false;
+  bool _isDetailsLoaded = false;
+
   void calculateTotalTime() {
     try {
       final from = TimeOfDay(
@@ -112,29 +118,22 @@ class _GardenTaskChildState extends State<GardenTaskChild> {
     return '$hour:$minute';
   }
 
-  @override
-  void initState() {
-    super.initState();
-
-    // Fetch workers list
-    context
-        .read<GardeningBloc>()
-        .add(GetAllGardeningWorkers(department: 'قسم الزراعة'));
-
+  void _initializeFormData() {
     final model = widget.gardenTasksModel;
 
-    if (model != null) {
-      // Populate initial field values
+    if (model != null && _isActivitiesLoaded && _isWorkersLoaded) {
+      // Populate initial field values only when data is loaded
       selectedActivity = model.activity!.name;
-      selectedDetail = model.activity!.details;
       dateController.text = model.date ?? '';
+
       final timeFormat = DateFormat('HH:mm');
       if (model.done == true) {
         _done = true;
       } else {
         _done = false;
       }
-// Reformat time_from
+
+      // Reformat time_from
       if (model.time_from != null && model.time_from!.isNotEmpty) {
         try {
           final parsedFrom = DateFormat('HH:mm').parse(model.time_from!);
@@ -144,7 +143,7 @@ class _GardenTaskChildState extends State<GardenTaskChild> {
         }
       }
 
-// Reformat time_to
+      // Reformat time_to
       if (model.time_to != null && model.time_to!.isNotEmpty) {
         try {
           final parsedTo = DateFormat('HH:mm').parse(model.time_to!);
@@ -153,6 +152,7 @@ class _GardenTaskChildState extends State<GardenTaskChild> {
           toTimeController.text = model.time_to!;
         }
       }
+
       selectedWorker = model.worker_name;
       notesController.text = model.notes ?? '';
 
@@ -168,9 +168,34 @@ class _GardenTaskChildState extends State<GardenTaskChild> {
             .add(GetAllGardenActivitiesDetails(name: model.activity!.name!));
       }
     }
+  }
 
-    // You can also prefetch all activities if needed
-    context.read<GardeningBloc>().add(GetAllGardenActivities());
+  void _setActivityDetails(List<GardenActivitiesModel> activityDetails) {
+    setState(() {
+      gardenActivityDetails = activityDetails;
+      details = gardenActivityDetails.map((e) => e.details!.trim()).toList();
+      _isDetailsLoaded = true;
+    });
+
+    // Set selectedDetail after details are loaded
+    final model = widget.gardenTasksModel;
+    if (model != null &&
+        model.activity!.details != null &&
+        details.contains(model.activity!.details!.trim())) {
+      setState(() {
+        selectedDetail = model.activity!.details!.trim();
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Fetch workers list
+    context
+        .read<GardeningBloc>()
+        .add(GetAllGardeningWorkers(department: 'قسم الزراعة'));
   }
 
   @override
@@ -211,28 +236,13 @@ class _GardenTaskChildState extends State<GardenTaskChild> {
                 setState(() {
                   activities =
                       List<String>.from(resultList.map((e) => e.toString()));
+                  _isActivitiesLoaded = true;
                 });
+                _initializeFormData();
               } else if (resultList.isNotEmpty &&
                   resultList.first is GardenActivitiesModel) {
-                setState(() {
-                  gardenActivityDetails =
-                      List<GardenActivitiesModel>.from(resultList);
-
-                  details = gardenActivityDetails
-                      .map((e) => e.details!.trim())
-                      .toList();
-
-                  // Set selectedDetail if editing existing task
-                  if (widget.gardenTasksModel != null &&
-                      widget.gardenTasksModel!.activity!.details != null &&
-                      details.contains(
-                          widget.gardenTasksModel!.activity!.details!.trim())) {
-                    selectedDetail =
-                        widget.gardenTasksModel!.activity!.details!.trim();
-                  } else {
-                    selectedDetail = null;
-                  }
-                });
+                _setActivityDetails(
+                    List<GardenActivitiesModel>.from(resultList));
               }
             } else if (state is GetWorkerSuccess<List>) {
               final resultList = state.result;
@@ -243,7 +253,9 @@ class _GardenTaskChildState extends State<GardenTaskChild> {
                 setState(() {
                   workers =
                       List<String>.from(resultList.map((e) => e.toString()));
+                  _isWorkersLoaded = true;
                 });
+                _initializeFormData();
               }
             } else if (state is GardeningSuccess<GardenTasksModel>) {
               showSnackBar(
@@ -280,6 +292,12 @@ class _GardenTaskChildState extends State<GardenTaskChild> {
           builder: (context, state) {
             final bool isLoading = state is GardeningLoading;
 
+            // Show loader while initial data is being fetched for edit mode
+            if (widget.gardenTasksModel != null &&
+                (!_isActivitiesLoaded || !_isWorkersLoaded)) {
+              return const Center(child: Loader());
+            }
+
             return SingleChildScrollView(
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -300,6 +318,7 @@ class _GardenTaskChildState extends State<GardenTaskChild> {
                           selectedActivity = value;
                           selectedDetail = null;
                           details = [];
+                          _isDetailsLoaded = false;
                         });
 
                         // Only fire the detail event if value is not null
@@ -310,21 +329,27 @@ class _GardenTaskChildState extends State<GardenTaskChild> {
                         }
                       },
                     ),
-                    MyDropdownButton(
-                      value: selectedDetail,
-                      items: details.map((detail) {
-                        return DropdownMenuItem<String>(
-                          value: detail,
-                          child: Text(detail),
-                        );
-                      }).toList(),
-                      labelText: 'التفاصيل',
-                      onChanged: (value) {
-                        setState(() {
-                          selectedDetail = value;
-                        });
-                      },
-                    ),
+                    if (!_isDetailsLoaded && selectedActivity != null)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 8.0),
+                        child: CircularProgressIndicator(),
+                      )
+                    else
+                      MyDropdownButton(
+                        value: selectedDetail,
+                        items: details.map((detail) {
+                          return DropdownMenuItem<String>(
+                            value: detail,
+                            child: Text(detail),
+                          );
+                        }).toList(),
+                        labelText: 'التفاصيل',
+                        onChanged: (value) {
+                          setState(() {
+                            selectedDetail = value;
+                          });
+                        },
+                      ),
                     MyTextField(
                       controller: dateController,
                       readOnly: true,
@@ -433,6 +458,19 @@ class _GardenTaskChildState extends State<GardenTaskChild> {
                                   Mybutton(
                                     text: 'إضافة',
                                     onPressed: () {
+                                      // Validate required fields
+                                      if (selectedActivity == null ||
+                                          selectedDetail == null ||
+                                          dateController.text.isEmpty) {
+                                        showSnackBar(
+                                          context: context,
+                                          content:
+                                              'الرجاء ملء جميع الحقول المطلوبة',
+                                          failure: true,
+                                        );
+                                        return;
+                                      }
+
                                       // Log all available activity details for debugging
                                       for (var e in gardenActivityDetails) {
                                         print(
@@ -489,6 +527,19 @@ class _GardenTaskChildState extends State<GardenTaskChild> {
                                           showSnackBar(
                                             context: context,
                                             content: 'لا يوجد مهمة للتعديل',
+                                            failure: true,
+                                          );
+                                          return;
+                                        }
+
+                                        // Validate required fields
+                                        if (selectedActivity == null ||
+                                            selectedDetail == null ||
+                                            dateController.text.isEmpty) {
+                                          showSnackBar(
+                                            context: context,
+                                            content:
+                                                'الرجاء ملء جميع الحقول المطلوبة',
                                             failure: true,
                                           );
                                           return;

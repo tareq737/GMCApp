@@ -1,9 +1,9 @@
 import 'dart:io';
-
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gmcappclean/core/Pages/home_page_imports.dart';
+import 'package:gmcappclean/core/common/api/api.dart';
 import 'package:gmcappclean/core/common/cubits/app_user/app_user_cubit.dart';
 import 'package:gmcappclean/core/common/widgets/loader.dart';
 import 'package:gmcappclean/core/theme/app_colors.dart';
@@ -11,6 +11,7 @@ import 'package:gmcappclean/core/utils/show_snackbar.dart';
 import 'package:gmcappclean/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:gmcappclean/features/auth/presentation/widgets/auth_field.dart';
 import 'package:gmcappclean/features/auth/presentation/widgets/auth_gradient_button.dart';
+import 'package:dio/dio.dart';
 
 class SinginPage extends StatefulWidget {
   static route() => MaterialPageRoute(
@@ -28,6 +29,7 @@ class _SinginPageState extends State<SinginPage> {
   final TextEditingController passwordController = TextEditingController();
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
   String? fcmToken;
+
   @override
   void initState() {
     super.initState();
@@ -61,11 +63,17 @@ class _SinginPageState extends State<SinginPage> {
   void getToken() async {
     if (!Platform.isWindows) {
       String? token = await _messaging.getToken();
-      if (!mounted) return; // Prevent setState after dispose
+      if (!mounted) return;
+
       setState(() {
         fcmToken = token;
       });
       print('🔑 FCM Token: $fcmToken');
+
+      if (token != null && token.isNotEmpty) {
+        final apiClient = ApiClient(dio: Dio());
+        await apiClient.clearFcmToken(token);
+      }
     }
   }
 
@@ -86,7 +94,6 @@ class _SinginPageState extends State<SinginPage> {
         textDirection: TextDirection.rtl,
         child: Scaffold(
           body: Center(
-            // Center the entire content
             child: SingleChildScrollView(
               child: Padding(
                 padding: const EdgeInsets.symmetric(

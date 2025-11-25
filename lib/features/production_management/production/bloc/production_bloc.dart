@@ -5,6 +5,7 @@ import 'package:gmcappclean/features/production_management/production/models/fin
 import 'package:gmcappclean/features/production_management/production/models/lab_model.dart';
 import 'package:gmcappclean/features/production_management/production/models/manufacturing_model.dart';
 import 'package:gmcappclean/features/production_management/production/models/packaging_model.dart';
+import 'package:gmcappclean/features/production_management/production/models/quality_control_model.dart';
 import 'package:gmcappclean/features/production_management/production/models/raw_materials_model.dart';
 import 'package:gmcappclean/features/production_management/production/services/production_services.dart';
 import 'package:meta/meta.dart';
@@ -22,6 +23,12 @@ class ProductionBloc extends Bloc<ProductionEvent, ProductionState> {
       (event, emit) async {
         var result = await _productionServices.getAllProduction(
           page: event.page,
+          date1: event.date1,
+          date2: event.date2,
+          tier: event.tier,
+          type: event.type,
+          color: event.color,
+          search: event.search,
         );
         if (result == null) {
           emit(ProductionError(errorMessage: 'Error'));
@@ -145,6 +152,17 @@ class ProductionBloc extends Bloc<ProductionEvent, ProductionState> {
         }
       },
     );
+    on<SaveQualityControl>(
+      (event, emit) async {
+        var result = await _productionServices.saveQualityControl(
+            event.qualityControlModel.id!, event.qualityControlModel);
+        if (result == null) {
+          emit(ProductionError(errorMessage: 'Error'));
+        } else {
+          emit(ProductionSuccess<QualityControlModel>(result: result));
+        }
+      },
+    );
     on<Archive>(
       (event, emit) async {
         var result = await _productionServices.archive(event.id);
@@ -206,6 +224,21 @@ class ProductionBloc extends Bloc<ProductionEvent, ProductionState> {
             totalCount: result.totalCount,
           ));
         }
+      },
+    );
+    on<GenrateQr>(
+      (event, emit) async {
+        emit(ExportLoading());
+        var result = await _productionServices.generateQr(
+            production_id: event.production_id);
+        result.fold(
+          (successBytes) {
+            emit(GenrateSuccess(result: successBytes));
+          },
+          (failure) {
+            emit(ProductionError(errorMessage: 'Error'));
+          },
+        );
       },
     );
   }

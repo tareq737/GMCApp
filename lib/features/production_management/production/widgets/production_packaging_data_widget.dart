@@ -1,9 +1,12 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first, deprecated_member_use
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gmcappclean/core/common/api/api.dart';
 import 'package:gmcappclean/core/common/cubits/app_user/app_user_cubit.dart';
+import 'package:gmcappclean/core/common/widgets/loader.dart';
 import 'package:gmcappclean/core/common/widgets/mybutton.dart';
 import 'package:gmcappclean/core/common/widgets/mytextfield.dart';
 import 'package:gmcappclean/core/services/auth_interactor.dart';
@@ -15,6 +18,8 @@ import 'package:gmcappclean/features/production_management/production/services/p
 import 'package:gmcappclean/features/production_management/production/ui/production_list.dart';
 import 'package:gmcappclean/init_dependencies.dart';
 import 'package:intl/intl.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:path_provider/path_provider.dart';
 
 class ProductionPackagingDataWidget extends StatefulWidget {
   final String type;
@@ -199,6 +204,47 @@ class _ProductionPackagingDataWidgetState
         (weight / ((space * (100 - empty)) / 1000)).toStringAsFixed(3);
   }
 
+  Future<void> _saveFile(Uint8List bytes, BuildContext context) async {
+    try {
+      final directory = await getTemporaryDirectory();
+
+      const fileName = 'QR.pdf';
+      final path = '${directory.path}\\$fileName';
+
+      final file = File(path);
+      await file.writeAsBytes(bytes);
+
+      await _showDialog(context, 'نجاح', 'تم حفظ الملف وسيتم فتحه الآن');
+
+      // Open the file
+      final result = await OpenFilex.open(path);
+
+      if (result.type != ResultType.done) {
+        await _showDialog(
+            context, 'Error', 'لم يتم فتح الملف: ${result.message}');
+      }
+    } catch (e) {
+      await _showDialog(context, 'Error', 'Failed to save/open file:\n$e');
+    }
+  }
+
+  Future<void> _showDialog(BuildContext context, String title, String message) {
+    return showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(), // Close the dialog
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     AppUserState state = context.watch<AppUserCubit>().state;
@@ -211,8 +257,8 @@ class _ProductionPackagingDataWidgetState
         authInteractor: getIt<AuthInteractor>(),
       )),
       child: Builder(builder: (context) {
-        return BlocListener<ProductionBloc, ProductionState>(
-          listener: (context, state) {
+        return BlocConsumer<ProductionBloc, ProductionState>(
+          listener: (context, state) async {
             if (state is ProductionSuccess) {
               showSnackBar(
                 context: context,
@@ -240,45 +286,82 @@ class _ProductionPackagingDataWidgetState
                 failure: true,
               );
             }
+            if (state is GenrateSuccess<Uint8List>) {
+              await _saveFile(state.result, context);
+            }
           },
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Container(
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: Colors.white,
-                  width: 1.5,
+          builder: (context, state) {
+            // Show loader when state is ExportLoading
+            if (state is ExportLoading) {
+              return const Center(
+                child: Loader(),
+              );
+            }
+
+            return Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Colors.white,
+                    width: 1.5,
+                  ),
+                  borderRadius: BorderRadius.circular(10.0),
                 ),
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(8),
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 10),
-                      const Text(
-                        'معلومات قسم التعبئة',
-                        style: TextStyle(fontSize: 20),
-                      ),
-                      const SizedBox(height: 20),
-                      LayoutBuilder(
-                        builder: (context, constraints) {
-                          final orientation =
-                              MediaQuery.of(context).orientation;
-                          if (orientation == Orientation.landscape) {
-                            return _buildLandscapeLayout(context);
-                          } else {
-                            return _buildPortraitLayout(context);
-                          }
-                        },
-                      ),
-                    ],
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 10),
+                        Row(
+                          spacing: 10,
+                          children: [
+                            const Text(
+                              'معلومات قسم التعبئة',
+                              style: TextStyle(fontSize: 20),
+                            ),
+                            Container(
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: IconButton(
+                                onPressed: () {
+                                  context.read<ProductionBloc>().add(
+                                        GenrateQr(
+                                          production_id: widget
+                                              .fullProductionModel
+                                              .packaging
+                                              .id!,
+                                        ),
+                                      );
+                                },
+                                icon: const Icon(Icons.qr_code),
+                                padding: const EdgeInsets.all(8),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            final orientation =
+                                MediaQuery.of(context).orientation;
+                            if (orientation == Orientation.landscape) {
+                              return _buildLandscapeLayout(context);
+                            } else {
+                              return _buildPortraitLayout(context);
+                            }
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-          ),
+            );
+          },
         );
       }),
     );

@@ -29,6 +29,7 @@ class MaintenanceModel {
   String? cause_of_issue;
   bool? maintenance_receive_check;
   String? maintenance_bill;
+  int? machine;
   MaintenanceModel({
     required this.id,
     this.applicant,
@@ -57,6 +58,7 @@ class MaintenanceModel {
     this.cause_of_issue,
     this.maintenance_receive_check,
     this.maintenance_bill,
+    this.machine,
   });
 
   MaintenanceModel copyWith({
@@ -87,6 +89,7 @@ class MaintenanceModel {
     String? cause_of_issue,
     bool? maintenance_receive_check,
     String? maintenance_bill,
+    int? machine,
   }) {
     return MaintenanceModel(
       id: id ?? this.id,
@@ -119,6 +122,7 @@ class MaintenanceModel {
       maintenance_receive_check:
           maintenance_receive_check ?? this.maintenance_receive_check,
       maintenance_bill: maintenance_bill ?? this.maintenance_bill,
+      machine: machine ?? this.machine,
     );
   }
 
@@ -141,16 +145,13 @@ class MaintenanceModel {
       'received': received,
       'received_notes': received_notes,
       'received_date': received_date,
-      'machine_name': machine_name,
-      'machine_code': machine_code,
       'recommended_fix': recommended_fix,
       'maintained_by': maintained_by,
       'maintenance_required_date': maintenance_required_date,
       'purchase_order': purchase_order,
-      'purchase_order_status': purchase_order_status,
       'cause_of_issue': cause_of_issue,
       'maintenance_receive_check': maintenance_receive_check,
-      'maintenance_bill': maintenance_bill,
+      'machine': machine,
     };
   }
 
@@ -209,6 +210,7 @@ class MaintenanceModel {
       maintenance_bill: map['maintenance_bill'] != null
           ? map['maintenance_bill'] as String
           : null,
+      machine: map['machine'] != null ? map['machine'] as int : null,
     );
   }
 
@@ -219,7 +221,7 @@ class MaintenanceModel {
 
   @override
   String toString() {
-    return 'MaintenanceModel(id: $id, applicant: $applicant, department: $department, reason: $reason, problem: $problem, insert_date: $insert_date, manager_check: $manager_check, manager_notes: $manager_notes, manager_check_date: $manager_check_date, start_date: $start_date, end_date: $end_date, worker: $worker, work_done: $work_done, archived: $archived, received: $received, received_notes: $received_notes, received_date: $received_date, machine_name: $machine_name, machine_code: $machine_code, recommended_fix: $recommended_fix, maintained_by: $maintained_by, maintenance_required_date: $maintenance_required_date, purchase_order: $purchase_order, purchase_order_status: $purchase_order_status, cause_of_issue: $cause_of_issue, maintenance_receive_check: $maintenance_receive_check, maintenance_bill: $maintenance_bill)';
+    return 'MaintenanceModel(id: $id, applicant: $applicant, department: $department, reason: $reason, problem: $problem, insert_date: $insert_date, manager_check: $manager_check, manager_notes: $manager_notes, manager_check_date: $manager_check_date, start_date: $start_date, end_date: $end_date, worker: $worker, work_done: $work_done, archived: $archived, received: $received, received_notes: $received_notes, received_date: $received_date, machine_name: $machine_name, machine_code: $machine_code, recommended_fix: $recommended_fix, maintained_by: $maintained_by, maintenance_required_date: $maintenance_required_date, purchase_order: $purchase_order, purchase_order_status: $purchase_order_status, cause_of_issue: $cause_of_issue, maintenance_receive_check: $maintenance_receive_check, maintenance_bill: $maintenance_bill, machine: $machine)';
   }
 
   @override
@@ -252,7 +254,8 @@ class MaintenanceModel {
         other.purchase_order_status == purchase_order_status &&
         other.cause_of_issue == cause_of_issue &&
         other.maintenance_receive_check == maintenance_receive_check &&
-        other.maintenance_bill == maintenance_bill;
+        other.maintenance_bill == maintenance_bill &&
+        other.machine == machine;
   }
 
   @override
@@ -283,6 +286,7 @@ class MaintenanceModel {
         purchase_order_status.hashCode ^
         cause_of_issue.hashCode ^
         maintenance_receive_check.hashCode ^
-        maintenance_bill.hashCode;
+        maintenance_bill.hashCode ^
+        machine.hashCode;
   }
 }

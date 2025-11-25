@@ -110,13 +110,28 @@ class _CustomersMapPageState extends State<CustomersMapPage> {
       attribution: '© OpenStreetMap contributors, HOT',
       icon: Icons.emergency,
     ),
+    MapStyleOption(
+      name: 'Carto Light',
+      url:
+          'https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png',
+      attribution: '© CartoDB',
+      icon: Icons.map,
+    ),
+    MapStyleOption(
+      name: 'Carto Dark',
+      url:
+          'https://cartodb-basemaps-a.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png',
+      attribution: '© CartoDB',
+      icon: Icons.dark_mode,
+    ),
   ];
 
   MapStyleOption _selectedMapStyle = const MapStyleOption(
-    name: 'Humanitarian',
-    url: 'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
-    attribution: '© OpenStreetMap contributors, HOT',
-    icon: Icons.emergency,
+    name: 'Carto Light',
+    url:
+        'https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png',
+    attribution: '© CartoDB',
+    icon: Icons.map,
   );
 
   @override
@@ -194,7 +209,9 @@ class _CustomersMapPageState extends State<CustomersMapPage> {
               tooltip: 'إظهار/إخفاء العملاء',
             ),
             if (groups != null &&
-                (groups.contains('admins') || groups.contains('GPS_users')))
+                (groups.contains('admins') ||
+                    groups.contains('managers') ||
+                    groups.contains('GPS_users')))
               IconButton(
                 icon: Icon(
                   _showVehicles
@@ -323,7 +340,9 @@ class _CustomersMapPageState extends State<CustomersMapPage> {
   List<Marker> _buildVehicleMarkers(List<String>? groups) {
     if (!_showVehicles) return [];
     if (groups != null &&
-        (groups.contains('admins') || groups.contains('GPS_users'))) {
+        (groups.contains('admins') ||
+            groups.contains('managers') ||
+            groups.contains('GPS_users'))) {
       return vehicles.map((vehicle) {
         String arabicName = vehicle.name.split('-').last.trim();
 

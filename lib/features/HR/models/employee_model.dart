@@ -40,6 +40,8 @@ class EmployeeModel {
   String? id_image;
   String? photo;
   String? ins_reg_image;
+  String? academic_level;
+  String? academic_major;
   EmployeeModel({
     required this.id,
     this.department_name,
@@ -79,6 +81,8 @@ class EmployeeModel {
     this.id_image,
     this.photo,
     this.ins_reg_image,
+    this.academic_level,
+    this.academic_major,
   });
 
   EmployeeModel copyWith({
@@ -120,6 +124,8 @@ class EmployeeModel {
     String? id_image,
     String? photo,
     String? ins_reg_image,
+    String? academic_level,
+    String? academic_major,
   }) {
     return EmployeeModel(
       id: id ?? this.id,
@@ -162,6 +168,8 @@ class EmployeeModel {
       id_image: id_image ?? this.id_image,
       photo: photo ?? this.photo,
       ins_reg_image: ins_reg_image ?? this.ins_reg_image,
+      academic_level: academic_level ?? this.academic_level,
+      academic_major: academic_major ?? this.academic_major,
     );
   }
 
@@ -202,6 +210,11 @@ class EmployeeModel {
       'ID_number': ID_number,
       'ins_salary': ins_salary,
       'details': details,
+      'id_image': id_image,
+      'photo': photo,
+      'ins_reg_image': ins_reg_image,
+      'academic_level': academic_level,
+      'academic_major': academic_major,
     };
   }
 
@@ -278,6 +291,12 @@ class EmployeeModel {
       photo: map['photo'] != null ? map['photo'] as String : null,
       ins_reg_image:
           map['ins_reg_image'] != null ? map['ins_reg_image'] as String : null,
+      academic_level: map['academic_level'] != null
+          ? map['academic_level'] as String
+          : null,
+      academic_major: map['academic_major'] != null
+          ? map['academic_major'] as String
+          : null,
     );
   }
 
@@ -288,7 +307,7 @@ class EmployeeModel {
 
   @override
   String toString() {
-    return 'EmployeeModel(id: $id, department_name: $department_name, finger_print_code: $finger_print_code, is_working: $is_working, father_name: $father_name, mother_name: $mother_name, first_name: $first_name, last_name: $last_name, dob: $dob, pob: $pob, locality: $locality, national_id: $national_id, nationality: $nationality, phone_number: $phone_number, address: $address, gender: $gender, marital_status: $marital_status, number_of_children: $number_of_children, smokes: $smokes, military_service: $military_service, employment_date: $employment_date, quitting_date: $quitting_date, reason_of_leave: $reason_of_leave, job_title: $job_title, job_role: $job_role, salary_type: $salary_type, local_email: $local_email, ins_number: $ins_number, ins_registration_date: $ins_registration_date, ins_cancellation_date: $ins_cancellation_date, max_admin_leaves: $max_admin_leaves, base_salary: $base_salary, ID_number: $ID_number, ins_salary: $ins_salary, details: $details, id_image: $id_image, photo: $photo, ins_reg_image: $ins_reg_image)';
+    return 'EmployeeModel(id: $id, department_name: $department_name, finger_print_code: $finger_print_code, is_working: $is_working, father_name: $father_name, mother_name: $mother_name, first_name: $first_name, last_name: $last_name, dob: $dob, pob: $pob, locality: $locality, national_id: $national_id, nationality: $nationality, phone_number: $phone_number, address: $address, gender: $gender, marital_status: $marital_status, number_of_children: $number_of_children, smokes: $smokes, military_service: $military_service, employment_date: $employment_date, quitting_date: $quitting_date, reason_of_leave: $reason_of_leave, job_title: $job_title, job_role: $job_role, salary_type: $salary_type, local_email: $local_email, ins_number: $ins_number, ins_registration_date: $ins_registration_date, ins_cancellation_date: $ins_cancellation_date, max_admin_leaves: $max_admin_leaves, base_salary: $base_salary, ID_number: $ID_number, ins_salary: $ins_salary, details: $details, id_image: $id_image, photo: $photo, ins_reg_image: $ins_reg_image, academic_level: $academic_level, academic_major: $academic_major)';
   }
 
   @override
@@ -332,7 +351,9 @@ class EmployeeModel {
         other.details == details &&
         other.id_image == id_image &&
         other.photo == photo &&
-        other.ins_reg_image == ins_reg_image;
+        other.ins_reg_image == ins_reg_image &&
+        other.academic_level == academic_level &&
+        other.academic_major == academic_major;
   }
 
   @override
@@ -374,6 +395,8 @@ class EmployeeModel {
         details.hashCode ^
         id_image.hashCode ^
         photo.hashCode ^
-        ins_reg_image.hashCode;
+        ins_reg_image.hashCode ^
+        academic_level.hashCode ^
+        academic_major.hashCode;
   }
 }

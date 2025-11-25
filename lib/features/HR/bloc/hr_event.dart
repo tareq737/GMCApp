@@ -167,3 +167,64 @@ class DeleteEmpImage extends HrEvent {
   final int id;
   DeleteEmpImage({required this.id});
 }
+
+class FetchAttendance extends HrEvent {
+  final String date;
+
+  FetchAttendance({required this.date});
+}
+
+class GetAttendanceLogs extends HrEvent {
+  final int page;
+  final String date;
+
+  GetAttendanceLogs({
+    required this.page,
+    required this.date,
+  });
+}
+
+class GetOnAttendanceLog extends HrEvent {
+  final int id;
+  GetOnAttendanceLog({required this.id});
+}
+
+class UpdateAttendanceLog extends HrEvent {
+  final String date;
+  final AttendanceLogsModel attendanceLogsModel;
+
+  UpdateAttendanceLog({required this.attendanceLogsModel, required this.date});
+}
+
+//overtime
+
+class GetOnOvertime extends HrEvent {
+  final int id;
+  GetOnOvertime({required this.id});
+}
+
+class GetOvertimes extends HrEvent {
+  final int page;
+  final bool? approve;
+  final int? employee_id;
+  final String? date1;
+  final String? date2;
+
+  GetOvertimes(
+      {required this.page,
+      required this.approve,
+      required this.employee_id,
+      required this.date1,
+      required this.date2});
+}
+
+class AddOvertime extends HrEvent {
+  final OvertimeModel overtimeModel;
+  AddOvertime({required this.overtimeModel});
+}
+
+class UpdateOvertime extends HrEvent {
+  final int id;
+  final OvertimeModel overtimeModel;
+  UpdateOvertime({required this.id, required this.overtimeModel});
+}

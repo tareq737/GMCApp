@@ -10,8 +10,10 @@ import 'package:gmcappclean/core/error/exceptions.dart';
 import 'package:gmcappclean/core/error/failures.dart';
 import 'package:gmcappclean/core/services/auth_interactor.dart';
 import 'package:gmcappclean/features/HR/models/attendance_absent_report_model.dart';
+import 'package:gmcappclean/features/HR/models/attendance_logs_model.dart';
 import 'package:gmcappclean/features/HR/models/brief_employee_model.dart';
 import 'package:gmcappclean/features/HR/models/employee_model.dart';
+import 'package:gmcappclean/features/HR/models/overtime_model.dart';
 import 'package:gmcappclean/features/HR/models/workleaves_model.dart';
 
 class HrServices {
@@ -653,6 +655,210 @@ class HrServices {
       });
     } catch (e) {
       return false;
+    }
+  }
+
+  //attendance_logs
+
+  Future fetchAttendance(
+    String date,
+  ) async {
+    try {
+      final userEntity = await getCredentials();
+      return userEntity.fold((failure) {
+        return null;
+      }, (success) async {
+        final response = await _apiClient.add(
+            userTokens: success,
+            endPoint: 'hr/fetch_attendance',
+            data: '',
+            queryParameters: {'date': date});
+        return response;
+      });
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<PageintedResult?> getAttendanceLogs({
+    required String date,
+    required int page,
+  }) async {
+    try {
+      final userEntity = await getCredentials();
+      return userEntity.fold((failure) {
+        return null;
+      }, (success) async {
+        // Build query parameters dynamically
+        final Map<String, dynamic> queryParams = {
+          'page_size': 100,
+          'page': page,
+          'date': date
+        };
+
+        // Call API
+        final paginated = await _apiClient.getPageinatedWithCount(
+          user: success,
+          endPoint: 'hr/attendance_logs',
+          queryParams: queryParams,
+        );
+
+        // Map results to models
+        final models = paginated.results
+            .map((item) => AttendanceLogsModel.fromMap(item))
+            .toList();
+
+        return PageintedResult(results: models, totalCount: paginated.count);
+      });
+    } catch (e) {
+      print('exception caught: $e');
+      return null;
+    }
+  }
+
+  Future<AttendanceLogsModel?> getOneAttendanceLogByID(
+    int id,
+  ) async {
+    try {
+      final userEntity = await getCredentials();
+      return userEntity.fold((failure) {
+        return null;
+      }, (success) async {
+        final response = await _apiClient.getById(
+          user: success,
+          endPoint: 'hr/attendance_logs',
+          id: id,
+        );
+        return AttendanceLogsModel.fromMap(response);
+      });
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<AttendanceLogsModel?> updateAttendanceLog(
+      {required String date,
+      required AttendanceLogsModel attendanceLogsModel}) async {
+    try {
+      final userEntity = await getCredentials();
+      return userEntity.fold((failure) {
+        return null;
+      }, (success) async {
+        final response = await _apiClient.add(
+          userTokens: success,
+          endPoint: 'hr/attendance_logs',
+          data: attendanceLogsModel.toJson(),
+          queryParameters: {'date': date},
+        );
+        return AttendanceLogsModel.fromMap(response);
+      });
+    } catch (e) {
+      return null;
+    }
+  }
+
+  //overtime
+
+  Future<PageintedResult?> getOvertimes({
+    required int page,
+    required bool? approve,
+    required int? employee_id,
+    required String? date1,
+    required String? date2,
+  }) async {
+    try {
+      final userEntity = await getCredentials();
+      return userEntity.fold((failure) {
+        return null;
+      }, (success) async {
+        // Build query parameters dynamically
+        final Map<String, dynamic> queryParams = {
+          'page_size': 40,
+          'page': page,
+        };
+
+        if (approve != null) queryParams['approve'] = approve;
+        if (employee_id != null) queryParams['employee_id'] = employee_id;
+        if (date1 != null && date1.isNotEmpty) queryParams['date1'] = date1;
+        if (date2 != null && date2.isNotEmpty) queryParams['date2'] = date2;
+
+        final paginated = await _apiClient.getPageinatedWithCount(
+          user: success,
+          endPoint: 'hr/overtime',
+          queryParams: queryParams,
+        );
+
+        // Map results to models
+        final models = paginated.results
+            .map((item) => OvertimeModel.fromMap(item))
+            .toList();
+
+        return PageintedResult(results: models, totalCount: paginated.count);
+      });
+    } catch (e) {
+      print('exception caught: $e');
+      return null;
+    }
+  }
+
+  Future<OvertimeModel?> getOneOvertimeByID({
+    required int id,
+  }) async {
+    try {
+      final userEntity = await getCredentials();
+      return userEntity.fold((failure) {
+        return null;
+      }, (success) async {
+        final response = await _apiClient.getById(
+          user: success,
+          endPoint: 'hr/overtime',
+          id: id,
+        );
+        return OvertimeModel.fromMap(response);
+      });
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<OvertimeModel?> addOvertime(
+      {required OvertimeModel overtimeModel}) async {
+    try {
+      final userEntity = await getCredentials();
+      return userEntity.fold((failure) {
+        return null;
+      }, (success) async {
+        final response = await _apiClient.add(
+          userTokens: success,
+          endPoint: 'hr/overtime',
+          data: overtimeModel.toJson(),
+        );
+        return OvertimeModel.fromMap(response);
+      });
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<OvertimeModel?> updateOvertime({
+    required int id,
+    required OvertimeModel overtimeModel,
+  }) async {
+    try {
+      final userEntity = await getCredentials();
+      return userEntity.fold((failure) {
+        return null;
+      }, (success) async {
+        final response = await _apiClient.updateViaPut(
+          user: success,
+          endPoint: 'hr/overtime',
+          data: overtimeModel.toJson(),
+          id: id,
+        );
+        return OvertimeModel.fromMap(response);
+      });
+    } catch (e) {
+      return null;
     }
   }
 }

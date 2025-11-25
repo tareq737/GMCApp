@@ -14,6 +14,7 @@ import 'package:gmcappclean/core/theme/app_colors.dart';
 import 'package:gmcappclean/core/theme/theme_cubit.dart';
 import 'package:gmcappclean/features/Cash%20Flow/ui/cashflow_page.dart';
 import 'package:gmcappclean/features/Exchange%20Rate/ui/rate_list_page.dart';
+import 'package:gmcappclean/features/HR/ui/attendance%20log/attendance_loge_list_page.dart';
 import 'package:gmcappclean/features/HR/ui/attendance_absent_report_page.dart';
 import 'package:gmcappclean/features/HR/ui/employees/employees_list_page.dart';
 import 'package:gmcappclean/features/HR/ui/work%20leaves/work_leaves_list_page.dart';

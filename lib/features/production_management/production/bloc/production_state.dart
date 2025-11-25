@@ -31,3 +31,11 @@ class ProductionSuccessUnArchive<T> extends ProductionState {
 
   ProductionSuccessUnArchive({required this.result});
 }
+
+class GenrateSuccess<T> extends ProductionState {
+  final T result;
+
+  GenrateSuccess({required this.result});
+}
+
+class ExportLoading extends ProductionState {}

@@ -3,7 +3,9 @@ import 'dart:typed_data';
 
 import 'package:bloc/bloc.dart';
 import 'package:gmcappclean/core/error/exceptions.dart';
+import 'package:gmcappclean/features/HR/models/attendance_logs_model.dart';
 import 'package:gmcappclean/features/HR/models/employee_model.dart';
+import 'package:gmcappclean/features/HR/models/overtime_model.dart';
 import 'package:gmcappclean/features/HR/models/workleaves_model.dart';
 import 'package:gmcappclean/features/HR/services/hr_services.dart';
 import 'package:meta/meta.dart';
@@ -340,5 +342,117 @@ class HrBloc extends Bloc<HrEvent, HrState> {
         }
       },
     );
+    on<FetchAttendance>(
+      (event, emit) async {
+        emit(HRLoading());
+        var result = await _hrServices.fetchAttendance(event.date);
+        if (result == null) {
+          emit(HRError(errorMessage: 'خطأ'));
+        } else if (result is Map && result.containsKey('message')) {
+          emit(HRSuccessFetched<String>(result: result['message']));
+        } else {
+          emit(HRSuccessFetched(result: result));
+        }
+      },
+    );
+    on<GetAttendanceLogs>(
+      (event, emit) async {
+        emit(HRLoading());
+        var result = await _hrServices.getAttendanceLogs(
+          date: event.date,
+          page: event.page,
+        );
+        if (result == null) {
+          emit(HRError(errorMessage: 'Error'));
+        } else {
+          emit(HRSuccess(result: result, totalCount: result.totalCount));
+        }
+      },
+    );
+    on<GetOnAttendanceLog>(
+      (event, emit) async {
+        emit(HRLoading());
+        var result = await _hrServices.getOneAttendanceLogByID(event.id);
+        if (result == null) {
+          emit(HRError(errorMessage: 'Error fetching  with ID: ${event.id}'));
+        } else {
+          emit(HRSuccess(result: result));
+        }
+      },
+    );
+
+    on<UpdateAttendanceLog>(
+      (event, emit) async {
+        emit(HRLoading());
+        var result = await _hrServices.updateAttendanceLog(
+          date: event.date,
+          attendanceLogsModel: event.attendanceLogsModel,
+        );
+        if (result == null) {
+          emit(HRError(errorMessage: 'Error'));
+        } else {
+          emit(HRSuccess(result: result));
+        }
+      },
+    );
+
+    //overtime
+
+    on<GetOnOvertime>(
+      (event, emit) async {
+        emit(HRLoading());
+        var result = await _hrServices.getOneOvertimeByID(id: event.id);
+        if (result == null) {
+          emit(HRError(errorMessage: 'Error fetching  with ID: ${event.id}'));
+        } else {
+          emit(HRSuccess(result: result));
+        }
+      },
+    );
+    on<GetOvertimes>(
+      (event, emit) async {
+        emit(HRLoading());
+        var result = await _hrServices.getOvertimes(
+          page: event.page,
+          approve: event.approve,
+          employee_id: event.employee_id,
+          date1: event.date1,
+          date2: event.date2,
+        );
+        if (result == null) {
+          emit(HRError(errorMessage: 'Error'));
+        } else {
+          emit(HRSuccess(result: result, totalCount: result.totalCount));
+        }
+      },
+    );
+    on<AddOvertime>((event, emit) async {
+      emit(HRLoading());
+      try {
+        final result =
+            await _hrServices.addOvertime(overtimeModel: event.overtimeModel);
+        emit(HRSuccess(result: result));
+      } on ServerException catch (e) {
+        emit(HRError(errorMessage: e.message));
+      } catch (e) {
+        emit(HRError(errorMessage: 'Unexpected error occurred: $e'));
+      }
+    });
+    on<UpdateOvertime>((event, emit) async {
+      emit(HRLoading());
+      try {
+        final result = await _hrServices.updateOvertime(
+            id: event.id, overtimeModel: event.overtimeModel);
+        if (result == null) {
+          emit(HRError(errorMessage: 'Failed to get user credentials'));
+        } else {
+          emit(HRSuccess(result: result));
+        }
+      } on ServerException catch (e) {
+        emit(HRError(errorMessage: e.message));
+      } catch (e) {
+        emit(HRError(errorMessage: 'Unexpected error occurred: $e'));
+      }
+    });
   }
 }

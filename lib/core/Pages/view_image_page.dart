@@ -10,23 +10,31 @@ class ViewImagePage extends StatelessWidget {
 
   Future<void> _saveImage(BuildContext context) async {
     try {
-      const String fileName = 'image.jpg';
+      const String defaultName = 'image.jpg';
 
-      final FileSaveLocation? file = await getSaveLocation(
-        suggestedName: fileName,
+      final FileSaveLocation? location = await getSaveLocation(
+        suggestedName: defaultName,
         acceptedTypeGroups: [
           const XTypeGroup(label: 'Images', extensions: ['jpg', 'png']),
         ],
       );
 
-      if (file == null) return;
+      if (location == null) return;
 
-      final savedFile = File(file.path);
+      String path = location.path;
+
+      // التحقق من وجود الامتداد
+      if (!path.toLowerCase().endsWith('.jpg') &&
+          !path.toLowerCase().endsWith('.png')) {
+        path = '$path.jpg'; // إضافة الامتداد الافتراضي
+      }
+
+      final savedFile = File(path);
       await savedFile.writeAsBytes(imageData);
 
       showSnackBar(
         context: context,
-        content: 'تم حفظ الصورة في: ${file.path}',
+        content: 'تم حفظ الصورة في: $path',
         failure: false,
       );
     } catch (e) {
@@ -44,11 +52,11 @@ class ViewImagePage extends StatelessWidget {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         appBar: AppBar(),
-        body: Center(
-          child: InteractiveViewer(
-            boundaryMargin: const EdgeInsets.all(1),
-            minScale: 1,
-            maxScale: 5,
+        body: InteractiveViewer(
+          boundaryMargin: const EdgeInsets.all(1),
+          minScale: 1,
+          maxScale: 5,
+          child: SizedBox.expand(
             child: Image.memory(
               imageData,
               fit: BoxFit.contain,
