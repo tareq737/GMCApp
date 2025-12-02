@@ -4,11 +4,14 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   connectivity_plus
+  desktop_window
   file_selector_windows
   firebase_core
   geolocator_windows
   printing
+  screen_retriever_windows
   url_launcher_windows
+  window_manager
   window_size
 )
 

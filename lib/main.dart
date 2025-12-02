@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -7,13 +8,14 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:gmcappclean/core/Pages/splash_page.dart';
 import 'package:gmcappclean/core/common/cubits/app_user/app_user_cubit.dart';
 import 'package:gmcappclean/core/common/log/logger_service.dart';
-import 'package:gmcappclean/features/Exchange Rate/ui/rate_list_page.dart';
+import 'package:gmcappclean/features/Exchange%20Rate/ui/rate_list_page.dart';
 import 'package:gmcappclean/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:gmcappclean/features/maintenance/UI/maintenance_list_page.dart';
 import 'package:gmcappclean/features/purchases/UI/general%20purchases/purchases_list.dart';
 import 'package:gmcappclean/features/sales_management/customers/presentation/pages/full_coustomers_page.dart';
 import 'package:gmcappclean/init_dependencies.dart';
 import 'package:gmcappclean/core/theme/theme_cubit.dart';
+import 'package:window_manager/window_manager.dart';
 
 // Global nav key
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -28,19 +30,43 @@ Future<void> main() async {
   LoggerService.redirectPrint();
   debugPrint('App Started');
   LoggerService.info('App Started from Logger');
-
+  bool firebaseInitialized = false;
+  try {
+    await Firebase.initializeApp();
+    firebaseInitialized = true;
+  } catch (e) {
+    LoggerService.warning('Firebase.initializeApp failed: $e');
+  }
   await initDependencies();
-  await Firebase.initializeApp();
-  await initializeLocalNotification();
+  if (firebaseInitialized) {
+    await initializeLocalNotification();
+    globalInitialMessage = await FirebaseMessaging.instance.getInitialMessage();
 
-  globalInitialMessage = await FirebaseMessaging.instance.getInitialMessage();
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      if (message.notification != null) {
+        showNotification(message);
+      }
+    });
+  } else {
+    LoggerService.warning(
+        'Skipping Firebase Messaging setup due to initialization failure.');
+  }
+  if (Platform.isWindows) {
+    await windowManager.ensureInitialized();
 
-  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-    if (message.notification != null) {
-      showNotification(message);
-    }
-  });
+    WindowOptions windowOptions = const WindowOptions(
+      title: 'GMC App',
+      backgroundColor: Colors.transparent,
+      // fullScreen: true,skipTaskbar: false
+    );
 
+    windowManager.waitUntilReadyToShow(windowOptions, () async {
+      await Future.delayed(const Duration(milliseconds: 250));
+      await windowManager.maximize(); // ✅ Proper maximized window
+      await windowManager.show();
+      await windowManager.focus();
+    });
+  }
   runApp(
     MultiBlocProvider(
       providers: [

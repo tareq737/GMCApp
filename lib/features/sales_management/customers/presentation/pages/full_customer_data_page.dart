@@ -576,9 +576,8 @@ class _FullCustomerDataPageState extends State<FullCustomerDataPage> {
               child: FullData(
                 appBarText: 'بيانات الزبون',
                 appBarActions: [
-                  TextButton.icon(
-                    icon: const Icon(Icons.list_alt),
-                    label: const Text("عمليات الزبون"),
+                  IconButton(
+                    color: Colors.blue,
                     onPressed: () {
                       Navigator.push(
                         context,
@@ -592,7 +591,8 @@ class _FullCustomerDataPageState extends State<FullCustomerDataPage> {
                         ),
                       );
                     },
-                  ),
+                    icon: const Icon(Icons.list_alt),
+                  )
                 ],
                 listOfData: [
                   SwitchListTile(

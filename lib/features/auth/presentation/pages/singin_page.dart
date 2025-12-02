@@ -27,26 +27,43 @@ class _SinginPageState extends State<SinginPage> {
   final formKey = GlobalKey<FormState>();
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final FirebaseMessaging _messaging = FirebaseMessaging.instance;
+
+  // Focus nodes for handling Enter key navigation
+  final FocusNode _usernameFocusNode = FocusNode();
+  final FocusNode _passwordFocusNode = FocusNode();
+
+  // Initialize to null and conditionally assign it in initState
+  FirebaseMessaging? _messaging;
   String? fcmToken;
 
   @override
   void initState() {
     super.initState();
-    requestPermission();
-    getToken();
+    // Only initialize and run Firebase-related logic if NOT Windows
+    if (!Platform.isWindows) {
+      _messaging = FirebaseMessaging.instance;
+      requestPermission();
+      getToken();
+    }
   }
 
   @override
   void dispose() {
     usernameController.dispose();
     passwordController.dispose();
+    _usernameFocusNode.dispose();
+    _passwordFocusNode.dispose();
     super.dispose();
   }
 
+  // Helper function to check if Firebase is available
+  bool get _isFirebaseEnabled => _messaging != null;
+
   void requestPermission() async {
-    if (!Platform.isWindows) {
-      NotificationSettings settings = await _messaging.requestPermission(
+    // Check added here for safety, though it should be handled in initState
+    if (_isFirebaseEnabled) {
+      // NOTE: requestPermission is now awaited on the non-null _messaging instance
+      NotificationSettings settings = await _messaging!.requestPermission(
         alert: true,
         badge: true,
         sound: true,
@@ -61,8 +78,11 @@ class _SinginPageState extends State<SinginPage> {
   }
 
   void getToken() async {
-    if (!Platform.isWindows) {
-      String? token = await _messaging.getToken();
+    // Check added here for safety, though it should be handled in initState
+    if (_isFirebaseEnabled) {
+      // NOTE: getToken is now awaited on the non-null _messaging instance
+      String? token = await _messaging!.getToken();
+
       if (!mounted) return;
 
       setState(() {
@@ -72,8 +92,39 @@ class _SinginPageState extends State<SinginPage> {
 
       if (token != null && token.isNotEmpty) {
         final apiClient = ApiClient(dio: Dio());
-        await apiClient.clearFcmToken(token);
+        // Added check for isWindows to ensure this API call also doesn't
+        // attempt to use a null token when running on Windows
+        // In a real app, you might only call this if you need to clear a token
+        if (!Platform.isWindows) {
+          await apiClient.clearFcmToken(token);
+        }
       }
+    }
+  }
+
+  void _onSignInButtonPressed(BuildContext context) {
+    if (formKey.currentState!.validate()) {
+      // If running on Windows, fcmToken will be null. Use '' as fallback.
+      final String tokenToSend = fcmToken ?? '';
+
+      context.read<AuthBloc>().add(
+            AuthSignIn(
+              username: usernameController.text.trim(),
+              password: passwordController.text.trim(),
+              fcm_token: tokenToSend,
+            ),
+          );
+    }
+  }
+
+  // Method to handle Enter key press
+  void _handleEnterKey(BuildContext context) {
+    if (_usernameFocusNode.hasFocus) {
+      // If username field is focused, move to password field
+      FocusScope.of(context).requestFocus(_passwordFocusNode);
+    } else if (_passwordFocusNode.hasFocus) {
+      // If password field is focused, submit the form
+      _onSignInButtonPressed(context);
     }
   }
 
@@ -131,28 +182,22 @@ class _SinginPageState extends State<SinginPage> {
                           AuthField(
                             hintText: 'اسم المستخدم',
                             controller: usernameController,
+                            focusNode: _usernameFocusNode,
+                            textInputAction: TextInputAction.next,
+                            onFieldSubmitted: (_) => _handleEnterKey(context),
                           ),
                           const SizedBox(height: 15),
                           AuthField(
                             hintText: 'كلمة المرور',
                             controller: passwordController,
                             isObscureText: true,
+                            focusNode: _passwordFocusNode,
+                            textInputAction: TextInputAction.done,
+                            onFieldSubmitted: (_) => _handleEnterKey(context),
                           ),
                           const SizedBox(height: 20),
                           AuthGradientButton(
-                            onPressed: () {
-                              if (formKey.currentState!.validate()) {
-                                context.read<AuthBloc>().add(
-                                      AuthSignIn(
-                                        username:
-                                            usernameController.text.trim(),
-                                        password:
-                                            passwordController.text.trim(),
-                                        fcm_token: fcmToken ?? '',
-                                      ),
-                                    );
-                              }
-                            },
+                            onPressed: () => _onSignInButtonPressed(context),
                             label: 'تسجيل دخول',
                           ),
                         ],

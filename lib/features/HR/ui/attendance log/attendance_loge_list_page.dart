@@ -146,7 +146,10 @@ class _AttendanceLogeListPageChildState
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.orange,
                 ),
-                child: const Text('استيراد'),
+                child: const Text(
+                  'استيراد',
+                  style: TextStyle(color: Colors.white),
+                ),
               ),
             ],
           ),

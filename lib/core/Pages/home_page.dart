@@ -35,6 +35,36 @@ class _HomePageState extends State<HomePage>
     super.dispose();
   }
 
+  bool isFullScreen = true;
+  Future<void> toggleWindowSize() async {
+    if (!Platform.isWindows) return;
+
+    final screens = await window_size.getScreenList();
+    if (screens.isEmpty) return;
+
+    final screenFrame = screens.first.frame;
+    final visibleFrame = screens.first.visibleFrame;
+
+    if (isFullScreen) {
+      const targetWidth = 400.0;
+
+      // Center horizontally
+      final left = visibleFrame.left + (visibleFrame.width - targetWidth) / 2;
+
+      window_size.setWindowFrame(Rect.fromLTWH(
+        left,
+        visibleFrame.top,
+        targetWidth,
+        visibleFrame.height, // usable height (no taskbar)
+      ));
+    } else {
+      // Restore maximized (full screen)
+      window_size.setWindowFrame(screenFrame);
+    }
+
+    isFullScreen = !isFullScreen;
+  }
+
   @override
   Widget build(BuildContext context) {
     bool isLandscape =
@@ -93,6 +123,9 @@ class _HomePageState extends State<HomePage>
                     case 'toggle_theme':
                       context.read<ThemeCubit>().toggleTheme();
                       break;
+                    case 'toggle_size':
+                      toggleWindowSize();
+                      break;
                   }
                 },
                 itemBuilder: (context) => [
@@ -130,6 +163,18 @@ class _HomePageState extends State<HomePage>
                       title: const Text('تبديل المظهر'),
                     ),
                   ),
+                  if (Platform.isWindows)
+                    PopupMenuItem(
+                      value: 'toggle_size',
+                      child: ListTile(
+                        leading: Icon(isFullScreen
+                            ? Icons.fullscreen_exit
+                            : Icons.fullscreen),
+                        title: Text(isFullScreen
+                            ? 'تصغير قياس التطبيق'
+                            : 'تكبير قياس التطبيق'),
+                      ),
+                    ),
                 ],
               ),
             ],
@@ -208,7 +253,7 @@ class _HomePageState extends State<HomePage>
                                           ).format(DateTime.now()),
                                         ),
                                         Text(
-                                          '//${state.opResult.hijriDay}-${state.opResult.hijiMonth}-${state.opResult.hijriYear}',
+                                          '${state.opResult.hijriDay} / ${state.opResult.hijiMonth} / ${state.opResult.hijriYear}',
                                         ),
                                         const SizedBox(height: 10),
                                         Flexible(
@@ -1268,6 +1313,29 @@ class _HomePageState extends State<HomePage>
                           ),
                         ],
                       ),
+                      if (groups != null &&
+                          (groups.contains('Sales') ||
+                              groups.contains('GPS_users') ||
+                              groups.contains('managers') ||
+                              groups.contains('admins')))
+                        ListTile(
+                          leading: SizedBox(
+                            height: 30,
+                            width: 30,
+                            child: Image.asset('assets/images/map.png'),
+                          ),
+                          title: const Text('الخريطة'),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) {
+                                  return const CustomersMapPage();
+                                },
+                              ),
+                            );
+                          },
+                        ),
                       ListTile(
                         leading: SizedBox(
                           height: 30,
@@ -1504,16 +1572,17 @@ class _VersionCheckRowState extends State<VersionCheckRow> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         const VersionText(),
-        _isChecking
-            ? const Padding(
-                padding: EdgeInsets.all(8.0),
-                child: SizedBox(width: 18, height: 18, child: Loader()),
-              )
-            : IconButton(
-                onPressed: _checkVersion,
-                icon:
-                    const Icon(Icons.refresh_rounded, color: Colors.blueAccent),
-              ),
+        if (!Platform.isWindows)
+          _isChecking
+              ? const Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: SizedBox(width: 18, height: 18, child: Loader()),
+                )
+              : IconButton(
+                  onPressed: _checkVersion,
+                  icon: const Icon(Icons.refresh_rounded,
+                      color: Colors.blueAccent),
+                ),
       ],
     );
   }

@@ -47,6 +47,7 @@ import 'package:gmcappclean/features/production_management/total_production/ui/t
 import 'package:gmcappclean/features/purchases/UI/general%20purchases/purchases_list.dart';
 import 'package:gmcappclean/features/reset_password/ui/change_password_page.dart';
 import 'package:gmcappclean/features/reset_password/ui/reset_password_page.dart';
+import 'package:gmcappclean/features/sales_management/customers/presentation/pages/customers_map_page.dart';
 import 'package:gmcappclean/features/sales_management/customers/presentation/pages/full_coustomers_page.dart';
 import 'package:gmcappclean/features/sales_management/operations/ui/new_call_page.dart';
 import 'package:gmcappclean/features/sales_management/operations/ui/new_visit_page.dart';
@@ -61,5 +62,6 @@ import 'package:intl/intl.dart';
 import 'dart:ui' as ui;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:window_size/window_size.dart' as window_size;
 
 part 'home_page.dart';
