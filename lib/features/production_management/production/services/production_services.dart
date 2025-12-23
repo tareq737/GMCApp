@@ -6,7 +6,6 @@ import 'package:gmcappclean/core/common/api/pageinted_result.dart';
 import 'package:gmcappclean/core/common/entities/user_entity.dart';
 import 'package:gmcappclean/core/error/failures.dart';
 import 'package:gmcappclean/core/services/auth_interactor.dart';
-import 'package:gmcappclean/features/production_management/production/bloc/production_bloc.dart';
 import 'package:gmcappclean/features/production_management/production/models/brief_production_model.dart';
 import 'package:gmcappclean/features/production_management/production/models/empty_packaging_model.dart';
 import 'package:gmcappclean/features/production_management/production/models/finished_goods_model.dart';
@@ -463,8 +462,48 @@ class ProductionServices {
     }
   }
 
-  Future<Either<Uint8List, Failure>> generateQr({
-    required int production_id,
+  Future<Either<Failure, String>> generateLoyaltyQr({required int id}) async {
+    try {
+      final userEntityResult = await getCredentials();
+
+      return userEntityResult.fold(
+        (failure) {
+          return Left(failure);
+        },
+        (userEntity) async {
+          try {
+            final response = await _apiClient.getOneMap(
+              endPoint: 'loyalty/generate_qr/',
+              user: userEntity,
+              queryParams: {'id': id},
+            );
+            if (response == null) {
+              return left(
+                  Failure(message: 'No response received from server.'));
+            }
+            if (response.containsKey('detail')) {
+              return right(response['detail'] as String);
+            } else {
+              return left(
+                Failure(message: 'Unexpected success response format.'),
+              );
+            }
+          } catch (e) {
+            return left(Failure(message: e.toString()));
+          }
+        },
+      );
+    } catch (e) {
+      print('Error in archive method: $e');
+      return left(Failure(message: e.toString()));
+    }
+  }
+
+  Future<Either<Uint8List, Failure>> generateLabelPdf({
+    required double length,
+    required double width,
+    required String content,
+    required String paper_size,
   }) async {
     try {
       final userEntity = await getCredentials();
@@ -476,8 +515,13 @@ class ProductionServices {
           try {
             final response = await _apiClient.downloadFile(
                 user: success,
-                endPoint: 'loyalty/generate_qr/',
-                queryParameters: {'production_id': production_id});
+                endPoint: 'generate_label_pdf',
+                queryParameters: {
+                  'length': length,
+                  'width': width,
+                  'content': content,
+                  'paper_size': paper_size,
+                });
             return left(response);
           } catch (e) {
             print('Error exporting PDF: $e');

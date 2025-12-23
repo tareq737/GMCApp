@@ -380,6 +380,48 @@ class _HomePageState extends State<HomePage>
                       ),
                       if (groups != null &&
                           (groups.contains('Sales') ||
+                              groups.contains('unrwa_students') ||
+                              groups.contains('managers') ||
+                              groups.contains('admins')))
+                        ExpansionTile(
+                          title: const Text('الاستبيانات'),
+                          leading: SizedBox(
+                            height: 30,
+                            width: 30,
+                            child: Image.asset('assets/images/surveys.png'),
+                          ),
+                          children: [
+                            if (groups.contains('unrwa_students') ||
+                                groups.contains('managers') ||
+                                groups.contains('admins'))
+                              ListTile(
+                                title: const Text('استبيان صاحب المنزل'),
+                                onTap: () {
+                                  navigateWithAnimate(
+                                      context, const ListHomeownerSurveyPage());
+                                },
+                              ),
+                            if (groups.contains('Sales') ||
+                                groups.contains('managers') ||
+                                groups.contains('admins'))
+                              ListTile(
+                                title: const Text('استبيان المبيعات'),
+                                onTap: () {
+                                  navigateWithAnimate(
+                                      context, const ListSalesSurveyPage());
+                                },
+                              ),
+                            ListTile(
+                              title: const Text('أرقام هواتف دهانة'),
+                              onTap: () {
+                                navigateWithAnimate(
+                                    context, const PaintersList());
+                              },
+                            ),
+                          ],
+                        ),
+                      if (groups != null &&
+                          (groups.contains('Sales') ||
                               groups.contains('managers') ||
                               groups.contains('admins')))
                         ExpansionTile(
@@ -393,13 +435,8 @@ class _HomePageState extends State<HomePage>
                             ListTile(
                               title: const Text('كافة الزبائن'),
                               onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        const FullCoustomersPage(),
-                                  ),
-                                );
+                                navigateWithAnimate(
+                                    context, const FullCoustomersPage());
                               },
                             ),
                             ListTile(
@@ -421,13 +458,8 @@ class _HomePageState extends State<HomePage>
                                               title: const Text('زيارة جديدة'),
                                               onTap: () {
                                                 Navigator.pop(context);
-                                                Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        const NewVisitPage(),
-                                                  ),
-                                                );
+                                                navigateWithAnimate(context,
+                                                    const NewVisitPage());
                                               },
                                             ),
                                             ListTile(
@@ -436,13 +468,8 @@ class _HomePageState extends State<HomePage>
                                               title: const Text('اتصال جديد'),
                                               onTap: () {
                                                 Navigator.pop(context);
-                                                Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        const NewCallPage(),
-                                                  ),
-                                                );
+                                                navigateWithAnimate(context,
+                                                    const NewCallPage());
                                               },
                                             ),
                                           ],
@@ -456,45 +483,28 @@ class _HomePageState extends State<HomePage>
                             ListTile(
                               title: const Text('عمليات زبون'),
                               onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) {
-                                      return const OperationsPage();
-                                    },
-                                  ),
-                                );
+                                navigateWithAnimate(
+                                    context, const OperationsPage());
                               },
                             ),
                             ListTile(
                               title: const Text('العمليات ضمن مدة'),
                               onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) {
-                                      return OperationsDatePage(
-                                        fromDate: DateFormat('yyyy-MM-dd')
-                                            .format(DateTime.now()),
-                                        toDate: DateFormat('yyyy-MM-dd')
-                                            .format(DateTime.now()),
-                                      );
-                                    },
-                                  ),
-                                );
+                                navigateWithAnimate(
+                                    context,
+                                    OperationsDatePage(
+                                      fromDate: DateFormat('yyyy-MM-dd')
+                                          .format(DateTime.now()),
+                                      toDate: DateFormat('yyyy-MM-dd')
+                                          .format(DateTime.now()),
+                                    ));
                               },
                             ),
                             ListTile(
                               title: const Text('كفاءة منتجات'),
                               onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) {
-                                      return const ProductEfficiencyListPage();
-                                    },
-                                  ),
-                                );
+                                navigateWithAnimate(
+                                    context, const ProductEfficiencyListPage());
                               },
                             ),
                           ],
@@ -865,63 +875,36 @@ class _HomePageState extends State<HomePage>
                             ListTile(
                               title: const Text('الجهوزية'),
                               onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        const FullProdPlanPage(),
-                                  ),
-                                );
+                                navigateWithAnimate(
+                                    context, const FullProdPlanPage());
                               },
                             ),
                             ListTile(
                               title: const Text('الإنتاج'),
                               onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => const ProductionList(
-                                      type: 'Production',
-                                    ),
-                                  ),
-                                );
+                                navigateWithAnimate(context,
+                                    const ProductionList(type: 'Production'));
                               },
                             ),
                             ListTile(
                               title: const Text('أرشيف الإنتاج'),
                               onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => const ProductionList(
-                                      type: 'Archive',
-                                    ),
-                                  ),
-                                );
+                                navigateWithAnimate(context,
+                                    const ProductionList(type: 'Archive'));
                               },
                             ),
                             ListTile(
                               title: const Text('الأعمال الإضافية'),
                               onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        const ListAdditionalOperationsPage(),
-                                  ),
-                                );
+                                navigateWithAnimate(context,
+                                    const ListAdditionalOperationsPage());
                               },
                             ),
                             ListTile(
                               title: const Text('عمل الموظفين'),
                               onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        const TotalProductionPage(),
-                                  ),
-                                );
+                                navigateWithAnimate(
+                                    context, const TotalProductionPage());
                               },
                             ),
                             ListTile(
@@ -1068,105 +1051,87 @@ class _HomePageState extends State<HomePage>
                                 }
 
                                 if (selectedDepartment != null) {
-                                  Navigator.push(
+                                  navigateWithAnimate(
                                     context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          ExportExcelTasksPage(
-                                        department: selectedDepartment!,
-                                        departmentDisplayName: departmentAccess[
-                                                selectedDepartment]![
-                                            'displayName']!,
-                                      ),
+                                    ExportExcelTasksPage(
+                                      department: selectedDepartment!,
+                                      departmentDisplayName: departmentAccess[
+                                          selectedDepartment]!['displayName']!,
                                     ),
                                   );
                                 }
                               },
                             ),
+                            ListTile(
+                              title: const Text('طباعة لصاقات'),
+                              onTap: () {
+                                navigateWithAnimate(
+                                    context, const GenrateLabelPdfPage());
+                              },
+                            ),
                           ],
                         ),
-                      ExpansionTile(
-                        title: const Text('HR'),
-                        leading: SizedBox(
-                          height: 30,
-                          width: 30,
-                          child: Image.asset('assets/images/hr_dep.png'),
-                        ),
-                        children: [
-                          if (groups != null &&
-                              (groups.contains('HR_manager') ||
-                                  groups.contains('managers') ||
-                                  groups.contains('admins')))
+                      if (groups != null && !groups.contains('unrwa_students'))
+                        ExpansionTile(
+                          title: const Text('HR'),
+                          leading: SizedBox(
+                            height: 30,
+                            width: 30,
+                            child: Image.asset('assets/images/hr_dep.png'),
+                          ),
+                          children: [
+                            if ((groups.contains('HR_manager') ||
+                                groups.contains('managers') ||
+                                groups.contains('admins')))
+                              ListTile(
+                                title: const Text('الموظفون'),
+                                onTap: () {
+                                  navigateWithAnimate(
+                                      context, const EmployeesListPage());
+                                },
+                              ),
+                            if ((groups.contains('HR_manager') ||
+                                groups.contains('managers') ||
+                                groups.contains('admins')))
+                              ListTile(
+                                title: const Text('جدول الدوام'),
+                                onTap: () {
+                                  navigateWithAnimate(
+                                      context, const AttendanceLogeListPage());
+                                },
+                              ),
                             ListTile(
-                              title: const Text('الموظفون'),
+                              title: const Text('الإجازات'),
                               onTap: () {
-                                Navigator.push(
+                                int? selectedProgress;
+                                if (groups?.contains('managers') ?? false) {
+                                  selectedProgress = 2;
+                                } else if (groups?.contains('HR_manager') ??
+                                    false) {
+                                  selectedProgress = 1;
+                                }
+                                navigateWithAnimate(
                                   context,
-                                  MaterialPageRoute(
-                                    builder: (context) {
-                                      return const EmployeesListPage();
-                                    },
-                                  ),
-                                );
-                              },
-                            ),
-                          if (groups != null &&
-                              (groups.contains('HR_manager') ||
-                                  groups.contains('managers') ||
-                                  groups.contains('admins')))
-                            ListTile(
-                              title: const Text('جدول الدوام'),
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) {
-                                      return const AttendanceLogeListPage();
-                                    },
-                                  ),
-                                );
-                              },
-                            ),
-                          ListTile(
-                            title: const Text('الإجازات'),
-                            onTap: () {
-                              int? selectedProgress;
-                              if (groups?.contains('managers') ?? false) {
-                                selectedProgress = 2;
-                              } else if (groups?.contains('HR_manager') ??
-                                  false) {
-                                selectedProgress = 1;
-                              }
-
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => WorkLeavesListPage(
+                                  WorkLeavesListPage(
                                     selectedProgress: selectedProgress,
                                   ),
-                                ),
-                              );
-                            },
-                          ),
-                          if (groups != null &&
-                              (groups.contains('HR_manager') ||
-                                  groups.contains('managers') ||
-                                  groups.contains('admins')))
-                            ListTile(
-                              title: const Text('الموظفين الغائبين'),
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) {
-                                      return const AttendanceAbsentReportPage();
-                                    },
-                                  ),
                                 );
                               },
                             ),
-                        ],
-                      ),
+                            if ((groups.contains('HR_manager') ||
+                                groups.contains('managers') ||
+                                groups.contains('admins')))
+                              ListTile(
+                                title: const Text('الموظفين الغائبين'),
+                                onTap: () {
+                                  navigateWithAnimate(
+                                    context,
+                                    const AttendanceAbsentReportPage(),
+                                  );
+                                },
+                              ),
+                          ],
+                        ),
                       if (groups != null &&
                           (groups.contains('Gardening') ||
                               groups.contains('managers') ||
@@ -1183,139 +1148,102 @@ class _HomePageState extends State<HomePage>
                             ListTile(
                               title: const Text('البرنامج اليومي'),
                               onTap: () {
-                                Navigator.push(
+                                navigateWithAnimate(
                                   context,
-                                  MaterialPageRoute(
-                                    builder: (context) {
-                                      return const ListGardenTasksPage();
-                                    },
-                                  ),
+                                  const ListGardenTasksPage(),
                                 );
                               },
                             ),
                             ListTile(
                               title: const Text('البرنامج العام'),
                               onTap: () {
-                                Navigator.push(
+                                navigateWithAnimate(
                                   context,
-                                  MaterialPageRoute(
-                                    builder: (context) {
-                                      return const GenralListGardenTasksPage();
-                                    },
-                                  ),
+                                  const GenralListGardenTasksPage(),
                                 );
                               },
                             ),
                             ListTile(
                               title: const Text('إضافة مهام'),
                               onTap: () {
-                                Navigator.push(
+                                navigateWithAnimate(
                                   context,
-                                  MaterialPageRoute(
-                                    builder: (context) {
-                                      return const AddGardenActivityPage();
-                                    },
-                                  ),
+                                  const AddGardenActivityPage(),
                                 );
                               },
                             ),
                           ],
                         ),
-                      ListTile(
-                        leading: SizedBox(
-                          height: 30,
-                          width: 30,
-                          child: Image.asset(
-                            'assets/images/purchases_dep.png',
+                      if (groups != null && !groups.contains('unrwa_students'))
+                        ListTile(
+                          leading: SizedBox(
+                            height: 30,
+                            width: 30,
+                            child: Image.asset(
+                              'assets/images/purchases_dep.png',
+                            ),
                           ),
-                        ),
-                        title: const Text('المشتريات'),
-                        onTap: () {
-                          if (user == 'محمد حسام عبيد') {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) {
-                                  return const PurchasesList(status: 10);
-                                },
-                              ),
-                            );
-                          } else if (user == 'أسامة عبيد') {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) {
-                                  return const PurchasesList(status: 1);
-                                },
-                              ),
-                            );
-                          } else {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) {
-                                  return const PurchasesList(status: 8);
-                                },
-                              ),
-                            );
-                          }
-                        },
-                      ),
-                      ExpansionTile(
-                        title: const Text('الصيانة'),
-                        leading: SizedBox(
-                          height: 30,
-                          width: 30,
-                          child:
-                              Image.asset('assets/images/maintenance _dep.png'),
-                        ),
-                        children: [
-                          ListTile(
-                            title: const Text('برنامج الصيانة'),
-                            onTap: () {
-                              if (user == 'أسامة عبيد') {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) {
-                                      return const MaintenanceListPage(
-                                        status: 1,
-                                      );
-                                    },
-                                  ),
-                                );
-                              } else {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) {
-                                      return const MaintenanceListPage(
-                                        status: 7,
-                                      );
-                                    },
-                                  ),
-                                );
-                              }
-                            },
-                          ),
-                          ListTile(
-                            title: const Text('سجل صيانة آلة'),
-                            onTap: () {
-                              Navigator.push(
+                          title: const Text('المشتريات'),
+                          onTap: () {
+                            if (user == 'محمد حسام عبيد') {
+                              navigateWithAnimate(
                                 context,
-                                MaterialPageRoute(
-                                  builder: (context) {
-                                    return const MachineMaintenanceLogPage();
-                                  },
-                                ),
+                                const PurchasesList(status: 10),
                               );
-                            },
+                            } else if (user == 'أسامة عبيد') {
+                              navigateWithAnimate(
+                                context,
+                                const PurchasesList(status: 1),
+                              );
+                            } else {
+                              navigateWithAnimate(
+                                context,
+                                const PurchasesList(status: 8),
+                              );
+                            }
+                          },
+                        ),
+                      if (groups != null && !groups.contains('unrwa_students'))
+                        ExpansionTile(
+                          title: const Text('الصيانة'),
+                          leading: SizedBox(
+                            height: 30,
+                            width: 30,
+                            child: Image.asset(
+                                'assets/images/maintenance _dep.png'),
                           ),
-                        ],
-                      ),
+                          children: [
+                            ListTile(
+                              title: const Text('برنامج الصيانة'),
+                              onTap: () {
+                                if (user == 'أسامة عبيد') {
+                                  navigateWithAnimate(
+                                    context,
+                                    const MaintenanceListPage(status: 1),
+                                  );
+                                } else {
+                                  navigateWithAnimate(
+                                    context,
+                                    const MaintenanceListPage(status: 7),
+                                  );
+                                }
+                              },
+                            ),
+                            ListTile(
+                              title: const Text('سجل صيانة آلة'),
+                              onTap: () {
+                                navigateWithAnimate(
+                                  context,
+                                  const MachineMaintenanceLogPage(),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
                       if (groups != null &&
                           (groups.contains('Sales') ||
                               groups.contains('GPS_users') ||
+                              groups.contains('vehicle_driver') ||
                               groups.contains('managers') ||
                               groups.contains('admins')))
                         ListTile(
@@ -1326,13 +1254,9 @@ class _HomePageState extends State<HomePage>
                           ),
                           title: const Text('الخريطة'),
                           onTap: () {
-                            Navigator.push(
+                            navigateWithAnimate(
                               context,
-                              MaterialPageRoute(
-                                builder: (context) {
-                                  return const CustomersMapPage();
-                                },
-                              ),
+                              const CustomersMapPage(),
                             );
                           },
                         ),
@@ -1344,13 +1268,9 @@ class _HomePageState extends State<HomePage>
                         ),
                         title: const Text('أسعار الصرف'),
                         onTap: () {
-                          Navigator.push(
+                          navigateWithAnimate(
                             context,
-                            MaterialPageRoute(
-                              builder: (context) {
-                                return const RateListPage();
-                              },
-                            ),
+                            const RateListPage(),
                           );
                         },
                       ),
@@ -1370,14 +1290,10 @@ class _HomePageState extends State<HomePage>
                                   color: Colors.green),
                               title: const Text('Syrian Pound'),
                               onTap: () {
-                                Navigator.push(
+                                navigateWithAnimate(
                                   context,
-                                  MaterialPageRoute(
-                                    builder: (context) {
-                                      return CashflowPage(
-                                        currency: 'SP',
-                                      );
-                                    },
+                                  CashflowPage(
+                                    currency: 'SP',
                                   ),
                                 );
                               },
@@ -1387,14 +1303,10 @@ class _HomePageState extends State<HomePage>
                                   color: Colors.green),
                               title: const Text('United States dollar'),
                               onTap: () {
-                                Navigator.push(
+                                navigateWithAnimate(
                                   context,
-                                  MaterialPageRoute(
-                                    builder: (context) {
-                                      return CashflowPage(
-                                        currency: 'USA',
-                                      );
-                                    },
+                                  CashflowPage(
+                                    currency: 'USA',
                                   ),
                                 );
                               },

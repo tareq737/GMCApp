@@ -214,3 +214,8 @@ class GetPurchasesFilter extends PurchaseEvent {
     required this.date_2,
   });
 }
+
+class MarkNonCompliant extends PurchaseEvent {
+  final int id;
+  MarkNonCompliant({required this.id});
+}

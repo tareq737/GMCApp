@@ -1,5 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first, deprecated_member_use
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -259,6 +260,13 @@ class _ProductionPackagingDataWidgetState
       child: Builder(builder: (context) {
         return BlocConsumer<ProductionBloc, ProductionState>(
           listener: (context, state) async {
+            if (state is GenrateSuccess<String>) {
+              showSnackBar(
+                context: context,
+                content: 'تم حفظ الملف ضمن سواقة التعبئة',
+                failure: false,
+              );
+            }
             if (state is ProductionSuccess) {
               showSnackBar(
                 context: context,
@@ -282,7 +290,7 @@ class _ProductionPackagingDataWidgetState
             if (state is ProductionError) {
               showSnackBar(
                 context: context,
-                content: 'حدث خطأ ما',
+                content: state.errorMessage,
                 failure: true,
               );
             }
@@ -329,11 +337,9 @@ class _ProductionPackagingDataWidgetState
                               child: IconButton(
                                 onPressed: () {
                                   context.read<ProductionBloc>().add(
-                                        GenrateQr(
-                                          production_id: widget
-                                              .fullProductionModel
-                                              .packaging
-                                              .id!,
+                                        GenerateLoyaltyQr(
+                                          id: widget.fullProductionModel
+                                              .packaging.id!,
                                         ),
                                       );
                                 },

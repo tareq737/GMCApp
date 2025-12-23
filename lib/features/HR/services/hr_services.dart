@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -671,7 +672,7 @@ class HrServices {
         final response = await _apiClient.add(
             userTokens: success,
             endPoint: 'hr/fetch_attendance',
-            data: '',
+            data: json.encode({}),
             queryParameters: {'date': date});
         return response;
       });

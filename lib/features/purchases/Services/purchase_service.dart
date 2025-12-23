@@ -863,4 +863,22 @@ class PurchaseService {
       return null;
     }
   }
+
+  Future<PurchasesModel?> markNonCompliant(int id) async {
+    try {
+      final userEntity = await getCredentials();
+      return userEntity.fold((failure) {
+        return null;
+      }, (success) async {
+        final response = await _apiClient.addById(
+          userTokens: success,
+          endPoint: 'purchases/mark_non_compliant',
+          id: id,
+        );
+        return PurchasesModel.fromMap(response);
+      });
+    } catch (e) {
+      return null;
+    }
+  }
 }

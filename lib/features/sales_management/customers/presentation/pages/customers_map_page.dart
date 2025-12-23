@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
+import 'dart:math' as math;
+import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gmcappclean/core/common/cubits/app_user/app_user_cubit.dart';
 import 'package:flutter/material.dart';
@@ -67,7 +69,6 @@ class VehicleLocation {
   }
 }
 
-// New class for Route Data
 class VehicleRoute {
   final String vehicleId;
   final String vehicleName;
@@ -77,6 +78,14 @@ class VehicleRoute {
   final double routeLength;
   final double topSpeed;
   final double avgSpeed;
+  final double fuelConsumption;
+  final double fuelCost;
+  final String stopsDuration;
+  final String drivesDuration;
+  final String engineWork;
+  final String engineIdle;
+  final double fuelConsumptionPer100km;
+  final double fuelConsumptionMpg;
 
   VehicleRoute({
     required this.vehicleId,
@@ -87,6 +96,14 @@ class VehicleRoute {
     required this.routeLength,
     required this.topSpeed,
     required this.avgSpeed,
+    required this.fuelConsumption,
+    required this.fuelCost,
+    required this.stopsDuration,
+    required this.drivesDuration,
+    required this.engineWork,
+    required this.engineIdle,
+    required this.fuelConsumptionPer100km,
+    required this.fuelConsumptionMpg,
   });
 }
 
@@ -212,14 +229,13 @@ class _CustomersMapPageState extends State<CustomersMapPage> {
   bool _showVehicles = true;
   bool _showCustomers = true;
   bool _isFetchingRoute = false;
-  bool _isRouteMode = false; // New flag for route mode
-  bool _showMyLocation = true; // New flag to show/hide my location
+  bool _isRouteMode = false;
+  bool _showMyLocation = true;
   List<CustomerBriefViewModel> customers = [];
   List<VehicleLocation> vehicles = [];
   Map<String, List<LatLng>> vehicleRoutes = {};
   Map<String, VehicleRoute> vehicleRouteHistory = {};
 
-  // Available vehicles for selection
   final Map<String, String> availableVehicles = {
     '354778341875857': '344742 - فان فوتون',
     '354778341875436': '963825 - دايو كالوس',
@@ -232,7 +248,6 @@ class _CustomersMapPageState extends State<CustomersMapPage> {
     "354778341875121": "5177807 - هونداي H1",
   };
 
-  // Route tracking variables
   String? _selectedVehicleId;
   DateTime? _selectedDate;
   VehicleRoute? _currentRoute;
@@ -299,11 +314,11 @@ class _CustomersMapPageState extends State<CustomersMapPage> {
     return groups != null &&
         (groups.contains('admins') ||
             groups.contains('managers') ||
+            groups.contains('vehicle_driver') ||
             groups.contains('Sales'));
   }
 
   String _getAppBarTitle(List<String>? groups) {
-    // Show route information if in route mode
     if (_isRouteMode && _currentRoute != null) {
       return 'مسار ${_currentRoute!.vehicleName} - ${_selectedDate?.toLocal().toString().split(' ')[0] ?? ''}';
     }
@@ -392,14 +407,10 @@ class _CustomersMapPageState extends State<CustomersMapPage> {
   Future<void> _launchNavigation(LatLng destination) async {
     final position = await _determinePosition();
     if (position == null) return;
-
-    final startLat = position.latitude;
-    final startLng = position.longitude;
     final endLat = destination.latitude;
     final endLng = destination.longitude;
-
     final url =
-        'https://www.google.com/maps/dir/?api=1&origin=$startLat,$startLng&destination=$endLat,$endLng&travelmode=driving';
+        'https://www.google.com/maps/dir/?api=1&destination=$endLat,$endLng&travelmode=driving';
 
     final uri = Uri.parse(url);
 
@@ -429,7 +440,6 @@ class _CustomersMapPageState extends State<CustomersMapPage> {
     }
   }
 
-  // New function to fetch vehicle route
   Future<void> _fetchVehicleRoute() async {
     if (_selectedVehicleId == null || _selectedDate == null) {
       showSnackBar(
@@ -468,7 +478,7 @@ class _CustomersMapPageState extends State<CustomersMapPage> {
         final data = json.decode(responseBody);
 
         debugPrint('Route response received');
-        _processRouteData(data);
+        _processRouteData(data as Map<String, dynamic>);
       } else {
         debugPrint('Failed to fetch route: ${response.statusCode}');
         showSnackBar(
@@ -497,7 +507,6 @@ class _CustomersMapPageState extends State<CustomersMapPage> {
       final stops = <RouteStop>[];
       final drives = <RouteDrive>[];
 
-      // Process route points
       if (data['route'] != null && data['route'] is List) {
         for (var point in data['route'] as List) {
           if (point is List && point.length >= 7) {
@@ -505,7 +514,7 @@ class _CustomersMapPageState extends State<CustomersMapPage> {
             final lat = double.tryParse(point[1] as String) ?? 0;
             final lng = double.tryParse(point[2] as String) ?? 0;
             final speed =
-                (point[5] is int) ? (point[5] as int).toDouble() : 0.0;
+                (point[5] is num) ? (point[5] as num).toDouble() : 0.0;
             final params = point[6] is Map<String, dynamic>
                 ? point[6] as Map<String, dynamic>
                 : {};
@@ -520,7 +529,6 @@ class _CustomersMapPageState extends State<CustomersMapPage> {
         }
       }
 
-      // Process stops
       if (data['stops'] != null && data['stops'] is List) {
         for (var stop in data['stops'] as List) {
           final startTime = DateTime.parse(stop['dt_start'] as String);
@@ -528,7 +536,7 @@ class _CustomersMapPageState extends State<CustomersMapPage> {
           final lat = double.tryParse(stop['lat'] as String) ?? 0;
           final lng = double.tryParse(stop['lng'] as String) ?? 0;
           final speed =
-              stop['speed'] is int ? (stop['speed'] as int).toDouble() : 0.0;
+              stop['speed'] is num ? (stop['speed'] as num).toDouble() : 0.0;
 
           stops.add(RouteStop(
             startTime: startTime,
@@ -540,7 +548,6 @@ class _CustomersMapPageState extends State<CustomersMapPage> {
         }
       }
 
-      // Process drives
       if (data['drives'] != null && data['drives'] is List) {
         for (var drive in data['drives'] as List) {
           final startTime = DateTime.parse(drive['dt_start'] as String);
@@ -553,11 +560,11 @@ class _CustomersMapPageState extends State<CustomersMapPage> {
             routeLength: drive['route_length'] is num
                 ? (drive['route_length'] as num).toDouble()
                 : 0.0,
-            topSpeed: drive['top_speed'] is int
-                ? (drive['top_speed'] as int).toDouble()
+            topSpeed: drive['top_speed'] is num
+                ? (drive['top_speed'] as num).toDouble()
                 : 0.0,
-            avgSpeed: drive['avg_speed'] is int
-                ? (drive['avg_speed'] as int).toDouble()
+            avgSpeed: drive['avg_speed'] is num
+                ? (drive['avg_speed'] as num).toDouble()
                 : 0.0,
           ));
         }
@@ -572,29 +579,45 @@ class _CustomersMapPageState extends State<CustomersMapPage> {
         routeLength: data['route_length'] is num
             ? (data['route_length'] as num).toDouble()
             : 0.0,
-        topSpeed: data['top_speed'] is int
-            ? (data['top_speed'] as int).toDouble()
+        topSpeed: data['top_speed'] is num
+            ? (data['top_speed'] as num).toDouble()
             : 0.0,
-        avgSpeed: data['avg_speed'] is int
-            ? (data['avg_speed'] as int).toDouble()
+        avgSpeed: data['avg_speed'] is num
+            ? (data['avg_speed'] as num).toDouble()
+            : 0.0,
+        fuelConsumption: data['fuel_consumption'] is num
+            ? (data['fuel_consumption'] as num).toDouble()
+            : 0.0,
+        fuelCost: data['fuel_cost'] is num
+            ? (data['fuel_cost'] as num).toDouble()
+            : 0.0,
+        stopsDuration: data['stops_duration'] as String? ?? 'N/A',
+        drivesDuration: data['drives_duration'] as String? ?? 'N/A',
+        engineWork: data['engine_work'] as String? ?? 'N/A',
+        engineIdle: data['engine_idle'] as String? ?? 'N/A',
+        fuelConsumptionPer100km: data['fuel_consumption_per_100km'] is num
+            ? (data['fuel_consumption_per_100km'] as num).toDouble()
+            : 0.0,
+        fuelConsumptionMpg: data['fuel_consumption_mpg'] is num
+            ? (data['fuel_consumption_mpg'] as num).toDouble()
             : 0.0,
       );
 
       setState(() {
         _currentRoute = vehicleRoute;
-        _isRouteMode = true; // Enter route mode
+        _isRouteMode = true;
         vehicleRouteHistory[_selectedVehicleId!] = vehicleRoute;
 
-        // Hide customers and vehicles in route mode
         _showCustomers = false;
         _showVehicles = false;
 
-        // Center map on route if there are points
         if (routePoints.isNotEmpty) {
           final firstPoint = routePoints.first.position;
           _mapController.move(firstPoint, 13);
         }
       });
+
+      _showRouteStatsDialog(context, vehicleRoute);
 
       showSnackBar(
         context: context,
@@ -611,17 +634,27 @@ class _CustomersMapPageState extends State<CustomersMapPage> {
     }
   }
 
-  // Function to clear route and return to normal mode
   void _clearRoute() {
     setState(() {
       _currentRoute = null;
       _isRouteMode = false;
       _selectedVehicleId = null;
+      _selectedDate = DateTime.now();
 
-      // Restore previous visibility settings
       _showCustomers = true;
       _showVehicles = true;
     });
+
+    final state = context.read<AppUserCubit>().state;
+    final groups = state is AppUserLoggedIn ? state.userEntity.groups : null;
+    final hasVehiclePermission = _hasVehiclePermission(groups);
+    if (hasVehiclePermission && _vehicleLocationTimer == null) {
+      _fetchVehicleLocations();
+      _vehicleLocationTimer =
+          Timer.periodic(const Duration(seconds: 10), (timer) {
+        _fetchVehicleLocations();
+      });
+    }
 
     showSnackBar(
       context: context,
@@ -716,7 +749,6 @@ class _CustomersMapPageState extends State<CustomersMapPage> {
     );
   }
 
-  // New function to show route selection dialog
   void _showRouteSelectionDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -729,7 +761,6 @@ class _CustomersMapPageState extends State<CustomersMapPage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Vehicle selection dropdown
                   DropdownButtonFormField<String>(
                     value: _selectedVehicleId,
                     decoration: const InputDecoration(
@@ -749,8 +780,6 @@ class _CustomersMapPageState extends State<CustomersMapPage> {
                     },
                   ),
                   const SizedBox(height: 16),
-
-                  // Date selection
                   Row(
                     children: [
                       Expanded(
@@ -805,14 +834,122 @@ class _CustomersMapPageState extends State<CustomersMapPage> {
       lastDate: DateTime.now(),
     );
     if (picked != null && picked != _selectedDate) {
-      setState(() {
-        _selectedDate = picked;
-      });
+      if (mounted) {
+        setState(() {
+          _selectedDate = picked;
+        });
+      }
     }
   }
 
+  void _showRouteStatsDialog(BuildContext context, VehicleRoute route) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return Directionality(
+          textDirection: TextDirection.rtl,
+          child: AlertDialog(
+            title: Text(
+              'ملخص مسار ${route.vehicleName}',
+              style: Theme.of(context).textTheme.titleLarge,
+              textAlign: TextAlign.center,
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildDialogRow('طول المسار:',
+                      '${route.routeLength.toStringAsFixed(2)} كم'),
+                  _buildDialogRow('أقصى سرعة:',
+                      '${route.topSpeed.toStringAsFixed(0)} كم/ساعة'),
+                  _buildDialogRow('متوسط السرعة:',
+                      '${route.avgSpeed.toStringAsFixed(0)} كم/ساعة'),
+                  _buildDialogRow('مدة التوقف:', route.stopsDuration),
+                  _buildDialogRow('مدة القيادة:', route.drivesDuration),
+                  _buildDialogRow('إجمالي وقت تشغيل المحرك:', route.engineWork),
+                  _buildDialogRow('وقت توقف المحرك (خمول):', route.engineIdle),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: const Text('إغلاق'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  double _calculateBearing(LatLng start, LatLng end) {
+    final lat1 = start.latitude * (math.pi / 180);
+    final lon1 = start.longitude * (math.pi / 180);
+    final lat2 = end.latitude * (math.pi / 180);
+    final lon2 = end.longitude * (math.pi / 180);
+
+    final dLon = lon2 - lon1;
+
+    final y = math.sin(dLon) * math.cos(lat2);
+    final x = math.cos(lat1) * math.sin(lat2) -
+        math.sin(lat1) * math.cos(lat2) * math.cos(dLon);
+
+    double bearing = math.atan2(y, x) * (180 / math.pi);
+
+    return (bearing + 360) % 360;
+  }
+
+  List<Marker> _buildRouteMarkers() {
+    final markers = <Marker>[];
+
+    if (!_isRouteMode ||
+        _currentRoute == null ||
+        _currentRoute!.points.length < 2) {
+      return markers;
+    }
+
+    final routePoints = _currentRoute!.points;
+    const int arrowInterval = 20;
+
+    for (int i = 0; i < routePoints.length - 1; i++) {
+      if (i % arrowInterval == 0) {
+        final start = routePoints[i].position;
+        final end = routePoints[i + 1].position;
+
+        final bearing = _calculateBearing(start, end);
+
+        final rotationAngle = bearing * (math.pi / 180);
+
+        markers.add(
+          Marker(
+            width: 20,
+            height: 20,
+            point: start,
+            child: Transform.rotate(
+              angle: rotationAngle,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.8),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.navigation,
+                  color: Colors.white,
+                  size: 15,
+                ),
+              ),
+            ),
+          ),
+        );
+      }
+    }
+
+    return markers;
+  }
+
   List<Marker> _buildVehicleMarkers(List<String>? groups) {
-    // Don't show vehicles in route mode
     if (_isRouteMode) return [];
     if (!_showVehicles) return [];
     if (!_hasVehiclePermission(groups)) return [];
@@ -844,8 +981,7 @@ class _CustomersMapPageState extends State<CustomersMapPage> {
   }
 
   List<Marker> _buildCustomerMarkers(
-      BuildContext context, List<String>? groups) {
-    // Don't show customers in route mode
+      BuildContext blocContext, List<String>? groups) {
     if (_isRouteMode) return [];
     if (!_showCustomers) return [];
     if (!_hasCustomerPermission(groups)) return [];
@@ -866,13 +1002,14 @@ class _CustomersMapPageState extends State<CustomersMapPage> {
             point: destination,
             child: InkWell(
               onTap: () => _showLocationDialog(
-                context: context,
+                groups: groups,
+                context: blocContext,
                 customerName: customer.customerName ?? '',
                 shopName: customer.shopName ?? '',
                 address: customer.address ?? '',
                 destination: destination,
                 onFullDetailsPressed: () {
-                  context.read<SalesBloc>().add(
+                  blocContext.read<SalesBloc>().add(
                         SalesGetById<CustomerViewModel>(id: customer.id),
                       );
                 },
@@ -889,9 +1026,7 @@ class _CustomersMapPageState extends State<CustomersMapPage> {
         .toList();
   }
 
-  // Build my location marker
   Marker? _buildMyLocationMarker() {
-    // Don't show my location if disabled or not available
     if (!_showMyLocation || _currentLocation == null) return null;
 
     return Marker(
@@ -906,11 +1041,9 @@ class _CustomersMapPageState extends State<CustomersMapPage> {
     );
   }
 
-  // Build route polylines
   List<Polyline> _buildRoutePolylines() {
     final polylines = <Polyline>[];
 
-    // Add current route if available
     if (_currentRoute != null && _currentRoute!.points.length >= 2) {
       final routePoints = _currentRoute!.points.map((p) => p.position).toList();
       polylines.add(Polyline(
@@ -922,7 +1055,6 @@ class _CustomersMapPageState extends State<CustomersMapPage> {
       ));
     }
 
-    // Add stop markers
     if (_currentRoute != null && _currentRoute!.stops.isNotEmpty) {
       for (var stop in _currentRoute!.stops) {
         polylines.add(Polyline(
@@ -943,7 +1075,14 @@ class _CustomersMapPageState extends State<CustomersMapPage> {
     required String address,
     required LatLng destination,
     required VoidCallback onFullDetailsPressed,
+    required List<String>? groups, // Add groups parameter
   }) {
+    // Check if user has permission to see full details
+    bool canSeeFullDetails = groups != null &&
+        (groups.contains('admins') ||
+            groups.contains('managers') ||
+            groups.contains('Sales'));
+
     showDialog(
       context: context,
       builder: (BuildContext dialogContext) {
@@ -975,13 +1114,15 @@ class _CustomersMapPageState extends State<CustomersMapPage> {
                   _launchNavigation(destination);
                 },
               ),
-              TextButton(
-                onPressed: () {
-                  Navigator.of(dialogContext).pop();
-                  onFullDetailsPressed();
-                },
-                child: const Text('كافة البيانات'),
-              ),
+              // Conditionally show the full details button
+              if (canSeeFullDetails)
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(dialogContext).pop();
+                    onFullDetailsPressed();
+                  },
+                  child: const Text('كافة البيانات'),
+                ),
             ],
           ),
         );
@@ -1068,113 +1209,8 @@ class _CustomersMapPageState extends State<CustomersMapPage> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final state = context.read<AppUserCubit>().state;
-    final groups = state is AppUserLoggedIn ? state.userEntity.groups : null;
-
-    final hasVehiclePermission = _hasVehiclePermission(groups);
-    final hasCustomerPermission = _hasCustomerPermission(groups);
-
-    // Start/stop vehicle location updates based on permission
-    if (hasVehiclePermission &&
-        _vehicleLocationTimer == null &&
-        !_isRouteMode) {
-      _fetchVehicleLocations();
-      _vehicleLocationTimer =
-          Timer.periodic(const Duration(seconds: 10), (timer) {
-        _fetchVehicleLocations();
-      });
-    } else if ((!hasVehiclePermission || _isRouteMode) &&
-        _vehicleLocationTimer != null) {
-      _vehicleLocationTimer?.cancel();
-      _vehicleLocationTimer = null;
-      if (!_isRouteMode) {
-        setState(() {
-          vehicles.clear();
-          vehicleRoutes.clear();
-        });
-      }
-    }
-    bool isDark = Theme.of(context).brightness == Brightness.dark;
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        extendBodyBehindAppBar: true,
-        appBar: PreferredSize(
-          preferredSize: const Size.fromHeight(kToolbarHeight),
-          child: ClipRect(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-              child: AppBar(
-                title: Text(_getAppBarTitle(groups)),
-                backgroundColor: isDark
-                    ? Colors.black.withOpacity(0.4)
-                    : Colors.white.withOpacity(0.3),
-                elevation: 0,
-                // Add clear route button when in route mode
-                actions: _isRouteMode
-                    ? [
-                        IconButton(
-                          icon: const Icon(Icons.close),
-                          onPressed: _clearRoute,
-                          tooltip: 'مسح المسار والعودة للخريطة',
-                        ),
-                      ]
-                    : null,
-              ),
-            ),
-          ),
-        ),
-        body: hasCustomerPermission
-            ? BlocProvider(
-                create: (context) => getIt<SalesBloc>()
-                  ..add(SalesGetAllPaginated<CustomerBriefViewModel>(
-                      page: 1, hasCood: 1, pageSize: 100000000)),
-                child: BlocConsumer<SalesBloc, SalesState>(
-                  listener: (context, state) {
-                    if (state is SalesOpSuccess<List<CustomerBriefViewModel>>) {
-                      setState(() {
-                        customers = state.opResult;
-                      });
-                    } else if (state is SalesOpFailure) {
-                      showSnackBar(
-                        context: context,
-                        content: 'حدث خطأ ما في جلب العملاء',
-                        failure: true,
-                      );
-                    }
-
-                    if (state is SalesOpSuccess<CustomerViewModel>) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) {
-                            return FullCustomerDataPage(
-                              customerViewModel: state.opResult,
-                            );
-                          },
-                        ),
-                      );
-                    }
-                  },
-                  builder: (context, state) {
-                    if (state is SalesOpLoading && customers.isEmpty) {
-                      return const Loader();
-                    }
-                    return _buildMapContent(
-                        hasVehiclePermission, hasCustomerPermission, groups);
-                  },
-                ),
-              )
-            : _buildMapContent(
-                hasVehiclePermission, hasCustomerPermission, groups),
-      ),
-    );
-  }
-
-  Widget _buildMapContent(bool hasVehiclePermission, bool hasCustomerPermission,
-      List<String>? groups) {
+  Widget _buildMapContent(BuildContext context, bool hasVehiclePermission,
+      bool hasCustomerPermission, List<String>? groups) {
     return Stack(
       children: [
         FlutterMap(
@@ -1182,15 +1218,18 @@ class _CustomersMapPageState extends State<CustomersMapPage> {
           options: const MapOptions(
             initialCenter: LatLng(33.5130556, 36.2919444),
             initialZoom: 10,
+            maxZoom: 18,
             interactionOptions: InteractionOptions(
               flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
             ),
           ),
           children: [
+            /// MAP TILES
             TileLayer(
               urlTemplate: _selectedMapStyle.url,
               userAgentPackageName: 'com.example.app',
             ),
+
             RichAttributionWidget(
               attributions: [
                 TextSourceAttribution(
@@ -1199,17 +1238,18 @@ class _CustomersMapPageState extends State<CustomersMapPage> {
                 ),
               ],
             ),
-            // Route polylines
+
+            /// ROUTE POLYLINES
             PolylineLayer(
               polylines: _buildRoutePolylines(),
             ),
-            // Live vehicle routes (only show in normal mode)
+
+            /// VEHICLE HISTORY POLYLINES
             PolylineLayer<Object>(
               polylines: _showVehicles && hasVehiclePermission && !_isRouteMode
                   ? vehicleRoutes.entries
                       .map((entry) {
                         if (entry.value.length < 2) return null;
-
                         return Polyline(
                           points: entry.value,
                           strokeWidth: 4.0,
@@ -1220,10 +1260,45 @@ class _CustomersMapPageState extends State<CustomersMapPage> {
                       .toList()
                   : [],
             ),
+
+            /// 👥 CLUSTERED CUSTOMERS ONLY
+            if (!_isRouteMode)
+              MarkerClusterLayerWidget(
+                options: MarkerClusterLayerOptions(
+                  maxClusterRadius: 50,
+                  size: const Size(20, 20),
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.all(50),
+                  markers: _buildCustomerMarkers(context, groups),
+                  builder: (context, clusterMarkers) {
+                    return Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        color: Colors.red,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.4),
+                            blurRadius: 6,
+                          ),
+                        ],
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        clusterMarkers.length.toString(),
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 10),
+                      ),
+                    );
+                  },
+                ),
+              ),
+
             MarkerLayer(
               markers: [
-                ..._buildCustomerMarkers(context, groups),
                 ..._buildVehicleMarkers(groups),
+                ..._buildRouteMarkers(),
                 if (_buildMyLocationMarker() != null) _buildMyLocationMarker()!,
               ],
             ),
@@ -1235,7 +1310,6 @@ class _CustomersMapPageState extends State<CustomersMapPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.end,
             children: <Widget>[
-              // Clear route button (visible only in route mode)
               if (_isRouteMode)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8.0),
@@ -1251,7 +1325,6 @@ class _CustomersMapPageState extends State<CustomersMapPage> {
                     ),
                   ),
                 ),
-              // Route tracking button
               if (hasVehiclePermission && !_isRouteMode)
                 if (hasVehiclePermission && !_isRouteMode)
                   Padding(
@@ -1280,8 +1353,7 @@ class _CustomersMapPageState extends State<CustomersMapPage> {
                             ),
                     ),
                   ),
-              // Map Style Button
-              if (!_isRouteMode) // Hide in route mode to reduce clutter
+              if (!_isRouteMode)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8.0),
                   child: FloatingActionButton(
@@ -1296,7 +1368,6 @@ class _CustomersMapPageState extends State<CustomersMapPage> {
                     ),
                   ),
                 ),
-              // Show/Hide My Location button
               Padding(
                 padding: const EdgeInsets.only(bottom: 8.0),
                 child: FloatingActionButton(
@@ -1319,7 +1390,6 @@ class _CustomersMapPageState extends State<CustomersMapPage> {
                   ),
                 ),
               ),
-              // Center on my location button
               Padding(
                 padding: const EdgeInsets.only(bottom: 8.0),
                 child: FloatingActionButton(
@@ -1371,6 +1441,140 @@ class _CustomersMapPageState extends State<CustomersMapPage> {
           ),
         ),
       ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final state = context.read<AppUserCubit>().state;
+    final groups = state is AppUserLoggedIn ? state.userEntity.groups : null;
+
+    final hasVehiclePermission = _hasVehiclePermission(groups);
+    final hasCustomerPermission = _hasCustomerPermission(groups);
+
+    if (hasVehiclePermission &&
+        _vehicleLocationTimer == null &&
+        !_isRouteMode) {
+      _fetchVehicleLocations();
+      _vehicleLocationTimer =
+          Timer.periodic(const Duration(seconds: 10), (timer) {
+        _fetchVehicleLocations();
+      });
+    } else if ((!hasVehiclePermission || _isRouteMode) &&
+        _vehicleLocationTimer != null) {
+      _vehicleLocationTimer?.cancel();
+      _vehicleLocationTimer = null;
+      if (!_isRouteMode) {
+        setState(() {
+          vehicles.clear();
+          vehicleRoutes.clear();
+        });
+      }
+    }
+    bool isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        extendBodyBehindAppBar: true,
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(kToolbarHeight),
+          child: ClipRect(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+              child: AppBar(
+                title: Text(_getAppBarTitle(groups)),
+                backgroundColor: isDark
+                    ? Colors.black.withOpacity(0.4)
+                    : Colors.white.withOpacity(0.3),
+                elevation: 0,
+                actions: _isRouteMode
+                    ? [
+                        IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: _clearRoute,
+                          tooltip: 'مسح المسار والعودة للخريطة',
+                        ),
+                      ]
+                    : null,
+              ),
+            ),
+          ),
+        ),
+        body: BlocProvider<SalesBloc>(
+          create: (blocContext) {
+            final bloc = getIt<SalesBloc>();
+            if (hasCustomerPermission) {
+              bloc.add(SalesGetAllPaginated<CustomerBriefViewModel>(
+                  page: 1, hasCood: 1, pageSize: 100000000));
+            }
+            return bloc;
+          },
+          child: Builder(
+            builder: (blocContext) {
+              if (hasCustomerPermission) {
+                return BlocConsumer<SalesBloc, SalesState>(
+                  listener: (context, state) {
+                    if (state is SalesOpSuccess<List<CustomerBriefViewModel>>) {
+                      setState(() {
+                        customers = state.opResult;
+                      });
+                    } else if (state is SalesOpFailure) {
+                      showSnackBar(
+                        context: context,
+                        content: 'حدث خطأ ما في جلب العملاء',
+                        failure: true,
+                      );
+                    }
+
+                    if (state is SalesOpSuccess<CustomerViewModel>) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) {
+                            return FullCustomerDataPage(
+                              customerViewModel: state.opResult,
+                            );
+                          },
+                        ),
+                      );
+                    }
+                  },
+                  builder: (context, state) {
+                    final isInitialLoad =
+                        state is SalesOpLoading && customers.isEmpty;
+
+                    if (isInitialLoad) {
+                      return const Loader();
+                    }
+
+                    final mapContent = _buildMapContent(context,
+                        hasVehiclePermission, hasCustomerPermission, groups);
+
+                    if (state is SalesOpLoading) {
+                      return Stack(
+                        children: [
+                          mapContent,
+                          Container(
+                            color: Colors.black54,
+                            alignment: Alignment.center,
+                            child: const Loader(),
+                          ),
+                        ],
+                      );
+                    }
+
+                    return mapContent;
+                  },
+                );
+              } else {
+                return _buildMapContent(blocContext, hasVehiclePermission,
+                    hasCustomerPermission, groups);
+              }
+            },
+          ),
+        ),
+      ),
     );
   }
 }

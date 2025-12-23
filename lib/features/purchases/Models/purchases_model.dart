@@ -51,6 +51,7 @@ class PurchasesModel {
   String? insert_offer_date;
   String? applicant_approve_date;
   int? purchase_handler;
+  bool? non_compliant;
   PurchasesModel({
     this.id,
     this.applicant,
@@ -101,6 +102,7 @@ class PurchasesModel {
     this.insert_offer_date,
     this.applicant_approve_date,
     this.purchase_handler,
+    this.non_compliant,
   });
 
   PurchasesModel copyWith({
@@ -153,6 +155,7 @@ class PurchasesModel {
     String? insert_offer_date,
     String? applicant_approve_date,
     int? purchase_handler,
+    bool? non_compliant,
   }) {
     return PurchasesModel(
       id: id ?? this.id,
@@ -205,6 +208,7 @@ class PurchasesModel {
       applicant_approve_date:
           applicant_approve_date ?? this.applicant_approve_date,
       purchase_handler: purchase_handler ?? this.purchase_handler,
+      non_compliant: non_compliant ?? this.non_compliant,
     );
   }
 
@@ -347,6 +351,8 @@ class PurchasesModel {
       purchase_handler: map['purchase_handler'] != null
           ? map['purchase_handler'] as int
           : null,
+      non_compliant:
+          map['non_compliant'] != null ? map['non_compliant'] as bool : null,
     );
   }
 
@@ -357,7 +363,7 @@ class PurchasesModel {
 
   @override
   String toString() {
-    return 'PurchasesModel(id: $id, applicant: $applicant, insert_date: $insert_date, department: $department, type: $type, details: $details, quantity: $quantity, unit: $unit, warehouse_balance: $warehouse_balance, supplier: $supplier, real_supplier: $real_supplier, manager_check: $manager_check, manager_notes: $manager_notes, manager_check_date: $manager_check_date, manager2_check: $manager2_check, manager2_notes: $manager2_notes, manager2_check_date: $manager2_check_date, height: $height, width: $width, length: $length, color: $color, country: $country, usage: $usage, last_purchased: $last_purchased, purchase_date: $purchase_date, required_date: $required_date, expected_date: $expected_date, last_price: $last_price, purchase_notes: $purchase_notes, buyer: $buyer, price: $price, offer_1: $offer_1, offer_2: $offer_2, offer_3: $offer_3, received_check: $received_check, received_check_date: $received_check_date, received_check_notes: $received_check_notes, archived: $archived, applicant_approve: $applicant_approve, bill: $bill, offer_1_image: $offer_1_image, offer_2_image: $offer_2_image, offer_3_image: $offer_3_image, datasheet_1: $datasheet_1, datasheet_2: $datasheet_2, datasheet_3: $datasheet_3, insert_offer_date: $insert_offer_date, applicant_approve_date: $applicant_approve_date, purchase_handler: $purchase_handler)';
+    return 'PurchasesModel(id: $id, applicant: $applicant, insert_date: $insert_date, department: $department, type: $type, details: $details, quantity: $quantity, unit: $unit, warehouse_balance: $warehouse_balance, supplier: $supplier, real_supplier: $real_supplier, manager_check: $manager_check, manager_notes: $manager_notes, manager_check_date: $manager_check_date, manager2_check: $manager2_check, manager2_notes: $manager2_notes, manager2_check_date: $manager2_check_date, height: $height, width: $width, length: $length, color: $color, country: $country, usage: $usage, last_purchased: $last_purchased, purchase_date: $purchase_date, required_date: $required_date, expected_date: $expected_date, last_price: $last_price, purchase_notes: $purchase_notes, buyer: $buyer, price: $price, offer_1: $offer_1, offer_2: $offer_2, offer_3: $offer_3, received_check: $received_check, received_check_date: $received_check_date, received_check_notes: $received_check_notes, archived: $archived, applicant_approve: $applicant_approve, bill: $bill, offer_1_image: $offer_1_image, offer_2_image: $offer_2_image, offer_3_image: $offer_3_image, datasheet_1: $datasheet_1, datasheet_2: $datasheet_2, datasheet_3: $datasheet_3, insert_offer_date: $insert_offer_date, applicant_approve_date: $applicant_approve_date, purchase_handler: $purchase_handler, non_compliant: $non_compliant)';
   }
 
   @override
@@ -412,7 +418,8 @@ class PurchasesModel {
         other.datasheet_3 == datasheet_3 &&
         other.insert_offer_date == insert_offer_date &&
         other.applicant_approve_date == applicant_approve_date &&
-        other.purchase_handler == purchase_handler;
+        other.purchase_handler == purchase_handler &&
+        other.non_compliant == non_compliant;
   }
 
   @override
@@ -465,6 +472,7 @@ class PurchasesModel {
         datasheet_3.hashCode ^
         insert_offer_date.hashCode ^
         applicant_approve_date.hashCode ^
-        purchase_handler.hashCode;
+        purchase_handler.hashCode ^
+        non_compliant.hashCode;
   }
 }

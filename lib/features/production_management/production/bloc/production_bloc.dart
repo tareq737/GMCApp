@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:gmcappclean/features/production_management/production/models/empty_packaging_model.dart';
@@ -226,17 +228,32 @@ class ProductionBloc extends Bloc<ProductionEvent, ProductionState> {
         }
       },
     );
-    on<GenrateQr>(
+
+    on<GenerateLoyaltyQr>(
+      (event, emit) async {
+        var result = await _productionServices.generateLoyaltyQr(id: event.id);
+        result.fold((failure) {
+          emit(ProductionError(errorMessage: failure.message));
+        }, (success) {
+          emit(GenrateSuccess<String>(result: success));
+        });
+      },
+    );
+    on<GenrateLabelPdf>(
       (event, emit) async {
         emit(ExportLoading());
-        var result = await _productionServices.generateQr(
-            production_id: event.production_id);
+        var result = await _productionServices.generateLabelPdf(
+          length: event.length,
+          width: event.width,
+          content: event.content,
+          paper_size: event.paper_size,
+        );
         result.fold(
           (successBytes) {
             emit(GenrateSuccess(result: successBytes));
           },
           (failure) {
-            emit(ProductionError(errorMessage: 'Error'));
+            emit(ProductionError(errorMessage: failure.message));
           },
         );
       },

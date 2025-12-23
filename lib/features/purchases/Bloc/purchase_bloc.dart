@@ -467,5 +467,16 @@ class PurchaseBloc extends Bloc<PurchaseEvent, PurchaseState> {
         }
       },
     );
+    on<MarkNonCompliant>(
+      (event, emit) async {
+        emit(PurchaseLoading());
+        var result = await _purchaseService.markNonCompliant(event.id);
+        if (result == null) {
+          emit(PurchaseError(errorMessage: 'Error'));
+        } else {
+          emit(PurchaseSuccess(result: result));
+        }
+      },
+    );
   }
 }

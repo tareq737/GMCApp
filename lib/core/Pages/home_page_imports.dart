@@ -12,6 +12,7 @@ import 'package:gmcappclean/core/services/auth_interactor.dart';
 import 'package:gmcappclean/core/services/version_checker.dart';
 import 'package:gmcappclean/core/theme/app_colors.dart';
 import 'package:gmcappclean/core/theme/theme_cubit.dart';
+import 'package:gmcappclean/core/utils/navigate_with_animate.dart';
 import 'package:gmcappclean/features/Cash%20Flow/ui/cashflow_page.dart';
 import 'package:gmcappclean/features/Exchange%20Rate/ui/rate_list_page.dart';
 import 'package:gmcappclean/features/HR/ui/attendance%20log/attendance_loge_list_page.dart';
@@ -40,6 +41,7 @@ import 'package:gmcappclean/features/maintenance/UI/machine_maintenance_log_page
 import 'package:gmcappclean/features/maintenance/UI/maintenance_list_page.dart';
 import 'package:gmcappclean/features/notification/ui/notify_page.dart';
 import 'package:gmcappclean/features/production_management/additional_operations/ui/list_additional_operations_page.dart';
+import 'package:gmcappclean/features/production_management/production/ui/Genrate_label_pdf_page.dart';
 import 'package:gmcappclean/features/production_management/production/ui/production_list.dart';
 import 'package:gmcappclean/features/production_management/production_ready/presentation/pages/full_prod_plan_page.dart';
 import 'package:gmcappclean/features/production_management/total_production/ui/export_excel_tasks_page.dart';
@@ -57,6 +59,9 @@ import 'package:gmcappclean/features/sales_management/product_efficiency/ui/prod
 import 'package:gmcappclean/features/statistics/bloc/statistics_bloc.dart';
 import 'package:gmcappclean/features/statistics/services/statistics_services.dart';
 import 'package:gmcappclean/features/statistics/ui/statistics_widget.dart';
+import 'package:gmcappclean/features/surveys/ui/Painters/painters_list.dart';
+import 'package:gmcappclean/features/surveys/ui/homeowner/list_homeowner_survey_page.dart';
+import 'package:gmcappclean/features/surveys/ui/sales/list_sales_survey_page.dart';
 import 'package:gmcappclean/init_dependencies.dart';
 import 'package:intl/intl.dart';
 import 'dart:ui' as ui;

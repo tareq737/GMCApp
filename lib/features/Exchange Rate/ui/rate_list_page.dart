@@ -65,7 +65,6 @@ class _RateListPageChildState extends State<RateListPageChild> {
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
-
     _fromDateController.text = DateFormat('yyyy-MM-dd')
         .format(DateTime.now().subtract(const Duration(days: 1)));
 

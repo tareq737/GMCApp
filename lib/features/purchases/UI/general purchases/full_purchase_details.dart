@@ -1478,6 +1478,83 @@ class _FullPurchaseDetailsState extends State<FullPurchaseDetails> {
                                           },
                                           text: 'حفظ ملاحظات المشتريات',
                                         ),
+                                    if (widget.status != 100)
+                                      if (groups != null &&
+                                          (groups!.contains(
+                                                  'purchase_admins') ||
+                                              groups!.contains('admins')))
+                                        if (widget
+                                                .purchasesModel.manager_check ==
+                                            true)
+                                          if (widget.purchasesModel.price !=
+                                                  "" ||
+                                              widget.purchasesModel.price !=
+                                                  null)
+                                            if (widget.purchasesModel
+                                                        .archived ==
+                                                    false ||
+                                                widget.purchasesModel
+                                                        .archived ==
+                                                    null)
+                                              Mybutton(
+                                                text:
+                                                    'مخالف السعر', // Non-Compliant Price
+                                                onPressed: () {
+                                                  // 1. Show a confirmation dialog
+                                                  showDialog(
+                                                    context: context,
+                                                    builder: (BuildContext
+                                                        dialogContext) {
+                                                      return Directionality(
+                                                        textDirection: ui
+                                                            .TextDirection.rtl,
+                                                        child: AlertDialog(
+                                                          title: const Text(
+                                                              'تأكيد الإجراء'),
+                                                          content: const Text(
+                                                            'هل أنت متأكد من أنك تريد وضع علامة "مخالف السعر" على هذا الطلب؟',
+                                                          ),
+                                                          actions: [
+                                                            TextButton(
+                                                              onPressed: () {
+                                                                Navigator.of(
+                                                                        dialogContext)
+                                                                    .pop();
+                                                              },
+                                                              child: const Text(
+                                                                  'إلغاء'),
+                                                            ),
+                                                            TextButton(
+                                                              onPressed: () {
+                                                                Navigator.of(
+                                                                        dialogContext)
+                                                                    .pop();
+
+                                                                context
+                                                                    .read<
+                                                                        PurchaseBloc>()
+                                                                    .add(
+                                                                      MarkNonCompliant(
+                                                                        id: widget
+                                                                            .purchasesModel
+                                                                            .id!,
+                                                                      ),
+                                                                    );
+                                                              },
+                                                              child: const Text(
+                                                                'تأكيد', // Confirm
+                                                                style: TextStyle(
+                                                                    color: Colors
+                                                                        .red),
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      );
+                                                    },
+                                                  );
+                                                },
+                                              )
                                   ],
                                 ),
                               ],

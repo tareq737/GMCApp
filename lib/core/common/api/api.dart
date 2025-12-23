@@ -1,28 +1,28 @@
 // ignore_for_file: avoid_print
 
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:gmcappclean/core/common/entities/user_entity.dart';
 import 'package:gmcappclean/core/common/secrets/app_secrets.dart';
 import 'package:gmcappclean/core/error/exceptions.dart';
+import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 
 class ApiClient {
   Dio dio;
   String baseURL = 'https://${AppSecrets.ip}:${AppSecrets.port}/api';
   //String baseURL = 'http://192.168.0.119/api';
   ApiClient({required this.dio}) {
-    dio.interceptors.add(
-      LogInterceptor(
-        request: true, // Log request
-        requestHeader: true, // Log request headers
-        requestBody: true, // Log request body
-        responseHeader: true, // Log response headers
-        responseBody: true, // Log response body
-        error: true,
-        logPrint: (obj) => print(obj), // Log errors
-      ),
-    );
+    dio.interceptors.add(PrettyDioLogger(
+      request: true, // Log request
+      requestHeader: true, // Log request headers
+      requestBody: true, // Log request body
+      responseHeader: true, // Log response headers
+      responseBody: true, // Log response body
+      error: true,
+      logPrint: (obj) => print(obj), // Log errors
+    ));
     dio.options.connectTimeout = const Duration(seconds: 30);
     dio.options.receiveTimeout = const Duration(seconds: 30);
   }
@@ -101,6 +101,8 @@ class ApiClient {
     Map<String, dynamic>? queryParameters,
   }) async {
     try {
+      final Map<String, dynamic> jsonData = json.decode(data);
+      final convertedData = _convertNumeralsInMap(jsonData);
       final response = await dio.post(
         '$baseURL/$endPoint',
         queryParameters: queryParameters,
@@ -110,7 +112,7 @@ class ApiClient {
             'Content-Type': 'application/json',
           },
         ),
-        data: data,
+        data: json.encode(convertedData),
       );
 
       if (response.statusCode! >= 200 && response.statusCode! < 500) {
@@ -152,6 +154,10 @@ class ApiClient {
     required int id,
   }) async {
     try {
+      dynamic convertedData = data;
+      if (data is Map<String, dynamic>) {
+        convertedData = _convertNumeralsInMap(data);
+      }
       final response = await dio.post(
         '$baseURL/$endPoint/$id',
         options: Options(
@@ -160,7 +166,7 @@ class ApiClient {
             'Content-Type': 'application/json',
           },
         ),
-        data: data,
+        data: json.encode(convertedData),
       );
 
       if (response.statusCode! >= 200 && response.statusCode! < 300) {
@@ -227,6 +233,8 @@ class ApiClient {
     required int id,
   }) async {
     try {
+      final Map<String, dynamic> jsonData = json.decode(data);
+      final convertedData = _convertNumeralsInMap(jsonData);
       final response = await dio.put(
         '$baseURL/$endPoint/$id',
         options: Options(
@@ -236,7 +244,7 @@ class ApiClient {
           },
           validateStatus: (status) => status != null,
         ),
-        data: data,
+        data: json.encode(convertedData),
       );
 
       if (response.statusCode! >= 200 && response.statusCode! < 300) {
@@ -294,6 +302,8 @@ class ApiClient {
     required int id,
   }) async {
     try {
+      final Map<String, dynamic> jsonData = json.decode(data);
+      final convertedData = _convertNumeralsInMap(jsonData);
       final response = await dio.patch(
         '$baseURL/$endPoint/$id',
         options: Options(
@@ -303,7 +313,7 @@ class ApiClient {
           },
           validateStatus: (status) => status != null,
         ),
-        data: data,
+        data: json.encode(convertedData),
       );
 
       if (response.statusCode! >= 200 && response.statusCode! < 300) {
@@ -568,7 +578,7 @@ class ApiClient {
         queryParameters: queryParams,
       );
 
-      if (response.statusCode == 200) {
+      if (response.statusCode! >= 200 && response.statusCode! < 300) {
         return response.data;
       }
       return null;
@@ -730,4 +740,40 @@ class PaginatedResponse {
   final int? count;
 
   PaginatedResponse({required this.results, this.count});
+}
+
+String convertHindiToEnglishNumerals(String input) {
+  if (input.isEmpty) return input;
+
+  // Map Hindi/Arabic numerals to English
+  const Map<String, String> numeralMap = {
+    '٠': '0', '١': '1', '٢': '2', '٣': '3', '٤': '4',
+    '٥': '5', '٦': '6', '٧': '7', '٨': '8', '٩': '9',
+    // Also handle Persian/Urdu numerals if needed
+    '۰': '0', '۱': '1', '۲': '2', '۳': '3', '۴': '4',
+    '۵': '5', '۶': '6', '۷': '7', '۸': '8', '۹': '9',
+  };
+
+  String result = '';
+  for (int i = 0; i < input.length; i++) {
+    final char = input[i];
+    result += numeralMap[char] ?? char;
+  }
+
+  return result;
+}
+
+dynamic _convertNumeralsInMap(dynamic data) {
+  if (data is String) {
+    return convertHindiToEnglishNumerals(data);
+  } else if (data is Map<String, dynamic>) {
+    final Map<String, dynamic> result = {};
+    data.forEach((key, value) {
+      result[key] = _convertNumeralsInMap(value);
+    });
+    return result;
+  } else if (data is List) {
+    return data.map((item) => _convertNumeralsInMap(item)).toList();
+  }
+  return data;
 }

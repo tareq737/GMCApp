@@ -74,6 +74,7 @@ class _PurchasesListChildState extends State<PurchasesListChild> {
     6: 'الطلبات الغير مؤرشفة وغير مستلمة',
     7: 'كافة الطلبات الغير مؤرشفة',
     8: 'كافة طلبات المشتريات',
+    11: 'الطلبات المخالفة عرض السعر مع سعر الشراء',
   };
 
   final Map<int, String> _adminItemStatus = {

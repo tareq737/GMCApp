@@ -143,9 +143,22 @@ class GetProductionFilter extends ProductionEvent {
       required this.timeliness});
 }
 
-class GenrateQr extends ProductionEvent {
-  int production_id;
-  GenrateQr({
-    required this.production_id,
+class GenerateLoyaltyQr extends ProductionEvent {
+  int id;
+  GenerateLoyaltyQr({
+    required this.id,
+  });
+}
+
+class GenrateLabelPdf extends ProductionEvent {
+  double length;
+  double width;
+  String content;
+  String paper_size;
+  GenrateLabelPdf({
+    required this.length,
+    required this.width,
+    required this.content,
+    required this.paper_size,
   });
 }

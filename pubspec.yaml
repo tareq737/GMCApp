@@ -2,7 +2,7 @@ name: gmcappclean
 description: "A new Flutter project."
 publish_to: "none"
 
-version: 2.0.79
+version: 2.0.83
 
 environment:
   sdk: ">=3.4.4 <4.0.0"
@@ -57,6 +57,10 @@ dependencies:
   screen_retriever: ^0.2.0
   latlong2: ^0.9.1
   flutter_map_marker_popup: ^8.1.0
+  percent_indicator: ^4.2.5
+  pie_chart: ^5.4.0
+  flutter_map_marker_cluster: ^8.2.2
+  pretty_dio_logger: ^1.4.0
 
 dev_dependencies:
   flutter_test:
